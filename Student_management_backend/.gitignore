@@ -1,0 +1,65 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations (optional: keep if needed in repo)
+**/migrations/
+!**/migrations/__init__.py
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+Pipfile.lock
+poetry.lock
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database (if using SQLite)
+db.sqlite3
+*.sqlite3
+
+# Media and static files
+/media/
+staticfiles/
+static/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Testing
+.tox/
+.pytest_cache/
+
+# Node.js (if frontend included)
+node_modules/
+build/
+dist/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+*.pid
+*.tar
+
+
+
