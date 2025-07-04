@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+input[type="radio"]:checked {
+  accent-color: rgb(61, 61, 193);
+}
