@@ -1,8 +1,12 @@
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment
+from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification
 from django.contrib.auth import authenticate
 
-
+class AdminLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+    
+    
 class UserSerializer(serializers.ModelSerializer):
     password=serializers.CharField(read_only=True)
     password1=serializers.CharField(write_only=True)
@@ -13,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=UserProfile
         fields=['id','username','password1','password2','role','email','password','institution_id']
-        
+        extra_kwargs = {'role': {'read_only': True}}
         
     def create(self, validated_data):
         
@@ -103,7 +107,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class AllInstitutionSerializer(serializers.Serializer):
-    
+    id=serializers.IntegerField()
     name = serializers.CharField()
     registration_id=serializers.CharField()
     type = serializers.CharField()
@@ -114,6 +118,11 @@ class AllInstitutionSerializer(serializers.Serializer):
         
         
 
+# serializers.py
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'message', 'notification_type', 'created_at','is_read']
         
         
 

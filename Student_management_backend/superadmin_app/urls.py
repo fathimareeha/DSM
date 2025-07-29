@@ -4,9 +4,10 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from django.contrib.auth import views as auth_views
 
 urlpatterns=[
+    path('login',views.AdminLoginView.as_view()),
     path('create_user/',views.CreateUserView.as_view()),
     path('delete_institutionadmin/<int:pk>',views.Institution_adminDelete.as_view()),
-    path('create_staff',views.CreateStaffView.as_view()),
+    path('create_staff',views.CreateListStaffView.as_view()),
     path('token/',ObtainAuthToken.as_view()),
     path('create_school/<int:pk>',views.CreateSchoolView.as_view()),
     path('create_college/<int:pk>',views.CreateCollegeView.as_view()),
@@ -25,5 +26,12 @@ urlpatterns=[
     path('institution_homepage',views.Institution_HomepageView.as_view()),
     path('api/password-reset/', views.PasswordResetRequestView.as_view(), name='password-reset'),
     path('api/password-reset/confirm/', views.PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+    path('institution_count',views.TotalInstitutionCountView.as_view()),
+    path('institution_detail/<int:institution_id>/',views.InstitutionDetailView.as_view()),
+    path('institution_payment/<int:institution_id>/',views.LatestPaymentReportView.as_view()),
+    path('notification',views.NotificationListView.as_view()),
+    path('mark_all_read/',views.mark_all_notifications_read),
+    path('institution_delete/<int:pk>',views.DeleteInstitutionAndAdmin.as_view()),
+    path('admin_list',views.ListInstitutionAdminsWithDetails.as_view())
    
 ]

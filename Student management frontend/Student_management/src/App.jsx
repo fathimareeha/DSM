@@ -35,6 +35,10 @@ import College_edit from './components/super_admin/forms/College_edit'
 import Edit_institutionForm from './pages/super_admin/Edit_institutionForm'
 import ForgotPassword from './components/college/Forget_password'
 import ResetPassword from './components/college/Reset_password'
+import School_detail from './components/super_admin/detail/school_detail'
+import College_details from './components/super_admin/detail/College_details'
+import { Search_provider } from './context/super_admin/Search_context'
+import Staff from './pages/super_admin/Staff'
 
 
 
@@ -46,6 +50,7 @@ function App() {
     <>
     <ToastContainer/>
      <SuperadminProvider>
+      <Search_provider>
     <Routes>
       
      
@@ -62,8 +67,11 @@ function App() {
       <Route path='college_form' element={<CollegeForm/>}/>
       <Route path='admin_form' element={<Createadmin_form/>}/>
       <Route path='create_staff' element={<Create_staff/>}/>
+      <Route path='list_staff' element={<Staff/>}/>
       <Route path='institution_form' element={<Institution_form/>}/>
-      <Route path='institutions/details' element={<Details/>}/>
+      <Route path='details/:institution_id' element={<Details/>}/>
+      <Route path='school_details/:institution_id' element={<School_detail/>}/>
+      <Route path='college_details/:institution_id' element={<College_details/>}/>
       <Route path='create_package' element={<Create_packages/>}/>
       <Route path='list_package' element={<Packages_list/>}/>
       <Route path='package_edit/:id' element={<Package_edit/>}/>
@@ -85,7 +93,9 @@ function App() {
       <Route path='institution_homepage' element={<Institution_adminHomepage/>}/>
       <Route path='dashboard_loader' element={<DashboardLoader/>}/>
     </Routes>
+    </Search_provider>
      </SuperadminProvider>
+
     </>
   )
 }

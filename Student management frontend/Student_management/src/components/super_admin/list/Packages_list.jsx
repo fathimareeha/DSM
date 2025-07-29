@@ -47,6 +47,7 @@ function Packages_list() {
             key={pkg.id}
             className="rounded-xl border p-4 shadow-md transition duration-300 bg-white"
           >
+            <h2 className="text-xl font-bold capitalize mb-2">{pkg.institution_type}</h2>
             <h2 className="text-xl font-bold capitalize mb-2">{pkg.package}</h2>
             <p className="font-semibold text-gray-700">{pkg.plan_type}</p>
             <p className="text-gray-500 mb-2">{pkg.description}</p>

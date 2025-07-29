@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
-from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer
-from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment
+from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer
+from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification
 from rest_framework import authentication,permissions,serializers
 from rest_framework.views import APIView 
 from rest_framework.authtoken.models import Token
@@ -17,7 +17,10 @@ from rest_framework import status
   # or your custom user model
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
+from .serializer import AdminLoginSerializer
+from django.db.models import Sum, F
+from rest_framework.decorators import api_view
 
 from django.contrib.auth.tokens import default_token_generator
 
@@ -37,8 +40,31 @@ class CreateUserView(generics.ListCreateAPIView):
     serializer_class=UserSerializer
     queryset=UserProfile.objects.all()
     
+    def perform_create(self, serializer):
+        serializer.save(role='institution_admin')
+    
     def get_queryset(self):
         return UserProfile.objects.filter(role="institution_admin")
+    
+
+class DeleteInstitutionAndAdmin(generics.DestroyAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+    def delete(self, request, pk):
+        try:
+            institution = Institution.objects.get(id=pk)
+            admin_profile = institution.user_object  # Get linked UserProfile
+            
+            # Delete the admin — this will auto-delete Institution due to CASCADE
+            admin_profile.delete()
+
+            return Response({"message": "Admin and Institution deleted"}, status=status.HTTP_204_NO_CONTENT)
+        
+        except Institution.DoesNotExist:
+            return Response({"error": "Institution not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)  
     
 class Institution_adminDelete(generics.DestroyAPIView):
     authentication_classes=[authentication.TokenAuthentication]
@@ -49,7 +75,7 @@ class Institution_adminDelete(generics.DestroyAPIView):
         return UserProfile.objects.filter(role="institution_admin")
     
     
-class CreateStaffView(generics.CreateAPIView):
+class CreateListStaffView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAdminUser]  # Only admins can create staff
     serializer_class = UserSerializer
@@ -57,7 +83,8 @@ class CreateStaffView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(role='staff')
 
-    
+    def get_queryset(self):
+        return UserProfile.objects.filter(role="staff")
 
 class CreateSchoolView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -168,6 +195,36 @@ class UpdateRetireveDeleteCollegeView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CollegeSerializer
     queryset = College.objects.all()
 
+# views.py
+
+
+
+class AdminLoginView(APIView):
+    def post(self, request):
+        serializer = AdminLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user is None:
+            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if  user.role !='staff' and not user.is_superuser:
+            return Response({'detail': 'You are not authorized to login here'}, status=status.HTTP_403_FORBIDDEN)
+
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'username': user.username,
+            'is_superuser': user.is_superuser,
+            'is_staff': user.is_staff
+        }, status=status.HTTP_200_OK)
+
 
 class InstitutionAdminLoginView(generics.GenericAPIView)  :
     serializer_class=InstitutionAdminLoginSerializer
@@ -194,7 +251,15 @@ class CreateListPackage(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[permissions.IsAdminUser]
     serializer_class=Subscription_packageSerializer
-    queryset=SubscriptionPackage.objects.all()
+    
+    def get_queryset(self):
+        institution_type = self.request.query_params.get('institution_type')  # e.g., ?institution_type=school
+        queryset = SubscriptionPackage.objects.all()
+        
+        if institution_type:
+            queryset = queryset.filter(institution_type=institution_type)
+        return queryset
+
     
     
     def perform_create(self, serializer):
@@ -252,35 +317,104 @@ class CheckoutView(APIView):
     
 class ListSchoolsCollegesView(APIView):
     def get(self, request):
+        # Check if ?active=true is passed in the query params
+        active_only = request.query_params.get('active') == 'true'
+
+        # Base queryset
+        school_queryset = School.objects.select_related('instution_obj__user_object')
+        college_queryset = College.objects.select_related('instution_obj__user_object')
+
+        # Apply filter if active_only is true
+        if active_only:
+            school_queryset = school_queryset.filter(is_active=True)
+            college_queryset = college_queryset.filter(is_active=True)
+
+        # Build school data
         school_data = []
-        for school in School.objects.select_related('instution_obj__user_object'):
+        for school in school_queryset:
             user = school.instution_obj.user_object
             school_data.append({
-                
                 "name": school.school_name,
                 "registration_id": school.registration_id,
                 "type": "school",
                 "is_active": school.is_active,
                 "username": user.username,
+                "admin_id":user.id,
                 "email": user.email,
+                "phone":school.phone_number,
+                "id":school.instution_obj.id
             })
 
+        # Build college data
         college_data = []
-        for college in College.objects.select_related('instution_obj__user_object'):
+        for college in college_queryset:
             user = college.instution_obj.user_object
             college_data.append({
-                
                 "name": college.college_name,
                 "registration_id": college.registration_id,
                 "type": "college",
                 "is_active": college.is_active,
                 "username": user.username,
                 "email": user.email,
+                "phone":college.phone_number,
+                "id":college.instution_obj.id
             })
 
+        # Combine and return
         combined_data = school_data + college_data
-        serializer = AllInstitutionSerializer(combined_data, many=True)
-        return Response(serializer.data)
+        return Response(combined_data)
+    
+class ListInstitutionAdminsWithDetails(APIView):
+    def get(self, request):
+        institutions = Institution.objects.select_related('user_object').all()
+        results = []
+
+        for institution in institutions:
+            admin = institution.user_object
+
+            school = School.objects.filter(instution_obj=institution).first()
+            college = College.objects.filter(instution_obj=institution).first()
+
+            institution_type = None
+            if school:
+                institution_type = 'School'
+            elif college:
+                institution_type = 'College'
+            else:
+                institution_type = 'Not Registered'
+
+            data = {
+                "admin_id": admin.id,
+                "admin_username": admin.username,
+                "admin_email": admin.email,
+                "institution_id": institution.id,
+                "institution_created": institution.created_date,
+                "institution_updated": institution.updated_date,
+                "institution_type": institution_type,
+                "school": None,
+                "college": None
+            }
+
+            if school:
+                data["school"] = {
+                    "name": school.school_name,
+                    "registration_id": school.registration_id,
+                    "is_active": school.is_active,
+                    "phone": school.phone_number
+                }
+
+            if college:
+                data["college"] = {
+                    "name": college.college_name,
+                    "registration_id": college.registration_id,
+                    "is_active": college.is_active,
+                    "phone": college.phone_number
+                }
+
+            results.append(data)
+
+        return Response(results)
+        
         
         
 class PaymentVerifyView(APIView):
@@ -311,7 +445,8 @@ class PaymentVerifyView(APIView):
                 end_date=end_date)
             
                   #Activate the correct institution (school or college)
-            institution = request.user.institution
+            institution = Institution.objects.get(user_object=request.user)
+
         
             school = School.objects.filter(instution_obj=institution).first()
             college = College.objects.filter(instution_obj=institution).first()
@@ -325,7 +460,26 @@ class PaymentVerifyView(APIView):
                 college.activation_date=activation_date
                 college.save()
                     
-                        
+            try:
+                institution_name = None
+                if school:
+                    institution_name = school.school_name
+                elif college:
+                    institution_name = college.college_name
+                else:
+                    institution_name = f"Institution {institution.id}"
+
+                Notification.objects.create(
+                    institution=institution,
+                    notification_type='payment_done',
+                    title="Payment Received",
+                    message=f"A payment has been received for '{institution_name}'."
+                )
+                print("✅ Notification created")
+            except Exception as e:
+                print("❌ Notification creation failed:", e)
+
+                            
         except:
             print("failure")
         
@@ -358,11 +512,22 @@ class DeactivateView(APIView):
             if today > trial_end and not latest_payment:
                 school.is_active = False
                 school.save()
-                print("expired",school)
+
+                Notification.objects.get_or_create(
+                    institution=institution,
+                    notification_type='trial_expired',
+                    title="Trial Expired",
+                    message=f"The trial period for school '{school.school_name}' has expired.",
+                    is_read=False
+                )
+
                 return Response({"trial_status": "expired", "type": "school"}, status=200)
 
 
             if school.activation_date and school.is_active and latest_payment:
+                Notification.objects.filter(
+                institution=institution,
+                notification_type__in=['trial_expired','payment_due']).delete()
                 expiry_date = None
                 if latest_payment.package_obj.plan_type == 'monthly':
                     expiry_date = school.activation_date + timedelta(minutes=3)  # change to days=30 for real
@@ -374,8 +539,16 @@ class DeactivateView(APIView):
                     print("yearly",expiry_date)
                 if expiry_date and today > expiry_date:
                     school.is_active = False
-                    print("working")
                     school.save()
+
+                    Notification.objects.get_or_create(
+                        institution=institution,
+                        notification_type='payment_due',
+                        title="Subscription Expired",
+                        message=f"The subscription for school '{school.school_name}' has expired.",
+                        is_read=False
+                    )
+
                     return Response({"trial_status": "expired", "type": "school", "reason": "subscription_expired"}, status=200)
 
         # College check
@@ -385,9 +558,22 @@ class DeactivateView(APIView):
             if today > trial_end and not latest_payment:
                 college.is_active = False
                 college.save()
+
+                Notification.objects.get_or_create(
+                    institution=institution,
+                    notification_type='trial_expired',
+                    title="Trial Expired",
+                    message=f"The trial period for college '{college.college_name}' has expired.",
+                    is_read=False
+                )
+
                 return Response({"trial_status": "expired", "type": "college"}, status=200)
 
             if college.activation_date and college.is_active and latest_payment:
+                Notification.objects.filter(
+                institution=institution,
+                notification_type__in=['trial_expired','payment_due']
+                ).delete()
                 expiry_date = None
                 if latest_payment.package_obj.plan_type == 'monthly':
                     expiry_date = college.activation_date + timedelta(days=30)
@@ -397,15 +583,45 @@ class DeactivateView(APIView):
                 if expiry_date and today > expiry_date:
                     college.is_active = False
                     college.save()
+
+                    Notification.objects.get_or_create(
+                        institution=institution,
+                        notification_type='payment_due',
+                        title="Subscription Expired",
+                        message=f"The subscription for college '{college.college_name}' has expired.",
+                        is_read=False
+                    )
+
                     return Response({"trial_status": "expired", "type": "college", "reason": "subscription_expired"}, status=200)
-                
+
                 
         if school and not school.is_active:
                 return Response({"trial_status": "expired", "type": "school", "reason": "already_deactivated"}, status=200)
         if college and not college.is_active:
                 return Response({"trial_status": "expired", "type": "college", "reason": "already_deactivated"}, status=200)
             
-        return Response({"trial_status": "valid"}, status=200)
+        unread_count = Notification.objects.filter(is_read=False).count()
+        print("🔴 Unread Notification Count:", unread_count)
+   
+        return Response({"trial_status": "valid","unread_notifications_global": unread_count}, status=200)
+
+@api_view(['POST'])
+
+def mark_all_notifications_read(request):
+    Notification.objects.filter(is_read=False).update(is_read=True)
+    return Response({'status': 'All notifications marked as read'})
+
+class NotificationListView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_superuser:
+            return Response({"error": "Unauthorized"}, status=403)
+
+        notifications = Notification.objects.all().order_by('-created_at')[:50]  # latest 50
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
 
     
     
@@ -489,3 +705,161 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({"detail": "Password reset successful."}, status=200)
+
+
+
+
+class TotalInstitutionCountView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        school_count = School.objects.count()
+        college_count = College.objects.count()
+        total_institution_count = school_count + college_count
+        
+        active_school_count = School.objects.filter(is_active=True).count()
+        inactive_school_count= School.objects.filter(is_active=False).count()
+        active_college_count = College.objects.filter(is_active=True).count()
+        inactive_college_count=College.objects.filter(is_active=False).count()
+        total_inactive_institution_count=inactive_school_count+inactive_college_count
+        total_active_institution_count = active_school_count + active_college_count
+        
+        total_amount_paid = Payment.objects.filter(is_paid=True).aggregate(
+            total_amount=Sum(F('package_obj__price'))
+        )['total_amount'] or 0
+        
+        staff_count=User.objects.filter(role='staff').count()
+
+        return Response({
+            "total_schools": school_count,
+            "total_colleges": college_count,
+            "total_institutions": total_institution_count,
+            "active_school_count":active_school_count,
+            "active_college_count":active_college_count,
+            "total_active_institution_count":total_active_institution_count,
+            'inactive_school_count':inactive_school_count,
+            'inactive_college_count':inactive_college_count,
+            'total_inactive_institution_count':total_inactive_institution_count,
+            'total_amount':float(total_amount_paid),
+            'staff_count':staff_count
+        })
+        
+    
+class InstitutionDetailView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, institution_id):
+        try:
+            institution = Institution.objects.get(id=institution_id)
+            user = institution.user_object  # This gives username/email
+
+            school = School.objects.filter(instution_obj=institution).first()
+            college = College.objects.filter(instution_obj=institution).first()
+
+            if school:
+                school_data = SchoolSerializer(school).data
+                school_data['type'] = 'school'
+                school_data['username'] = user.username
+                school_data['email'] = user.email
+                return Response(school_data)
+
+            elif college:
+                college_data = CollegeSerializer(college).data
+                college_data['type'] = 'college'
+                college_data['username'] = user.username
+                college_data['email'] = user.email
+                return Response(college_data)
+
+            else:
+                return Response({"detail": "No school or college found for this institution"})
+
+        except Institution.DoesNotExist:
+            return Response({"detail": "Institution not found"})
+
+class LatestPaymentReportView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, institution_id):
+        try:
+            # Get institution object
+            institution = get_object_or_404(Institution, id=institution_id)
+
+            # Get the admin user associated with the institution
+            user = UserProfile.objects.filter(institution=institution, role="institution_admin").first()
+            if not user:
+                return Response({"detail": "Institution admin user not found."}, status=404)
+
+            # Get the latest paid payment
+            latest_payment = (
+                Payment.objects
+                .filter(user_obj=user, is_paid=True)
+                .select_related('user_obj', 'package_obj')
+                .order_by('-start_date')
+                .first()
+            )
+
+            # Get school/college info
+            school = School.objects.filter(instution_obj=institution).first()
+            college = College.objects.filter(instution_obj=institution).first()
+
+            if not latest_payment:
+                # Default fallback values
+                institution_type = None
+                institution_name = None
+                registration_id = None
+                created_date = None
+
+                if school:
+                    institution_type = 'school'
+                    institution_name = school.school_name
+                    registration_id = school.registration_id
+                    created_date = school.created_date
+                elif college:
+                    institution_type = 'college'
+                    institution_name = college.college_name
+                    registration_id = college.registration_id
+                    created_date = college.created_date
+                else:
+                    return Response({"detail": "Institution not found."}, status=404)
+
+                # Trial logic
+                trial_expiry = created_date + timedelta(minutes=4)
+                if timezone.now() <= trial_expiry:
+                    return Response({
+                        "institution_id": institution.id,
+                        "institution_type": institution_type,
+                        "institution_name": institution_name,
+                        "registration_id": registration_id,
+                        "username": user.username,
+                        "email": user.email,
+                        "payment_status": "trial",
+                        "start_date": created_date,
+                        "end_date": trial_expiry,
+                        "is_paid": False
+                    }, status=200)
+
+                return Response({"detail": "No paid payment found and trial expired."}, status=404)
+
+            # Paid user details
+            data = {
+                "institution_id": institution.id,
+                "institution_type": "school" if school else "college" if college else "unknown",
+                "institution_name": school.school_name if school else college.college_name if college else "N/A",
+                "registration_id": school.registration_id if school else college.registration_id if college else "N/A",
+                "username": user.username,
+                "email": user.email,
+                "package": latest_payment.package_obj.package,
+                "amount": latest_payment.package_obj.price,
+                "plan_type": latest_payment.package_obj.plan_type,
+                "start_date": latest_payment.start_date,
+                "end_date": latest_payment.end_date,
+                "is_paid": latest_payment.is_paid,
+            }
+
+            return Response(data, status=200)
+
+        except Exception as e:
+            return Response({"detail": "Error occurred", "error": str(e)}, status=400)
