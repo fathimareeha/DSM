@@ -1,8 +1,11 @@
 import React, { useContext } from 'react'
-import { SuperadminContext } from '../../../context/super_admin/Superadmin_Context'
+
+import { useNavigate } from 'react-router-dom';
+import { Search_context } from '../../../context/super_admin/Search_context';
 
 function Table2() {
-  const { college_list }=useContext(SuperadminContext);
+  const { filteredCollegeList }=useContext(Search_context);
+  const navigate =useNavigate()
   return (
     
     <>
@@ -22,7 +25,7 @@ function Table2() {
             </tr>
           </thead>
           <tbody class="text-gray-700">
-            {college_list.map((college)=>
+            {filteredCollegeList.map((college)=>
             <tr class="bg-gray-50 hover:bg-gray-50">
               <td class="px-4 py-2">{college.registration_id}</td>
               <td class="px-4 py-2">{college.college_name}</td>
@@ -34,7 +37,7 @@ function Table2() {
               <td class="px-4 py-2  font-medium"><span className={college.is_active ? 'text-green-600' : 'text-red-600'}>
                         {college.is_active ? 'Active' : 'Inactive'}</span></td>
               <td class="px-4 py-2">
-                <button class="text-gray-500 hover:text-gray-700">View</button>
+                <button onClick={() => navigate(`/admin/college_details/${college.instution_obj}`)}>View</button>
               </td>
             </tr>
             )}

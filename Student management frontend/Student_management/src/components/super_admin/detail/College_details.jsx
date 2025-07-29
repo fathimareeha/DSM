@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import Breadcrumbs from '../../components/super_admin/Breadcrumbs';
+import Breadcrumbs from '../Breadcrumbs';
+
 
 
 function InfoRow({ label, value }) {
@@ -13,16 +14,17 @@ function InfoRow({ label, value }) {
   );
 }
 
-function Details() {
+function College_details() {
   const { institution_id } = useParams();
+  console.log("id=",institution_id)
   const [institution, setInstitution] = useState(null);
-  const [paymentDetails,setPaymentDetails] =useState('')
+  const [paymentDetails, setPaymentDetails] = useState('')
 
   useEffect(() => {
-    const fetchInstitutionDetails = async () => {
+    const fetchCollegeDetails = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://127.0.0.1:8000/superadmin_app/institution_detail/${institution_id}/`, {
+        const res = await axios.get(`http://127.0.0.1:8000/superadmin_app/college_list_update_institution/${institution_id}/`, {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -35,7 +37,6 @@ function Details() {
           },
         });
         setPaymentDetails(paymentres.data);
-
       } catch (error) {
         console.error("Error fetching institution details:", error);
 
@@ -52,7 +53,7 @@ function Details() {
       }
     };
 
-    fetchInstitutionDetails();
+    fetchCollegeDetails();
   }, [institution_id]);
 
   if (!institution) return <div>Loading...</div>;
@@ -67,24 +68,20 @@ function Details() {
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">General Information</h2>
             <div className="divide-y divide-gray-200 border rounded-md">
-              <InfoRow label="Institution Name" value={
-    institution.type === 'school'
-      ? institution.school_name
-      : institution.college_name
-  } />
-              <InfoRow label="Username" value={institution.username}/>
-              <InfoRow label="Email" value={institution.email}/>
+              <InfoRow label="Institution Name" value={institution.college_name} />
               <InfoRow label="Registration Id" value={institution.registration_id}/>
               <InfoRow label="Address 1" value={institution.address1 || 'N/A'} />
-              <InfoRow label= 'Address 2' value={institution.address2 }/>
-              <InfoRow label="State" value={institution.state}/>
-              <InfoRow label="City" value={institution.city}/>
+              <InfoRow label='Address 2' value={institution.address2} />
+              <InfoRow label="State" value={institution.state} />
+              <InfoRow label="City" value={institution.city} />
               <InfoRow label="Location" value={institution.location || 'N/A'} />
               <InfoRow label="Creation Date" value={institution.created_date} />
-              <InfoRow label="Phone Number" value={institution.phone_number}/>
-              <InfoRow label="Landline number" value={institution.landline_number}/>
+              <InfoRow label="Phone Number" value={institution.phone_number} />
+              <InfoRow label="College Type" value={institution.college_type} />
+              <InfoRow label="University" value={institution.university} />
+              <InfoRow label="Landline number" value={institution.landline_number} />
               <InfoRow label="Activation Date" value={institution.activation_date || 'N/A'} />
-              <InfoRow label="Type" value={institution.type} />
+
               <InfoRow label="Status" value={institution.is_active ? 'Active' : 'Inactive'} />
             </div>
           </div>
@@ -92,10 +89,9 @@ function Details() {
           <div className="mt-10">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Payment Details</h2>
             <div className="divide-y divide-gray-200 border rounded-md">
-
-              <InfoRow label="Package" value={paymentDetails.package}/>
-              <InfoRow label="Plan" value={paymentDetails.plan_type}/>
-              <InfoRow label="Amount" value={paymentDetails.amount}/>
+              <InfoRow label="Package" value={paymentDetails.package} />
+              <InfoRow label="Plan" value={paymentDetails.plan_type} />
+              <InfoRow label="Amount" value={paymentDetails.amount} />
               {paymentDetails && (
   <InfoRow
     label="Payment Status"
@@ -113,8 +109,10 @@ function Details() {
   />
 )}
 
+
+
               {paymentDetails.is_paid && (
-                  <InfoRow label="End Date" value={paymentDetails.end_date} />)}
+                <InfoRow label="End Date" value={paymentDetails.end_date} />)}
             </div>
           </div>
         </div>
@@ -122,4 +120,4 @@ function Details() {
     </div>
   );
 }
-export default Details;
+export default College_details;

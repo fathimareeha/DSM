@@ -18,8 +18,8 @@ function Sidebar() {
       icon: <FaUniversity />,
       dropdown: true,
       children: [
-        { label:'Admin', to:'/admin/institution_admin'},
-        { label: 'All Institutions', to: '/admin/institutions' },
+        { label:'All institutions', to:'/admin/institution_admin'},
+        
         { label: 'School', to: '/admin/school', icon: <FaSchool /> },
         { label: 'College', to: '/admin/college', icon: <FaBuilding /> },
       ],
@@ -27,6 +27,11 @@ function Sidebar() {
      {
       label: 'Packages',
       to: '/admin/list_package',
+      icon: <FaHome />,
+    },
+    {
+      label: 'Staff',
+      to: '/admin/list_staff',
       icon: <FaHome />,
     },
   ];

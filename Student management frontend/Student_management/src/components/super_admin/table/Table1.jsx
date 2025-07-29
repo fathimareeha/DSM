@@ -1,9 +1,13 @@
 import axios from 'axios'
 import React, { useContext, useEffect, useState } from 'react'
 import { SuperadminContext } from '../../../context/super_admin/Superadmin_Context';
+import { useNavigate } from 'react-router-dom';
+import { Search_context } from '../../../context/super_admin/Search_context';
 
 function Table1() {
- const { school_list } = useContext(SuperadminContext);
+  const navigate=useNavigate()
+ const { filteredSchoolList } = useContext(Search_context);
+
 
   return (
     <>
@@ -23,7 +27,7 @@ function Table1() {
             </tr>
           </thead>
           <tbody class="text-gray-700">
-            {school_list .map((school)=>(
+            {filteredSchoolList .map((school)=>(
             <tr key={school.id} class="bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">{school.registration_id}</td>
               <td class="px-4 py-2">{school.school_name}</td>
@@ -36,7 +40,7 @@ function Table1() {
                         {school.is_active ? 'Active' : 'Inactive'}</span>
                             </td>
               <td class="px-4 py-2">
-                <button class="text-gray-500 hover:text-gray-700">View</button>
+                <button onClick={() => navigate(`/admin/school_details/${school.instution_obj}`)}>View</button>
               </td>
             </tr>
 

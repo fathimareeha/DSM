@@ -2,13 +2,16 @@ import React, { useContext, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { SuperadminContext } from '../../../context/super_admin/Superadmin_Context'
 import axios from 'axios'
+import { Search_context } from '../../../context/super_admin/Search_context'
 
 function Table3() {
  
   
   const token = localStorage.getItem('token')
   const navigate = useNavigate()
-  const {institution_adminList,InstitutionAdminList}=useContext (SuperadminContext)
+  
+  const {filteredAdminInstitutionList,InstitutionAdminList}=useContext(Search_context)
+console.log("filtered",filteredAdminInstitutionList);
 
   
 
@@ -44,28 +47,44 @@ useEffect(()=>{
               <th class="px-4 py-2 text-left">Username</th>
               <th class="px-4 py-2 text-left">Email</th>
               <th class="px-4 py-2 text-left">Instution_id</th>
-              
-              
+              <th class="px-4 py-2 text-left">Type</th>
+              <th class="px-4 py-2 text-left">Institution name</th>
+              <th class="px-4 py-2 text-left">Registration Id</th>
               <th class="px-4 py-2 text-left">Edit</th>
               <th class="px-4 py-2 text-left">Delete</th>
+              <th class="px-4 py-2 text-left">Detail</th>
             </tr>
           </thead>
           <tbody class="text-gray-700">
-            {institution_adminList.map((institution_admin)=>
-            <tr class="bg-gray-50 hover:bg-gray-100">
-              <td class="px-4 py-2">{institution_admin.username}</td>
-              <td class="px-4 py-2">{institution_admin.email}</td>
-              <td class="px-4 py-2">{institution_admin.institution_id}</td>
-            
-              <td class="px-4 py-2">
-                <Link class="text-red-500 hover:text-red-800" to={`/admin/edit_institution_form/${institution_admin.institution_id}`}>Edit</Link>
-              </td>
-              <td class="px-4 py-2">
-                <button className='text-red-500  hover:text-red-800' onClick={()=>handleDelete(institution_admin.id)}>Remove</button>
-              </td>
-            </tr>
-            )}
-           
+           {filteredAdminInstitutionList.map((admin) => {
+         
+  const school = admin.school;
+  const college = admin.college;
+
+  // Pick name from school > college > fallback
+  const institutionName = school?.name || college?.name || "Not Registered";
+  const registrationId =school?.registration_id || college?.registration_id ;
+  return (
+    <tr class="bg-gray-50 hover:bg-gray-100" key={admin.admin_id}>
+      <td class="px-4 py-2">{admin.admin_username}</td>
+      <td class="px-4 py-2">{admin.admin_email}</td>
+      <td class="px-4 py-2">{admin.institution_id}</td>
+      <td class="px-4 py-2">{admin.institution_type}</td>
+      <td class="px-4 py-2">{institutionName}</td>
+      <td class="px-4 py-2">{registrationId}</td>
+      <td class="px-4 py-2">
+        <Link class="text-red-500 hover:text-red-800" to={`/admin/edit_institution_form/${admin.institution_id}`}>Edit</Link>
+      </td>
+      <td class="px-4 py-2">
+        <button className='text-red-500 hover:text-red-800' onClick={() => handleDelete(admin.admin_id)}>Remove</button>
+      </td>
+      <td className="px-4 py-2">
+                  <button onClick={() => navigate(`/admin/details/${admin.institution_id}`)}>View</button>
+                </td>
+    </tr>
+  );
+})}
+
 
           </tbody>
         </table>

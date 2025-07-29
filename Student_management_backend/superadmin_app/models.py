@@ -11,7 +11,7 @@ class UserProfile(AbstractUser):
     role_options=(('staff','staff'),
                 ('institution_admin','institution_admin'))
     
-    role=models.CharField(max_length=50,choices=role_options,default='institution_admin')
+    role=models.CharField(max_length=50,choices=role_options)
     
     
 
@@ -111,7 +111,14 @@ class College(models.Model):
     
 class SubscriptionPackage(models.Model):
     user_obj=models.ForeignKey(UserProfile,on_delete=models.CASCADE)
-    package_options=(('trial','trial'),
+    
+    INSTITUTION_TYPE_CHOICES = [
+        ('school', 'School'),
+        ('college', 'College'),
+    ]
+    institution_type = models.CharField(max_length=10, choices=INSTITUTION_TYPE_CHOICES)
+    
+    package_options=(('trial','trial'),('basic','basic'),
                      ('standard','standard'),('premium','premium'))
     package = models.CharField(max_length=20,choices=package_options,default="trial")
    
@@ -121,6 +128,7 @@ class SubscriptionPackage(models.Model):
         ('yearly', 'Yearly'),
     ]
     plan_type = models.CharField(max_length=10, choices=PLAN_CHOICES)
+    features = models.JSONField(default=list, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -158,14 +166,31 @@ class SubscriptionPackage(models.Model):
 
 
 class Payment(models.Model):
-    user_obj = models.ForeignKey(UserProfile,on_delete=models.CASCADE)
+    user_obj = models.ForeignKey(UserProfile,on_delete=models.SET_NULL,null=True, blank=True )
     package_obj = models.ForeignKey(SubscriptionPackage,on_delete=models.CASCADE)
     start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField(blank=True, null=True)
     
     is_paid = models.BooleanField(default=False)
 
-    
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = (
+        ('trial_expired', 'Trial Expired'),
+        ('payment_done', 'Payment Done'),
+        ('payment_due', 'Payment Due'),
+    )
+
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.title} - {self.institution}"
+ 
 
 
  
