@@ -46,9 +46,11 @@ function Payment_option() {
             selectedPackage === pkg.id ? 'border-blue-500 ring-2 ring-blue-300' : 'hover:shadow-lg'
           }`}
         >
+          <h2 className="text-xl font-bold capitalize mb-2">{pkg.institution_type}</h2>
           <h2 className="text-xl font-bold capitalize mb-2">{pkg.package}</h2>
           <p className="font-semibold text-gray-700">{pkg.plan_type}</p>
           <p className="text-gray-500 mb-2">{pkg.description}</p>
+          <h2 className="text-xl font-bold capitalize mb-2">{pkg.features}</h2>
           <p className="text-green-600 font-semibold mb-2">₹ {pkg.price}</p>
         </div>
       ))}

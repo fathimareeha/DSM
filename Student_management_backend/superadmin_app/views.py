@@ -277,7 +277,29 @@ class ListPackage(generics.ListAPIView):
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[IsInstitutionAdmin]
     serializer_class=Subscription_packageSerializer
-    queryset=SubscriptionPackage.objects.all()
+    
+    def get_queryset(self):
+        user = self.request.user
+
+        # Get the institution linked to the institution admin
+        institution = Institution.objects.get(user_object=user)
+
+        # Check the institution type (school or college)
+        is_school = School.objects.filter(instution_obj=institution).exists()
+        is_college = College.objects.filter(instution_obj=institution).exists()
+
+        if is_school:
+            institution_type = 'school'
+        elif is_college:
+            institution_type = 'college'
+        else:
+            institution_type = None
+
+        # Filter packages based on institution type
+        if institution_type:
+            return SubscriptionPackage.objects.filter(institution_type=institution_type)
+        else:
+            return SubscriptionPackage.objects.none()
     
 
 
