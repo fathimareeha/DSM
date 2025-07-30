@@ -654,12 +654,24 @@ class Institution_HomepageView(APIView):
     def get(self, request):
         user = request.user
 
-        # Just for testing – real app can return more data
+        # Get institution type (school or college)
+        institution_type = user.institution.institution_type  # Assuming relation: user -> institution -> institution_type
+
+        # Return different homepage responses
+        if institution_type == "school":
+            homepage_message = "Welcome to the School Admin Homepage!"
+        elif institution_type == "college":
+            homepage_message = "Welcome to the College Admin Homepage!"
+        else:
+            homepage_message = "Institution type not recognized."
+
         return Response({
             "message": f"Welcome, {user.username}!",
             "role": user.role,
-            "homepage": "This is your institution admin homepage."
+            "institution_type": institution_type,
+            "homepage": homepage_message
         })
+
 
 
 from django.contrib.auth import get_user_model

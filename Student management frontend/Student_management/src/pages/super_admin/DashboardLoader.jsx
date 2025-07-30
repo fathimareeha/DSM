@@ -15,18 +15,28 @@ function DashboardLoader() {
             Authorization: `Token ${token}`,
           }
         });
+
         console.log(response.data);
         
         if (response.data.trial_status === "expired") {
-          // If trial expired, redirect to payment
           navigate("/payment_option");
         } else {
-          // If trial is valid, go to homepage
-          navigate("/institution_homepage");
+          // ✅ Check institution type from localStorage
+          const institutionType = localStorage.getItem("institution_type");
+
+          if (institutionType === "school") {
+            navigate("/school_homepage");
+          } else if (institutionType === "college") {
+            navigate("/college_homepage");
+          } 
+          else {
+          console.warn("No valid institution type. Redirecting to login.");
+          navigate("/login");
+        }
         }
       } catch (error) {
         console.error("Trial check failed", error);
-        // Optional: navigate to error page or login
+        // Optional: navigate("/login");
       }
     };
 
