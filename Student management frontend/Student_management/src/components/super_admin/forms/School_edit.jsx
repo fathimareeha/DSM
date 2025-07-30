@@ -153,14 +153,14 @@ function School_edit({ institution_id }) {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              required
+              
             />
             <Input
               label="UDISE Code"
               type="text"
               value={udise_code}
               onChange={(e) => setUdise_code(e.target.value)}
-              required
+              
             />
             <Input
               label="Phone Number"
@@ -194,7 +194,7 @@ function School_edit({ institution_id }) {
                 value={school_type}
                 onChange={(e) => setType(e.target.value)}
                 className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                required
+                
               >
                 <option value="">Select Type</option>
                 <option value="private">Private</option>
@@ -210,7 +210,7 @@ function School_edit({ institution_id }) {
                 value={board}
                 onChange={(e) => setBoard(e.target.value)}
                 className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                required
+                
               >
                 <option value="">Select Board</option>
                 <option value="cbse">CBSE</option>

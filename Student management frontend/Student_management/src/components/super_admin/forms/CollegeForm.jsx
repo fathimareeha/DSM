@@ -89,14 +89,14 @@ function CollegeForm() {
               type="text"
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Location"
-              required={true}
+              required={false}
             />
             <Input
               label="AISHE Code"
               type="text"
               onChange={(e) => setAishe_code(e.target.value)}
               placeholder="Enter Code"
-              required={true}
+              required={false}
             />
             <Input
               label="Phone Number"
@@ -131,7 +131,7 @@ function CollegeForm() {
               <label className="font-semibold">Type of College</label>
               <select
                 className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                onChange={(e) => setType(e.target.value)} required
+                onChange={(e) => setType(e.target.value)} 
               >
                 <option value="">Select Type</option>
                 <option value="private">Private</option>
@@ -144,7 +144,7 @@ function CollegeForm() {
               <label className=" font-semibold">Universities</label>
               <select
                 className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                onChange={(e) => setUniversity(e.target.value)} required
+                onChange={(e) => setUniversity(e.target.value)} 
               >
                 <option value="">Select university</option>
                 <option value="kerala technical university">Kerala Technical University(KTU)</option>

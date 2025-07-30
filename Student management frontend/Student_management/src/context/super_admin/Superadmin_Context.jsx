@@ -161,24 +161,32 @@ export const SuperadminProvider = ({ children }) => {
 
   }
   //institution_admin login
-  const handle_institution_login = async (username, password) => {
-    setloading(true)
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/institution_login", { username, password })
-      console.log(response);
-      const token = response.data.token;
-      localStorage.setItem('token', token);
+const handle_institution_login = async (username, password) => {
+  setloading(true);
+  try {
+    const response = await axios.post("http://127.0.0.1:8000/superadmin_app/institution_login", {
+      username,
+      password
+    });
 
-      toast.success('Login Successfull')
-      navigate('/dashboard_loader')
-    } catch (error) {
-      console.error(error)
-    }
-    finally {
-      setloading(false)
-    }
+    console.log("Login Response:", response);
 
+    const token = response.data.token;
+    const institutionType = response.data.institution_type; // ✅
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("institution_type", institutionType); // ✅
+
+    toast.success("Login Successful");
+
+    navigate("/dashboard_loader");
+  } catch (error) {
+    console.error("Login error:", error.response?.data?.detail || error.message);
+  } finally {
+    setloading(false);
   }
+};
+
 
   //Checkout
   const [order_details, setOrder_details] = useState('');

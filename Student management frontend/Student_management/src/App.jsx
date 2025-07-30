@@ -39,6 +39,8 @@ import School_detail from './components/super_admin/detail/school_detail'
 import College_details from './components/super_admin/detail/College_details'
 import { Search_provider } from './context/super_admin/Search_context'
 import Staff from './pages/super_admin/Staff'
+import SchoolHomepage from './pages/super_admin/School_homepage'
+import CollegeHomepage from './pages/super_admin/College_homepage'
 
 
 
@@ -91,6 +93,8 @@ function App() {
       <Route path='new_page' element={<New_page/>}/>
       <Route path='checkout' element={<RazorpayPayment/>}/>
       <Route path='institution_homepage' element={<Institution_adminHomepage/>}/>
+      <Route path='school_homepage' element={<SchoolHomepage/>}/>
+      <Route path='college_homepage' element={<CollegeHomepage/>}/>
       <Route path='dashboard_loader' element={<DashboardLoader/>}/>
     </Routes>
     </Search_provider>

@@ -10,14 +10,12 @@ function Create_packages() {
   const [price,SetPrice]=useState('')
   const [features, setSelectedFeatures] = useState([]);
 
-  const availableFeatures = [
-    'SMS Notification',
-    'Email Support',
-    'Custom Branding',
-    'Multi-user Access',
-    'Priority Support',
-    
-  ];
+const schoolFeatures = ["Attendance", "Homework", "Parent Portal"];
+const collegeFeatures = ["Credits", "Semester System", "Library Access"];
+const availableFeatures =
+  institution_type === 'school' ? schoolFeatures :
+  institution_type === 'college' ? collegeFeatures :
+  [];
 
   const {create_packages}=useContext(SuperadminContext)
 
@@ -50,7 +48,7 @@ function Create_packages() {
              <div className="flex flex-col">
               <label className=" font-semibold">Institution</label>
           <select value={institution_type} onChange={(e) => setInstitutionType(e.target.value)} name="" id="" className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"  required>
-            <option value="" disabled selected>Select a institution type</option>
+            <option value="" disabled >Select a institution type</option>
             <option value="school">School</option>
             <option value="college">College</option>
             
@@ -59,7 +57,7 @@ function Create_packages() {
           <div className="flex flex-col">
               <label className=" font-semibold">Packages</label>
           <select value={planPackage} onChange={(e) => setPlanPackage(e.target.value)} name="" id="" className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"  required>
-            <option value="" disabled selected>Select a package</option>
+            <option value="" disabled >Select a package</option>
             <option value="basic">Basic</option>
             <option value="standard">Standard</option>
             <option value="premium">Premium</option>
@@ -68,7 +66,7 @@ function Create_packages() {
           <div className="flex flex-col">
               <label className=" font-semibold">Plan</label>
           <select value={plan_type} onChange={(e) => setPlan_type(e.target.value)} name="" id="" className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none" required>
-            <option value="" disabled selected>Select a plan</option>
+            <option value="" disabled >Select a plan</option>
             <option value="monthly">Monthly</option>
             <option value="yearly">Yearly</option>
           </select>
