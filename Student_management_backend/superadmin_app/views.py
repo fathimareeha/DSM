@@ -6,7 +6,7 @@ from rest_framework import authentication,permissions,serializers
 from rest_framework.views import APIView 
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from .permission import IsInstitutionAdmin
+from .permission import IsInstitutionAdmin,IsSuperadminOrStaff
 import razorpay
 from datetime import timedelta
 from django.utils import timezone
@@ -745,7 +745,7 @@ class PasswordResetConfirmView(APIView):
 
 class TotalInstitutionCountView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperadminOrStaff]
 
     def get(self, request):
         school_count = School.objects.count()
