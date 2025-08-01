@@ -26,6 +26,7 @@ import AttendancePage from './pages/institution/AttendancePage'
 import FacultyMarksEntry from './pages/institution/FacultyMarksEntry'
 import ExamPage from './pages/institution/ExamPage'
 import AddFaculty from './pages/institution/AddFaculty'
+import { Authprovider } from './context/institution/Authcontext'
 
 
 
@@ -35,7 +36,11 @@ function App() {
 
   return (
     <>
+            <Authprovider>
+
       <Routes>
+                  <Route path='/login' element={<Login/>}></Route>
+
         <Route path='/admin'  element={<Layout/>}>
         <Route path='dash' element={<Dashboard/>}></Route>
         <Route path="hod" element={<ManageHod/>} />  {/* ✅ ADD THIS */}
@@ -48,6 +53,10 @@ function App() {
         
 
                 </Route>
+                   </Routes>
+                           </Authprovider>
+
+<Routes>
 
         <Route path="/reports" element={<Reports/>} />
        
@@ -68,13 +77,13 @@ function App() {
         <Route path="/faculty/add" element={<AddFaculty />} />
 
 
+</Routes>
 
 
 
         
-        <Route path='/login' element={<Login/>}></Route>
         
-      </Routes>
+   
     </>
   )
 }

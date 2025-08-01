@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',     # for ObtainAuthToken we need to add this in installed_apps then we need migrate
     'corsheaders',
     'django_rest_passwordreset',
+    'collegeapp'
     
 ]
 
@@ -141,3 +142,8 @@ EMAIL_HOST_USER = 'fathimareehav@gmail.com'
 EMAIL_HOST_PASSWORD = 'ttrs bocq ixrf vqyl'  # Use Gmail App Password
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}

@@ -235,17 +235,27 @@ class InstitutionAdminLoginView(generics.GenericAPIView)  :
         if serializer.is_valid():
             user=serializer.validated_data['user']
             institution_type = serializer.validated_data['institution_type']
+            
             # Safely get or create token
             token, _ = Token.objects.get_or_create(user=user)
 
         
             return Response({"message":"Login Successful",
                              "token": token.key,  # ✅ This is what your frontend needs
-                "institution_type": institution_type  # Optional
+                "institution_type": institution_type,  # Optional
+                "user": UserSerializer(user).data
                 })
         
         return Response(serializer.errors)
-    
+    def get(self, request, *args, **kwargs):
+        """
+        Return the authenticated user's data (only if logged in).
+        """
+        if request.user.is_authenticated:
+            return Response({
+                "user": UserSerializer(request.user).data
+            })
+        return Response({"detail": "Authentication credentials were not provided."}, status=401)
 class CreateListPackage(generics.ListCreateAPIView):
     
     authentication_classes=[authentication.TokenAuthentication]
