@@ -35,7 +35,7 @@ function Header() {
     <header className="bg-white h-16 shadow flex items-center justify-between px-6 border-b sticky top-0 z-50">
       {/* Logo or Page Title */}
       <h1 className="text-xl font-semibold text-indigo-800 tracking-wide">
-        🎓 College Admin Panel
+        college admin
       </h1>
 
       {/* Right side */}
