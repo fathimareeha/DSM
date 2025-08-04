@@ -35,9 +35,9 @@ export const SuperadminProvider = ({ children }) => {
   }
   //Staff create
 
-  const staff_create = async (username, email, password1, password2) => {
+  const staff_create = async (username, email, password1, password2,staff_role) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 }, {
+      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 ,staff_role}, {
         headers: {
           Authorization: `Token ${token}`
         }
