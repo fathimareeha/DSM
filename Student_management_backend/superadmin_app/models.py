@@ -9,12 +9,14 @@ from django.utils import timezone
 # Create your models here.
 class UserProfile(AbstractUser):
     role_options=(('staff','staff'),
-                ('institution_admin','institution_admin'))
+                ('institution_admin','institution_admin'),
+                ('viceprincipal', 'Vice Principal'),
+                ('teacher', 'Teacher'),
+                ('student', 'Student'),
+                ('parent', 'Parent'))
     
     role=models.CharField(max_length=50,choices=role_options)
     
-    
-
     
 class Institution(models.Model):
     user_object=models.OneToOneField(UserProfile,on_delete=models.CASCADE,related_name='institution')

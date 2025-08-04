@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Inputfield({ label, type = 'text', name, id }) {
+function Inputfield({ label, type = 'text', name, id,onchange }) {
   return (
     
     <div className="flex flex-col gap-1">
@@ -10,6 +10,7 @@ function Inputfield({ label, type = 'text', name, id }) {
         </label>
       )}
       <input
+        onChange={onchange}
         id={id || name}
         name={name}
         type={type}

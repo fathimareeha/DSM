@@ -1,8 +1,8 @@
 import React from 'react'
 
-function Button({label}) {
+function Button({label,onclick}) {
   return (
-    <button className='mt-5 p-2 bg-blue-700 w-full'>{label}</button>
+    <button onClick={onclick} className='mt-5 p-2 bg-blue-700 w-full'>{label}</button>
   )
 }
 

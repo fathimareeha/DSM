@@ -52,8 +52,8 @@ const Sidebar = () => {
       label: 'Classes',
       icon: <Building2 className="w-5 h-5" />,
       children: [
-        { label: 'Add Class', to: '/admin/classes/add' },
-        { label: 'View Classes', to: '/admin/createclass' },
+        { label: 'Add Class', to: '/admin/createclass/' },
+        { label: 'View Classes', to: '' },
       ],
     },
     {
