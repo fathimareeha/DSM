@@ -10,16 +10,16 @@ from django.utils import timezone
 class UserProfile(AbstractUser):
     role_options=(('staff','staff'),
                 ('institution_admin','institution_admin'),
-                  main
+        
                 ('viceprincipal', 'Vice Principal'),
                 ('teacher', 'Teacher'),
                 ('student', 'Student'),
-                ('parent', 'Parent'))
+                ('parent', 'Parent'),
 
                 ('hod','hod'),
                 ('faculty','faculty'),
                 ('students','students'))
- main
+
     
     role=models.CharField(max_length=50,choices=role_options)
     
