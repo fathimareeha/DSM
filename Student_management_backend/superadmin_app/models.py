@@ -10,14 +10,19 @@ from django.utils import timezone
 class UserProfile(AbstractUser):
     role_options=(('staff','staff'),
                 ('institution_admin','institution_admin'),
+                  main
+                ('viceprincipal', 'Vice Principal'),
+                ('teacher', 'Teacher'),
+                ('student', 'Student'),
+                ('parent', 'Parent'))
+
                 ('hod','hod'),
                 ('faculty','faculty'),
                 ('students','students'))
+ main
     
     role=models.CharField(max_length=50,choices=role_options)
     
-    
-
     
 class Institution(models.Model):
     user_object=models.OneToOneField(UserProfile,on_delete=models.CASCADE,related_name='institution')

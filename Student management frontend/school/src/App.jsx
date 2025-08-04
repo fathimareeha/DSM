@@ -13,6 +13,7 @@ import AddVicePrincipal from './pages/schooladmin/Addviceprincipal'
 import CreateClass from './pages/schooladmin/Createclasses'
 import VicePrincipalList from './pages/schooladmin/Viceprincipallist'
 import AddStudent from './pages/schooladmin/Addstudents'
+import { Autprovider } from './context/institution/Authcontext'
 
 
 function App() {
@@ -20,6 +21,9 @@ function App() {
 
   return (
     <>
+
+    <Autprovider>
+
     <Routes>
 
       <Route path='/admin' element={<Layout/>}>
@@ -39,7 +43,8 @@ function App() {
 
 
     </Routes>
-    
+    </Autprovider>
+
     </>
   )
 }
