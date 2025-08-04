@@ -9,7 +9,10 @@ from django.utils import timezone
 # Create your models here.
 class UserProfile(AbstractUser):
     role_options=(('staff','staff'),
-                ('institution_admin','institution_admin'))
+                ('institution_admin','institution_admin'),
+                ('hod','hod'),
+                ('faculty','faculty'),
+                ('students','students'))
     
     role=models.CharField(max_length=50,choices=role_options)
     
