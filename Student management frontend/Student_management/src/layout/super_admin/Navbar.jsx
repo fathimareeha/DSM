@@ -7,8 +7,11 @@ function Navbar({ onMenuClick }) {
   const [unreadCount,setUnreadCount]=useState(0)
 
   // 👇 Fetch notifications from your API
-  useEffect(() => {
+ useEffect(() => {
   const token = localStorage.getItem('token');
+console.log("🔐 Token in Navbar.jsx:", token);
+
+
   fetch('http://127.0.0.1:8000/superadmin_app/notification', {
     headers: {
       Authorization: `Token ${token}`
@@ -17,9 +20,17 @@ function Navbar({ onMenuClick }) {
     .then((res) => res.json())
     .then((data) => {
       console.log("🔔 Notification API Response:", data);
-      setNotifications(data);
-      const unread = data.filter(note => !note.is_read);  // filter unread
-      setUnreadCount(unread.length);                   // set unread count
+
+      // check if data is an array
+      if (Array.isArray(data)) {
+        setNotifications(data);
+        const unread = data.filter(note => !note.is_read);
+        setUnreadCount(unread.length);
+      } else {
+        console.warn("⚠️ Notifications response is not an array:", data);
+        setNotifications([]);
+        setUnreadCount(0);
+      }
     })
     .catch((err) => console.error('Failed to fetch notifications', err));
 }, []);

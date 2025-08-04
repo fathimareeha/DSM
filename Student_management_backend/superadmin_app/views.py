@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from rest_framework import generics
 from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer
-from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification
+from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification,StaffRole
 from rest_framework import authentication,permissions,serializers
 from rest_framework.views import APIView 
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from .permission import IsInstitutionAdmin,IsSuperadminOrStaff
+from .permission import IsInstitutionAdmin,IsSuperadminOrStaff,IsSuperadminOrReadOnlyForStaff,IsSuperAdminOrSchoolManager,IsSuperAdminOrCollegeManager,IsSuperAdminOrPackageManager
 import razorpay
 from datetime import timedelta
 from django.utils import timezone
@@ -77,18 +77,40 @@ class Institution_adminDelete(generics.DestroyAPIView):
     
 class CreateListStaffView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]  # Only admins can create staff
+    permission_classes = [IsSuperadminOrReadOnlyForStaff]  # Only admins can create staff
     serializer_class = UserSerializer
 
     def perform_create(self, serializer):
-        serializer.save(role='staff')
+        user=serializer.save(role='staff')
+        
+        staff_role = self.request.data.get('staff_role', 'general_staff')  # default if not provided
+        can_access_school = False
+        can_access_college = False
+        can_access_package = False
+
+        if staff_role == 'school_manager':
+            can_access_school = True
+        elif staff_role == 'college_manager':
+            can_access_college = True
+        elif staff_role == 'package_manager':
+            can_access_package = True
+
+        # Create StaffRole object
+        StaffRole.objects.create(
+            user=user,
+            staff_role=staff_role,
+            can_access_school=can_access_school,
+            can_access_college=can_access_college,
+            can_access_package=can_access_package
+        )
+
 
     def get_queryset(self):
         return UserProfile.objects.filter(role="staff")
 
 class CreateSchoolView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]  # Only superadmin
+    permission_classes = [IsSuperadminOrReadOnlyForStaff]  # Only superadmin
     serializer_class = SchoolSerializer
     queryset = School.objects.all()
 
@@ -110,14 +132,14 @@ class CreateSchoolView(generics.ListCreateAPIView):
 
 class UpdateRetireveDeleteSchoolView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrSchoolManager]
     serializer_class = SchoolSerializer
     queryset = School.objects.all()
     
     
 class GetSchoolByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperAdminOrSchoolManager]
 
     def get(self, request, institution_id):
         try:
@@ -142,7 +164,7 @@ class GetSchoolByInstitution(APIView):
         
 class GetCollegeByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperAdminOrCollegeManager]
 
     def get(self, request, institution_id):
         try:
@@ -167,7 +189,7 @@ class GetCollegeByInstitution(APIView):
             
 class CreateCollegeView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperadminOrReadOnlyForStaff]
     serializer_class=CollegeSerializer
     queryset=College.objects.all()
     
@@ -191,7 +213,7 @@ class CreateCollegeView(generics.ListCreateAPIView):
 
 class UpdateRetireveDeleteCollegeView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrCollegeManager]
     serializer_class = CollegeSerializer
     queryset = College.objects.all()
 
@@ -259,7 +281,7 @@ class InstitutionAdminLoginView(generics.GenericAPIView)  :
 class CreateListPackage(generics.ListCreateAPIView):
     
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrPackageManager]
     serializer_class=Subscription_packageSerializer
     
     def get_queryset(self):
@@ -277,7 +299,7 @@ class CreateListPackage(generics.ListCreateAPIView):
 
     
 class UpdateRetrievePackage(generics.RetrieveUpdateAPIView):
-    authentication_classes=[authentication.TokenAuthentication]
+    authentication_classes=[IsSuperAdminOrPackageManager]
     permission_classes=[permissions.IsAdminUser]
     serializer_class=Subscription_packageSerializer
     queryset=SubscriptionPackage.objects.all()
@@ -645,11 +667,10 @@ def mark_all_notifications_read(request):
 
 class NotificationListView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperadminOrStaff]
 
     def get(self, request):
-        if not request.user.is_superuser:
-            return Response({"error": "Unauthorized"}, status=403)
+        
 
         notifications = Notification.objects.all().order_by('-created_at')[:50]  # latest 50
         serializer = NotificationSerializer(notifications, many=True)
@@ -663,25 +684,31 @@ class Institution_HomepageView(APIView):
 
     def get(self, request):
         user = request.user
+        institution = user.institution
 
-        # Get institution type (school or college)
-        institution_type = user.institution.institution_type  # Assuming relation: user -> institution -> institution_type
+        school = institution.school_set.first()
+        college = institution.college_set.first()
 
-        # Return different homepage responses
-        if institution_type == "school":
+        if school:
+            institution_type = "school"
+            institution_name = school.school_name
             homepage_message = "Welcome to the School Admin Homepage!"
-        elif institution_type == "college":
+        elif college:
+            institution_type = "college"
+            institution_name = college.college_name
             homepage_message = "Welcome to the College Admin Homepage!"
         else:
+            institution_type = "unknown"
+            institution_name = "Unknown"
             homepage_message = "Institution type not recognized."
 
         return Response({
             "message": f"Welcome, {user.username}!",
             "role": user.role,
             "institution_type": institution_type,
+            "institution_name": institution_name,
             "homepage": homepage_message
         })
-
 
 
 from django.contrib.auth import get_user_model
@@ -792,7 +819,7 @@ class TotalInstitutionCountView(APIView):
     
 class InstitutionDetailView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperadminOrStaff]
 
     def get(self, request, institution_id):
         try:

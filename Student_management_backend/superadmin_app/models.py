@@ -21,7 +21,21 @@ class Institution(models.Model):
     created_date=models.DateField(auto_now_add=True)
     updated_date=models.DateTimeField(auto_now=True)
     
-    
+class StaffRole(models.Model):
+    ROLE_CHOICES = [
+        ('school_manager', 'School Manager'),
+        ('college_manager', 'College Manager'),
+        ('package_manager', 'Package Manager'),
+    ]
+
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE , related_name='staff_role')
+    staff_role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    can_access_school = models.BooleanField(default=False)
+    can_access_college = models.BooleanField(default=False)
+    can_access_package = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.staff_role}"   
     
 class School(models.Model):
     instution_obj=models.ForeignKey(Institution,on_delete=models.CASCADE)

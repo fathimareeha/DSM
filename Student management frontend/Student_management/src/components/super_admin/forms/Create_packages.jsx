@@ -77,20 +77,27 @@ const availableFeatures =
           
           <textarea onChange={(e) => setDescription(e.target.value)} className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"></textarea>
           </div>
-          <div>
-          <h4>Select Features:</h4>
-      {availableFeatures.map((feature, index) => (
-        <label key={index}>
-          <input
-            type="checkbox"
-            value={feature}
-            checked={features.includes(feature)}
-            onChange={handleFeatureChange}
-          />
-          {feature}
-        </label>
-       
-      ))} </div>
+          <div className="mb-4">
+  <h4 className="text-lg font-semibold mb-2">Select Features:</h4>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    {availableFeatures.map((feature, index) => (
+      <label
+        key={index}
+        className="flex items-center space-x-2 bg-gray-50 border border-gray-300 rounded-md px-3 py-2 hover:bg-gray-100 transition"
+      >
+        <input
+          type="checkbox"
+          value={feature}
+          checked={features.includes(feature)}
+          onChange={handleFeatureChange}
+          className="form-checkbox h-4 w-4 text-blue-600"
+        />
+        <span className="text-sm text-gray-800">{feature}</span>
+      </label>
+    ))}
+  </div>
+</div>
+
           <Input   label='Price' onChange={(e) => SetPrice(e.target.value)} type='number' placeholder='enter price' required={true}/>
           
           <div className='flex justify-center'>
