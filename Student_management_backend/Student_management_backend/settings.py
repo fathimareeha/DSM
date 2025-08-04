@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',     # for ObtainAuthToken we need to add this in installed_apps then we need migrate
     'corsheaders',
     'django_rest_passwordreset',
-    'schoolapp'
+    'schoolapp',
     
 ]
 
@@ -144,6 +144,3 @@ EMAIL_HOST_USER = 'fathimareehav@gmail.com'
 EMAIL_HOST_PASSWORD = 'ttrs bocq ixrf vqyl'  # Use Gmail App Password
 
 
-  # Replace with your actual app name
-LOGIN_REDIRECT_URL = '/dashboard/'  # Default after login
-LOGOUT_REDIRECT_URL = '/login/'     # After logout
