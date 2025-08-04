@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification
+from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole
 from django.contrib.auth import authenticate
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -14,9 +14,10 @@ class UserSerializer(serializers.ModelSerializer):
     
     institution_id = serializers.SerializerMethodField(read_only=True) 
     
+    staff_role = serializers.SerializerMethodField()
     class Meta:
         model=UserProfile
-        fields=['id','username','password1','password2','role','email','password','institution_id']
+        fields=['id','username','password1','password2','role','email','password','institution_id','staff_role']
         extra_kwargs = {'role': {'read_only': True}}
         
     def create(self, validated_data):
@@ -40,7 +41,20 @@ class UserSerializer(serializers.ModelSerializer):
             if institution:
                 return institution.id
         return None
-        
+
+    def get_staff_role(self, obj):
+        if obj.role == 'staff':
+            try:
+                return obj.staff_role.staff_role  # Only return the role name
+            except StaffRole.DoesNotExist:
+                return None
+        return None
+
+class StaffRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StaffRole
+        fields = ['staff_role', 'can_access_school', 'can_access_college', 'can_access_package']
+      
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model=School

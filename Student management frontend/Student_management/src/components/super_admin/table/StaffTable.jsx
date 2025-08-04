@@ -13,6 +13,7 @@ function StaffTable() {
              
               <th className="px-4 py-2 text-left">User name</th>
               <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Staff role</th>
               
               
               <th className="px-4 py-2 text-left">Details</th>
@@ -27,6 +28,7 @@ function StaffTable() {
               
               <td className="px-4 py-2">{staffs.username}</td>
               <td className="px-4 py-2">{staffs.email}</td>
+              <td className="px-4 py-2">{staffs.staff_role}</td>
              
               
               <td className="px-4 py-2">

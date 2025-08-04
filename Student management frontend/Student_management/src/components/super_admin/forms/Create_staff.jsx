@@ -9,6 +9,7 @@ function Create_staff() {
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
   const [email, setEmail] = useState('');
+  const [staffRole,setStaffRole]=useState('')
  
   
   
@@ -16,7 +17,7 @@ function Create_staff() {
   const {staff_create,loading}=useContext(SuperadminContext)
 
   const handle_submit=(e)=>{
-  staff_create(username,email,password1,password2)
+  staff_create(username,email,password1,password2,staffRole)
     e.preventDefault()
   }
  
@@ -30,8 +31,18 @@ function Create_staff() {
           <Input label="Email" type="email" placeholder='Email' onChange={(e) => setEmail(e.target.value)} required={true}/>
           <Input label="Password" type="password" placeholder='Password' onChange={(e) => setPassword1(e.target.value)} required={true}/>
           <Input label="Confirm Password" type="password" placeholder='Confirm Password' onChange={(e) => setPassword2(e.target.value)} required={true}/>
-          
-            <div className='flex justify-center'>
+          <select
+              value={staffRole}
+              onChange={(e) => setStaffRole(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded-md p-2"
+            >
+              <option value="">-- Select Staff Role --</option>
+              <option value="school_manager">School Manager</option>
+              <option value="college_manager">College Manager</option>
+              <option value="package_manager">Package Manager</option>
+            </select>
+                        <div className='flex justify-center'>
           <button
             type="submit"
             className=" bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition mt-5"
