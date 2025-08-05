@@ -1,8 +1,8 @@
-from django.urls import path
-from schoolapp import views
+# from django.urls import path
+# from schoolapp import views
 
-urlpatterns = [
+# urlpatterns = [
     
-    path('createvp/',views.VicePrincipalCreateListView.as_view())
+#     path('createvp/',views.VicePrincipalCreateListView.as_view())
   
-]
+# ]
