@@ -1,6 +1,6 @@
 from django.db import models
-from superadmin_app.models import UserProfile  # Adjust this import to match where UserProfile is defined
-from schoolapp.models import School              # Adjust if your School model is in another app
+from superadmin_app.models import UserProfile,School # Adjust this import to match where UserProfile is defined
+             # Adjust if your School model is in another app
 
 
 
