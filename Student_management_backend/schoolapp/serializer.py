@@ -1,80 +1,9 @@
 
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School # Adjust if needed
-
-from .models import VicePrincipal
-
-# class VicePrincipalCreateSerializer(serializers.ModelSerializer):
-#     username = serializers.CharField(write_only=True)
-#     password = serializers.CharField(write_only=True)
-#     email = serializers.EmailField(write_only=True)
-#     school = serializers.PrimaryKeyRelatedField(queryset=School.objects.all())
-
-
-#     class Meta:
-#         model = VicePrincipal
-#         fields = ['username', 'password', 'email', 'phone', 'school']
-
-#     def create(self, validated_data):
-#         # Extract user-related fields
-#         username = validated_data.pop('username')
-#         password = validated_data.pop('password')
-#         email = validated_data.pop('email')
-#         school = validated_data.pop('school')
-
-#         # Create the UserProfile with 'viceprincipal' role
-#         user = UserProfile.objects.create_user(
-#             username=username,
-#             email=email,
-#             password=password,
-#             role='viceprincipal'
-#         )
-
-#         # Create the VicePrincipal linked to this user
-#         return VicePrincipal.objects.create(user=user,school=school, **validated_data)
-
-
-
-from rest_framework import serializers
 from superadmin_app.models import UserProfile, School
-from .models import VicePrincipal
-
-# class VicePrincipalCreateSerializer(serializers.ModelSerializer):
-#     username = serializers.CharField(write_only=True)
-#     password = serializers.CharField(write_only=True)
-#     email = serializers.EmailField(write_only=True)
-#     school = serializers.PrimaryKeyRelatedField(queryset=School.objects.all())
-
-#     class Meta:
-#         model = VicePrincipal
-#         fields = ['username', 'password', 'email', 'phone', 'school']
-
-#     def validate_username(self, value):
-#         if UserProfile.objects.filter(username=value).exists():
-#             raise serializers.ValidationError("This username is already taken.")
-#         return value
-
-#     def create(self, validated_data):
-#         username = validated_data.pop('username')
-#         password = validated_data.pop('password')
-#         email = validated_data.pop('email')
-#         school = validated_data.pop('school')
-
-#         # ✅ Safe: username has already been validated
-#         user = UserProfile.objects.create_user(
-#             username=username,
-#             email=email,
-#             password=password,
-#             role='viceprincipal'
-#         )
-
-#         return VicePrincipal.objects.create(user=user, school=school, **validated_data)
+from .models import VicePrincipal,Subject,Standard,Section
 
 
-
-# serializers.py
-
-# serializers.py
 
 class VicePrincipalCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
@@ -113,5 +42,27 @@ class VicePrincipalDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = VicePrincipal
         fields = ['id', 'username', 'email', 'phone', 'role', 'school']
+        
+
+
+class SectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Section
+        fields = ['id', 'name']
+
+
+
+class StandardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Standard
+        fields = ['id', 'name', 'school']
+        read_only_fields = ['school']
+
+
+class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['id', 'name']
+
 
 
