@@ -8,6 +8,7 @@ urlpatterns=[
     path('create_user/',views.CreateUserView.as_view()),
     path('delete_institutionadmin/<int:pk>',views.Institution_adminDelete.as_view()),
     path('create_staff',views.CreateListStaffView.as_view()),
+    path('del_up_re_staff/<int:pk>',views.DeleteUpdateRetrieveStaffView.as_view()),
     path('token/',ObtainAuthToken.as_view()),
     path('create_school/<int:pk>',views.CreateSchoolView.as_view()),
     path('create_college/<int:pk>',views.CreateCollegeView.as_view()),

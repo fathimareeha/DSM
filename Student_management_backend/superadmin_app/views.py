@@ -107,6 +107,15 @@ class CreateListStaffView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return UserProfile.objects.filter(role="staff")
+    
+class DeleteUpdateRetrieveStaffView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+    serializer_class=UserSerializer
+    
+    def get_queryset(self):
+        return UserProfile.objects.filter(role='staff')
+    
 
 class CreateSchoolView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -934,3 +943,27 @@ class LatestPaymentReportView(APIView):
 
         except Exception as e:
             return Response({"detail": "Error occurred", "error": str(e)}, status=400)
+
+
+
+class DeactivateInstitutionView(APIView):
+    def post(self, request, institution_type, institution_id):
+        if institution_type == "school":
+            try:
+                school = School.objects.get(id=institution_id)
+                school.is_active = False
+                school.save()
+                return Response({"message": "School deactivated successfully"}, status=status.HTTP_200_OK)
+            except School.DoesNotExist:
+                return Response({"error": "School not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        elif institution_type == "college":
+            try:
+                college = College.objects.get(id=institution_id)
+                college.is_active = False
+                college.save()
+                return Response({"message": "College deactivated successfully"}, status=status.HTTP_200_OK)
+            except College.DoesNotExist:
+                return Response({"error": "College not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"error": "Invalid institution type"}, status=status.HTTP_400_BAD_REQUEST)

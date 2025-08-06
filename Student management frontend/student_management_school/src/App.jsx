@@ -13,6 +13,9 @@ import AddVicePrincipal from './pages/schooladmin/Addviceprincipal'
 import CreateClass from './pages/schooladmin/Createclasses'
 import VicePrincipalList from './pages/schooladmin/Viceprincipallist'
 import AddStudent from './pages/schooladmin/Addstudents'
+import { Authprovider } from './context/institution/Authcontext'
+
+
 
 
 function App() {
@@ -20,8 +23,12 @@ function App() {
 
   return (
     <>
+
+    <Authprovider>
+
     <Routes>
 
+      <Route path='login' element={<Login/>}/>
       <Route path='/admin' element={<Layout/>}>
       <Route path='dashboard' element={<Dashboard/>}/>
       <Route path='add/viceprincipal' element={<AddVicePrincipal/>}/>
@@ -30,7 +37,7 @@ function App() {
       </Route>
 
    
-      <Route path='/login' element={<Login/>}/>
+      
       
       <Route path='/facultymanagement' element={<ManageFaculty/>}/>
       <Route path='/addcoordinators' element={<AddCoordinators/>}/>
@@ -39,7 +46,8 @@ function App() {
 
 
     </Routes>
-    
+    </Authprovider>
+
     </>
   )
 }

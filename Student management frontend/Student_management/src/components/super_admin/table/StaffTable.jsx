@@ -3,7 +3,7 @@ import { SuperadminContext } from '../../../context/super_admin/Superadmin_Conte
 
 function StaffTable() {
 
-    const {staffList}=useContext(SuperadminContext)
+    const {staffList,handleDeleteStaff}=useContext(SuperadminContext)
   return (
     <>
       <div className='overflow-x-auto'>
@@ -15,7 +15,7 @@ function StaffTable() {
               <th className="px-4 py-2 text-left">Email</th>
               <th className="px-4 py-2 text-left">Staff role</th>
               
-              
+               <th className="px-4 py-2 text-left">Delete</th>
               <th className="px-4 py-2 text-left">Details</th>
             </tr>
           </thead>
@@ -29,6 +29,14 @@ function StaffTable() {
               <td className="px-4 py-2">{staffs.username}</td>
               <td className="px-4 py-2">{staffs.email}</td>
               <td className="px-4 py-2">{staffs.staff_role}</td>
+               <td className="px-4 py-2">
+                  <button
+                    onClick={() => handleDeleteStaff(staffs.id)}
+                    className=" text-red-500    hover:text-red-600"
+                  >
+                    Delete
+                  </button>
+                </td>
              
               
               <td className="px-4 py-2">

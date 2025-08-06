@@ -42,7 +42,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',     # for ObtainAuthToken we need to add this in installed_apps then we need migrate
     'corsheaders',
     'django_rest_passwordreset',
+ 
+    'schoolapp',
+
     'collegeapp'
+
     
 ]
 
@@ -130,6 +134,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL='superadmin_app.UserProfile'
+
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 
