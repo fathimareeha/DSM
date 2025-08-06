@@ -1,125 +1,285 @@
 
 
-// import React, { useContext, useState } from 'react';
+
+
+
+// import React, { useContext, useState, useEffect } from 'react';
+// import Loader from '../../components/common/Loader';
+// import { Authcontext } from '../../context/institution/Authcontext';
 // import Inputfield from '../../components/common/Inputfield';
 // import Button from '../../components/common/Button';
-// import { Authcontext } from '../../context/institution/Authcontext';
 
-// export default function AddHod() {
+// function AddHod() {
+//   const [username, setusername] = useState('');
+//   const [email, setemail] = useState('');
+//   const [password, setpassword] = useState('');
+//   const [phone, setPhone] = useState('');
+//   const [department, setdepartment] = useState('');
   
-//   const {addHod} = useContext(Authcontext)
-//   const [name,setname] = useState("")
-//   const [email,setemail] = useState("")
-//   const [phone,setphone] = useState("")
-//   const [department,setdepartment] = useState("")
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     email: '',
-//     phone: '',
-//     department: '',
-//   });
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
-//   };
+//   const { hod_create, departmentlist = [], department_create } = useContext(Authcontext); // ✅ fallback to []
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log("Submitted HOD:", formData);
-//     // TODO: integrate with backend using axios/fetch
+//   // useEffect(() => {
+//   //   department_create();
+//   // }, []);
+
+ 
+
+//   const handleSubmit = () => {
+//     if (!username || !email || !password || !phone || !department ) {
+//       return alert("Please fill in all fields.");
+//     }
+//     hod_create(username, email, phone, department, password);
 //   };
 
 //   return (
 //     <div className="max-w-xl mx-auto mt-10 bg-white p-8 rounded-xl shadow-md border border-indigo-200">
 //       <h2 className="text-2xl font-bold text-indigo-800 mb-6">➕ Add New HOD</h2>
 
-//       <form onSubmit={handleSubmit} className="space-y-5">
-//         <Inputfield label="name" name="name" value={formData.name} onChange={handleChange} />
-//         <Inputfield label="email" name="email" value={formData.email} onChange={handleChange} />
-//         <Inputfield label="phone" name="phone" value={formData.phone} onChange={handleChange} />
+//       <Inputfield label="username" type="text" placeholder="username" onChange={(e) => setusername(e.target.value)} required={true} />
+//       <Inputfield label="email" type="email" placeholder="email" onChange={(e) => setemail(e.target.value)} required={true} />
+//       <Inputfield label="password" type="password" placeholder="password" onChange={(e) => setpassword(e.target.value)} required={true} />
+//       <Inputfield label="phone" type="text" placeholder="phone" onChange={(e) => setPhone(e.target.value)} required={true} />
+     
 
-//         <div className="flex flex-col">
+//       <div className="flex flex-col mt-4">
+//         <label className="mb-1 text-sm text-gray-600 capitalize">Department</label>
+//         <select
+//   onChange={(e) => setdepartment(e.target.value)}
+//   value={department}
+//   required
+//   className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+// >
+//   <option value="">-- Select Department --</option>
+//   {Array.isArray(departmentlist) && departmentlist.length > 0 ? (
+//     departmentlist.map((dep) => (
+//       <option key={dep.id} value={dep.id}>
+//         {dep.name}
+//       </option>
+//     ))
+//   ) : (
+//     <option disabled>Loading departments...</option>
+//   )}
+// </select>
+
+//       </div>
+
+//       <Button label={'Add HOD'} onclick={handleSubmit} />
+//     </div>
+//   );
+// }
+
+// export default AddHod;
+
+
+// import React, { useContext, useState, useEffect } from 'react';
+// import Loader from '../../components/common/Loader';
+// import { Authcontext } from '../../context/institution/Authcontext';
+// import Inputfield from '../../components/common/Inputfield';
+// import Button from '../../components/common/Button';
+
+// function AddHod() {
+//   const [username, setusername] = useState('');
+//   const [email, setemail] = useState('');
+//   const [password, setpassword] = useState('');
+//   const [phone, setPhone] = useState('');
+//   const [department, setdepartment] = useState('');
+
+//   const { hod_create, departmentlist = [] } = useContext(Authcontext);
+
+//   useEffect(() => {
+//     console.log("Department list:", departmentlist);
+//   }, [departmentlist]);
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault(); // Prevents page reload
+
+//     console.log("Button clicked");
+
+//     if (!username.trim() || !email.trim() || !password.trim() || !phone.trim() || !department) {
+//       alert("Please fill in all fields.");
+//       console.log("Missing fields:", { username, email, password, phone, department });
+//       return;
+//     }
+
+//     console.log("All fields valid. Creating HOD:", {
+//       username,
+//       email,
+//       password,
+//       phone,
+//       department,
+//     });
+
+//     hod_create(username, email, password, department, phone);
+//   };
+
+//   return (
+//     <div className="max-w-xl mx-auto mt-10 bg-white p-8 rounded-xl shadow-md border border-indigo-200">
+//       <h2 className="text-2xl font-bold text-indigo-800 mb-6">➕ Add New HOD</h2>
+
+//       <form onSubmit={handleSubmit}>
+//         <Inputfield
+//   label="Username"
+//   type="text"
+//   placeholder="Enter username"
+//   value={username}
+//   onChange={(e) => setusername(e.target.value)}
+//   required={true}
+// />
+// <Inputfield
+//   label="Email"
+//   type="email"
+//   placeholder="Enter email"
+//   value={email}
+//   onChange={(e) => setemail(e.target.value)}
+//   required={true}
+// />
+// <Inputfield
+//   label="Password"
+//   type="password"
+//   placeholder="Enter password"
+//   value={password}
+//   onChange={(e) => setpassword(e.target.value)}
+//   required={true}
+// />
+// <Inputfield
+//   label="Phone"
+//   type="text"
+//   placeholder="Enter phone"
+//   value={phone}
+//   onChange={(e) => setPhone(e.target.value)}
+//   required={true}
+// />
+
+        
+
+//         <div className="flex flex-col mt-4">
 //           <label className="mb-1 text-sm text-gray-600 capitalize">Department</label>
 //           <select
-//             name="department"
-//             value={formData.department}
-//             onChange={handleChange}
+//             onChange={(e) => setdepartment(e.target.value)}
+//             value={department}
 //             required
 //             className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
 //           >
-//             <option value="" disabled>-- Select Department --</option>
-//             <option value="Computer Science">Computer Science</option>
-//             <option value="Electronics">Electronics</option>
-//             <option value="Mechanical">Mechanical</option>
-//             <option value="Civil">Civil</option>
-//             <option value="IT">IT</option>
-//             <option value="Mathematics">Mathematics</option>
-//             <option value="Physics">Physics</option>
-//             <option value="Commerce">Commerce</option>
+//             <option value="">-- Select Department --</option>
+//             {Array.isArray(departmentlist) && departmentlist.length > 0 ? (
+//               departmentlist.map((dep) => (
+//                 <option key={dep.id} value={dep.id}>
+//                   {dep.name}
+//                 </option>
+//               ))
+//             ) : (
+//               <option disabled>Loading departments...</option>
+//             )}
 //           </select>
 //         </div>
 
-//         <Button label="Add HOD" />
+//         <Button label={'Add HOD'} type="submit" />
 //       </form>
 //     </div>
 //   );
 // }
 
-import React, { useContext, useState } from 'react';
+// export default AddHod;
 
 
-import Loader from '../../components/common/Loader'; // ✅ if using Loader
+import React, { useContext, useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
 import { Authcontext } from '../../context/institution/Authcontext';
 import Inputfield from '../../components/common/Inputfield';
 import Button from '../../components/common/Button';
+import { toast } from 'react-toastify';
 
 function AddHod() {
-  const [name, setname] = useState('');
+  const [username, setusername] = useState('');
   const [email, setemail] = useState('');
+  const [password, setpassword] = useState('');
   const [phone, setPhone] = useState('');
   const [department, setdepartment] = useState('');
 
-  const { hod_create, loading } = useContext(Authcontext);
+  const { hod_create, departmentlist = [], department_create } = useContext(Authcontext);
 
-  const handle_submit = (e) => {
-    e.preventDefault();
-    console.log('submitted');
-    hod_create(name, email, phone, department); // ✅ Actually send data
+  useEffect(() => {
+    department_create();
+  }, []);
+
+  const handleSubmit = () => {
+    if (!username || !email || !password || !phone || !department) {
+      return alert('Please fill in all fields.');
+    }
+
+    console.log("Sending Data:", {
+      username,
+      email,
+      password,
+      phone,
+      department,
+    });
+
+    hod_create(username, email, password, department, phone);
   };
 
   return (
     <div className="max-w-xl mx-auto mt-10 bg-white p-8 rounded-xl shadow-md border border-indigo-200">
       <h2 className="text-2xl font-bold text-indigo-800 mb-6">➕ Add New HOD</h2>
-      <form onSubmit={handle_submit} className="space-y-5">
-        <Inputfield label="name" type="text" placeholder='name' onChange={(e)=> setname(e.target.value)} required={true} />
-        <Inputfield label="email" type="text" placeholder="email" onChange={(e)=> setemail(e.target.value)} required={true} />
-        <Inputfield label="phone" type="text" placeholder="phone" onChange={(e)=> setPhone(e.target.value)} required={true}/>
-        <div className="flex flex-col">
-          <label className="mb-1 text-sm text-gray-600 capitalize">Department</label>
-          <select
-            onChange={(e)=> setdepartment(e.target.value)}
-            required
-            className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-          >
-             
-            <option value="" disabled>-- Select Department --</option>
-            <option value="CSE">Computer Science</option>
-            <option value="ECE">Electronics</option>
-            <option value="ME">Mechanical</option>
-            <option value="CE">Civil</option>
-            <option value="EEE">Electrical</option>
-          </select>
-        </div>
-        <Button label={loading ? <Loader /> : 'Add HOD'} type="submit" />
-      </form>
+
+      <Inputfield
+        label="Username"
+        type="text"
+        placeholder="Enter username"
+        value={username}
+        onChange={(e) => setusername(e.target.value)}
+        required={true}
+      />
+      <Inputfield
+        label="Email"
+        type="email"
+        placeholder="Enter email"
+        value={email}
+        onChange={(e) => setemail(e.target.value)}
+        required={true}
+      />
+      <Inputfield
+        label="Password"
+        type="password"
+        placeholder="Enter password"
+        value={password}
+        onChange={(e) => setpassword(e.target.value)}
+        required={true}
+      />
+      <Inputfield
+        label="Phone"
+        type="text"
+        placeholder="Enter phone number"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        required={true}
+      />
+
+      <div className="flex flex-col mt-4">
+        <label className="mb-1 text-sm text-gray-600 capitalize">Department</label>
+        <select
+          onChange={(e) => setdepartment(e.target.value)}
+          value={department}
+          required
+          className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+        >
+          <option value="">-- Select Department --</option>
+          {Array.isArray(departmentlist) && departmentlist.length > 0 ? (
+            departmentlist.map((dep) => (
+              <option key={dep.id} value={dep.id}>
+                {dep.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>Loading departments...</option>
+          )}
+        </select>
+      </div>
+
+      <Button label={'Add HOD'} onclick={handleSubmit} />
     </div>
   );
 }
 
 export default AddHod;
-
-

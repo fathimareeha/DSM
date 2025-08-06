@@ -21,9 +21,10 @@ class UserProfile(AbstractUser):
                 ('students','students'))
 
     
+    
     role=models.CharField(max_length=50,choices=role_options)
     
-    
+
 class Institution(models.Model):
     user_object=models.OneToOneField(UserProfile,on_delete=models.CASCADE,related_name='institution')
     created_date=models.DateField(auto_now_add=True)

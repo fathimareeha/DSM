@@ -35,15 +35,20 @@ function ManageHod() {
               <th className="px-4 py-2">Name</th>
               <th className="px-4 py-2">Email</th>
               <th className="px-4 py-2">Department</th>
+              <th className="px-4 py-2">Phone</th>
+              
+
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {hodlist.map((hod) => (
               <tr key={hod.id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3">{hod.name}</td>
+                <td className="px-4 py-3">{hod.username}</td>
                 <td className="px-4 py-3">{hod.email}</td>
-                <td className="px-4 py-3">{hod.department}</td>
+                <td className="px-4 py-3">{hod.department_name}</td>
+                <td className="px-4 py-3">{hod.phone}</td>
+                
                 <td className="px-4 py-3 flex justify-center gap-2">
                   <Link
                     to={`/edithod/${hod.id}`}
