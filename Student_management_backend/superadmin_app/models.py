@@ -14,7 +14,9 @@ class UserProfile(AbstractUser):
                 ('faculty','faculty'),
                 ('students','students'))
     
+    
     role=models.CharField(max_length=50,choices=role_options)
+    
     
     
 

@@ -1,27 +1,3 @@
-# from superadmin_app.models import College, UserProfile  # ✅ Correct import
-# from django.db import models
-
-# class HOD(models.Model):
-#     DEPARTMENT_CHOICES = [
-#         ("CSE", "Computer Science"),
-#         ("ECE", "Electronics"),
-#         ("ME", "Mechanical"),
-#         ("CE", "Civil"),
-#         ("EEE", "Electrical"),
-#     ]
-
-#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)  # ✅ use UserProfile here
-#     name=models.CharField(max_length=100,null=True)
-#     email = models.EmailField()
-#     phone = models.CharField(max_length=15)
-#     department = models.CharField(max_length=50, choices=DEPARTMENT_CHOICES)
-#     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='hods',null=True,)
-
-#     def __str__(self):
-#         return f"HOD: {self.user.username} - {self.department}"
-
-
-
 
 from superadmin_app.models import College, UserProfile
 from django.db import models
@@ -36,30 +12,7 @@ class Department(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
-
-
-# class HOD(models.Model):
-#     DEPARTMENT_CHOICES = [
-#         ("CSE", "Computer Science"),
-#         ("ECE", "Electronics"),
-#         ("ME", "Mechanical"),
-#         ("CE", "Civil"),
-#         ("EEE", "Electrical"),
-#     ]
-
-#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=100, null=True)
-#     email = models.EmailField()
-#     phone = models.CharField(max_length=15)
-#     department = models.CharField(max_length=50, choices=DEPARTMENT_CHOICES)
-#     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='hods', null=True)
-
-#     class Meta:
-#         unique_together = ('college', 'department')  # ✅ Enforces one HOD per department per college
-
-#     def __str__(self):
-#         return f"HOD: {self.user.username} - {self.department}"
-
+    
 
 class HOD(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
@@ -71,4 +24,47 @@ class HOD(models.Model):
         unique_together = ('college', 'department')
 
     def __str__(self):
-        return f"HOD: {self.name} - {self.department.name}"
+        return f"HOD: {self.user.username} - {self.college.college_name if self.college else 'no college'}"
+
+
+
+class Faculty(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=15)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="faculties")
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='faculties')
+    designation = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.department.name}"
+
+
+
+
+class Semester(models.Model):
+    name = models.CharField(max_length=50)  # e.g., "Semester 1"
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='semesters')
+
+    def __str__(self):
+        return f"{self.department.code} - {self.name}"
+    
+
+class Subject(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=20, unique=True)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='subjects')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+
+class SubjectAllocation(models.Model):
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='allocations')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='allocations')
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    
+
+    def __str__(self):
+        return f"{self.faculty.name} - {self.subject.name} ({self.semester.name})"
