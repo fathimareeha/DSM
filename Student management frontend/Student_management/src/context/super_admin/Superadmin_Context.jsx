@@ -51,6 +51,45 @@ export const SuperadminProvider = ({ children }) => {
       setloading(false)
     }
   }
+  //staff list
+
+  const [staffList,setStaffList]=useState([])
+
+  useEffect(()=>{
+    const fetchStaff=async()=>{
+      try {
+       const response= await axios.get('http://127.0.0.1:8000/superadmin_app/create_staff',{
+      headers: {
+            Authorization: `Token ${token}`,
+          },
+    })
+    setStaffList(response.data)
+        
+      } catch (error) {
+        console.error( error);
+      }
+    } 
+ 
+  fetchStaff()
+},[])
+
+ const handleDeleteStaff = async (id) => {
+  try {
+    await axios.delete(`http://127.0.0.1:8000/superadmin_app/del_up_re_staff/${id}`, {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    // Remove staff from list
+    setStaffList(prev => prev.filter(staff => staff.id !== id));
+    alert('Staff deleted successfully');
+  } catch (error) {
+    console.error("Delete error:", error.response?.data || error.message);
+  }
+};
+
+
 
   //Institution admin create
   const admin_create = async (username, email, password1, password2) => {
@@ -335,30 +374,10 @@ const handle_institution_login = async (username, password) => {
     fetchActiveInstitutions();
   }, []);
 
-  //staff list
 
-  const [staffList,setStaffList]=useState([])
-
-  useEffect(()=>{
-    const fetchStaff=async()=>{
-      try {
-       const response= await axios.get('http://127.0.0.1:8000/superadmin_app/create_staff',{
-      headers: {
-            Authorization: `Token ${token}`,
-          },
-    })
-    setStaffList(response.data)
-        
-      } catch (error) {
-        console.error( error);
-      }
-    } 
- 
-  fetchStaff()
-},[])
 
   return (
-    <SuperadminContext.Provider value={{ handle_login, admin_create, school_create, college_create, handle_institution_login, handle_package, staff_create, create_packages,  activeList,staffList,  order_details, totalInstitutions, schoolCount, collegeCount, institution_id, schoolActive, collegeActive, schoolInactive, collegeInactive, totalActive, totalAmount, loading,totalStaff, fetchInstitutionCount }}>
+    <SuperadminContext.Provider value={{ handle_login, admin_create, school_create, college_create, handle_institution_login, handle_package, staff_create, create_packages,handleDeleteStaff,  activeList,staffList,  order_details, totalInstitutions, schoolCount, collegeCount, institution_id, schoolActive, collegeActive, schoolInactive, collegeInactive, totalActive, totalAmount, loading,totalStaff, fetchInstitutionCount }}>
       {
         children
       }

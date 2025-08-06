@@ -10,6 +10,5 @@ urlpatterns = [
 
     path('schoolapp/',include('schoolapp.urls')),
     path('collegeapp/',include('collegeapp.urls'))
-
     
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
