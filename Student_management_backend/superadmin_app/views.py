@@ -107,6 +107,15 @@ class CreateListStaffView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return UserProfile.objects.filter(role="staff")
+    
+class DeleteUpdateRetrieveStaffView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+    serializer_class=UserSerializer
+    
+    def get_queryset(self):
+        return UserProfile.objects.filter(role='staff')
+    
 
 class CreateSchoolView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]

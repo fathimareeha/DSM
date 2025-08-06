@@ -1,10 +1,7 @@
-
-
 from django.db import models
 from rest_framework import generics, permissions
 from .models import VicePrincipal
 from .serializer import VicePrincipalCreateSerializer,VicePrincipalDetailSerializer
-
 
 
 
