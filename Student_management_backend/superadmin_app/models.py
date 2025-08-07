@@ -88,6 +88,13 @@ class School(models.Model):
     
     def __str__(self):
         return self.school_name    
+    
+    
+class University(models.Model):
+    name=models.CharField(max_length=100,null=True)
+    
+    def __str__(self):
+        return self.name
 
 class College(models.Model):
     instution_obj=models.ForeignKey(Institution,on_delete=models.CASCADE)
@@ -109,12 +116,8 @@ class College(models.Model):
         ('unaided','unaided')
     )
     college_type=models.CharField(max_length=50,choices=college_type_options)
-    university_options=(
-        ('kerala technical university','kerala technical university'),
-        ('kannur university','kannur university'),
-        ('M G university','M G university')
-    )
-    university=models.CharField(max_length=50,choices=university_options)
+    
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='colleges')
     created_date=models.DateTimeField(auto_now_add=True)
     activation_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -132,6 +135,49 @@ class College(models.Model):
         return self.college_name
     
     
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=100)   
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='courses',null=True)
+    class Meta:
+        unique_together = ('name',) 
+    
+    def __str__(self):
+        return self.name
+    
+class Department(models.Model):  # Ex: CSE, ECE under B.Tech
+    name = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+
+    class Meta:
+        unique_together = ('name',)  
+        
+    def __str__(self):
+        return f"{self.name} ({self.course.name})"
+        
+class Semester(models.Model):  # Ex: Sem 1 to 8
+    number = models.IntegerField()
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"Semester {self.number} - {self.department.name}"
+    
+class Subject(models.Model):  # Ex: DBMS, Python, OS
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=20,null=True)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('name', 'semester')
+
+        
+    def __str__(self):
+        return f"{self.name} - {self.semester}"
+ 
+    
+
 class SubscriptionPackage(models.Model):
     user_obj=models.ForeignKey(UserProfile,on_delete=models.CASCADE)
     

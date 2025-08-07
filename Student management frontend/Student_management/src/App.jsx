@@ -41,6 +41,11 @@ import { Search_provider } from './context/super_admin/Search_context'
 import Staff from './pages/super_admin/Staff'
 import SchoolHomepage from './pages/super_admin/School_homepage'
 import CollegeHomepage from './pages/super_admin/College_homepage'
+import CourseForm from './components/super_admin/forms/CourseForm'
+import CreateDepartment from './components/super_admin/forms/DepartmentForm'
+import CreateSemester from './components/super_admin/forms/SemesterForm'
+import CreateSubject from './components/super_admin/forms/SubjectForm'
+import UniversityForm from './components/super_admin/forms/UniversityForm'
 
 
 
@@ -81,7 +86,11 @@ function App() {
       <Route path='school_edit/:institution_id' element={<School_edit/>}/>
       <Route path='college_edit/:institution_id' element={<College_edit/>}/>
       <Route path='edit_institution_form/:institution_id/' element={<Edit_institutionForm/>}/>
-      
+      <Route path='university' element={<UniversityForm/>}/>
+      <Route path='course' element={<CourseForm/>}/>
+      <Route path='department' element={<CreateDepartment/>}/>
+      <Route path='semester' element={<CreateSemester/>}/>
+      <Route path='subject' element={<CreateSubject/>}/>
 
 
 
