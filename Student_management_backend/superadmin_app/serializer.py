@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole
+from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole,Subject,Semester,Department,Course,University
 from django.contrib.auth import authenticate
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -138,6 +138,44 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'title', 'message', 'notification_type', 'created_at','is_read']
         
+class UniversitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = ['id', 'name']
         
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['id', 'name','university']
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)
+    course_id = serializers.PrimaryKeyRelatedField(
+        queryset=Course.objects.all(), source='course', write_only=True
+    )
+
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'course', 'course_id']
+
+class SemesterSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+    department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(), source='department', write_only=True
+    )
+
+    class Meta:
+        model = Semester
+        fields = ['id', 'number', 'department', 'department_id']
+
+class SubjectSerializer(serializers.ModelSerializer):
+    semester = SemesterSerializer(read_only=True)
+    semester_id = serializers.PrimaryKeyRelatedField(
+        queryset=Semester.objects.all(), source='semester', write_only=True
+    )
+
+    class Meta:
+        model = Subject
+        fields = ['id', 'name', 'semester','code', 'semester_id']       
 
         

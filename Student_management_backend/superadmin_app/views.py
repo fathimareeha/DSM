@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
-from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer
-from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification,StaffRole
+from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer,CourseSerializer,DepartmentSerializer,SemesterSerializer,SubjectSerializer,UniversitySerializer
+from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification,StaffRole,Course,Department,Semester,Subject,University
 from rest_framework import authentication,permissions,serializers
 from rest_framework.views import APIView 
 from rest_framework.authtoken.models import Token
@@ -967,3 +967,157 @@ class DeactivateInstitutionView(APIView):
                 return Response({"error": "College not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"error": "Invalid institution type"}, status=status.HTTP_400_BAD_REQUEST)
+
+class UniversityView(generics.ListCreateAPIView)  :
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+    queryset = University.objects.all()
+    serializer_class = UniversitySerializer
+    
+class CourseView(generics.ListCreateAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+            university_id = self.request.query_params.get('university_id')
+            if university_id:
+                return Course.objects.filter(university_id=university_id)
+            return Course.objects.none() 
+
+import openpyxl
+from rest_framework.parsers import MultiPartParser    # handle file uploads
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+@method_decorator(csrf_exempt, name='dispatch')    
+# class BulkCourseUploadView(APIView):
+#     parser_classes = [MultiPartParser]
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         file = request.FILES.get('file')
+#         if not file:
+#             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             workbook = openpyxl.load_workbook(file)
+#             sheet = workbook.active
+
+#             for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
+#                 name = row[0]
+#                 if name:
+#                     Course.objects.get_or_create(name=name)
+
+#             return Response({"message": "Courses uploaded successfully!"})
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BulkCourseUploadView(APIView):
+    parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            workbook = openpyxl.load_workbook(file)
+            sheet = workbook.active
+
+            for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
+                course_name = row[0]
+                university_name = row[1]
+
+                if course_name and university_name:
+                    # Get or create the university
+                    university, _ = University.objects.get_or_create(name=university_name)
+
+                    # Create the course under the university
+                    Course.objects.get_or_create(name=course_name, university=university)
+
+            return Response({"message": "Courses uploaded successfully!"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DepartmentView(generics.ListCreateAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+   
+    serializer_class = DepartmentSerializer
+    
+    def get_queryset(self):
+        course_id = self.request.query_params.get('course')
+        university_id = self.request.query_params.get('university')
+
+        if course_id:
+            return Department.objects.filter(course_id=course_id)
+        elif university_id:
+            return Department.objects.filter(course__university_id=university_id)
+
+        return Department.objects.all()
+
+class SemesterView(generics.ListCreateAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+    queryset = Semester.objects.all()
+    serializer_class = SemesterSerializer
+    
+    def get_queryset(self):
+        university_id = self.request.query_params.get('university')
+        course_id = self.request.query_params.get('course')
+        dept_id = self.request.query_params.get('department')
+
+        if course_id and dept_id:
+            return Semester.objects.filter(course_id=course_id, department_id=dept_id)
+        elif course_id:
+            return Semester.objects.filter(course_id=course_id)
+        elif university_id:
+            return Department.objects.filter(course__university_id=university_id)
+        return Semester.objects.all()
+
+class SubjectView(generics.ListCreateAPIView):
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[permissions.IsAdminUser]
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+    
+    
+class BulkSubjectUploadView(APIView):
+    parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        semester_id = request.data.get('semester')
+
+        if not file:
+            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not semester_id:
+            return Response({"error": "Semester ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            semester = Semester.objects.get(id=semester_id)
+
+            workbook = openpyxl.load_workbook(file)
+            sheet = workbook.active
+
+            for row in sheet.iter_rows(min_row=2, values_only=True):  # skip header
+                code = row[0]
+                name = row[1]
+                if code and name:
+                    Subject.objects.get_or_create(
+                        name=name.strip(),
+                        semester=semester,
+                        defaults={'code': code.strip() if code else None}
+                    )
+
+            return Response({"message": "Subjects uploaded successfully!"})
+        except Semester.DoesNotExist:
+            return Response({"error": "Invalid Semester ID"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

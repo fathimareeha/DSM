@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
-import { FaHome, FaUniversity, FaSchool, FaBuilding } from 'react-icons/fa';
+import { FaHome, FaUniversity, FaSchool, FaBuilding, FaUser } from 'react-icons/fa';
 
 function Sidebar() {
   const location = useLocation();
@@ -33,6 +33,21 @@ function Sidebar() {
       label: 'Staff',
       to: '/admin/list_staff',
       icon: <FaHome />,
+    },
+    {
+      label: 'Courses',
+      
+      icon: <FaUser />,
+      dropdown: true,
+      children: [
+        { label:'University', to:'/admin/university'},
+        { label:'Course', to:'/admin/course'},
+        
+        { label: 'Department', to: '/admin/department', icon: <FaSchool /> },
+        { label: 'Semester', to: '/admin/semester', icon: <FaBuilding /> },
+        { label: 'Subjects', to: '/admin/subject', icon: <FaBuilding /> },
+
+      ],
     },
   ];
 
