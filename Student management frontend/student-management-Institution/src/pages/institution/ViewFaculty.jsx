@@ -1,79 +1,107 @@
+
+
+
+
 import React, { useEffect, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 function ViewFaculty() {
-  const [facultyList, setFacultyList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [hods, setHods] = useState([]);
+
+  const fetchHods = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:8000/collegeapp/faculties/', {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      setHods(response.data);
+    } catch (error) {
+      console.error('Error fetching HODs:', error);
+    }
+  };
 
   useEffect(() => {
-    const staticFaculty = [
-      {
-        id: 1,
-        name: 'Dr. Ayesha Rahman',
-        email: 'ayesha@college.edu',
-        phone: '9876543210',
-        department: 'Computer Science',
-        designation: 'Associate Professor',
-      },
-      {
-        id: 2,
-        name: 'Mr. Ravi Kumar',
-        email: 'ravi@college.edu',
-        phone: '9123456780',
-        department: 'Electronics',
-        designation: 'Assistant Professor',
-      },
-      {
-        id: 3,
-        name: 'Ms. Sneha Patel',
-        email: 'sneha@college.edu',
-        phone: '9988776655',
-        department: 'Mechanical',
-        designation: 'Lecturer',
-      },
-    ];
-
-    setTimeout(() => {
-      setFacultyList(staticFaculty);
-      setLoading(false);
-    }, 500);
+    fetchHods();
   }, []);
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow rounded-md">
-      <h2 className="text-xl font-bold text-indigo-700 mb-6">Faculty List</h2>
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this Faculty?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://127.0.0.1:8000/collegeapp/faculties/${id}/`, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        setHods(hods.filter((hod) => hod.id !== id));
+      } catch (error) {
+        console.error('Error deleting HOD:', error);
+      }
+    }
+  };
 
-      {loading ? (
-        <p className="text-center text-gray-500">Loading...</p>
-      ) : facultyList.length === 0 ? (
-        <p className="text-center text-gray-500">No faculty found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-200 rounded-md">
-            <thead>
-              <tr className="bg-indigo-100">
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">#</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Name</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Email</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Phone</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Department</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Designation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facultyList.map((faculty, index) => (
-                <tr key={faculty.id} className="border-t">
-                  <td className="px-4 py-2 text-sm">{index + 1}</td>
-                  <td className="px-4 py-2 text-sm">{faculty.name}</td>
-                  <td className="px-4 py-2 text-sm">{faculty.email}</td>
-                  <td className="px-4 py-2 text-sm">{faculty.phone}</td>
-                  <td className="px-4 py-2 text-sm">{faculty.department}</td>
-                  <td className="px-4 py-2 text-sm">{faculty.designation}</td>
+  return (
+    <div className="p-4">
+
+      <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-indigo-800">🎓 Manage Faculty</h2>
+              <Link
+                to="/admin/faculty/add"
+                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+              >
+                ➕ Add Faculty
+              </Link>
+            </div>
+
+      <div className="overflow-x-auto bg-white shadow rounded-lg">
+        <table className="w-full table-auto text-sm text-left">
+          <thead className="bg-indigo-100 text-indigo-800 font-semibold">
+            <tr>
+              <th className="px-4 py-2">Name</th>
+              <th className="px-4 py-2">Email</th>
+              <th className="px-4 py-2">Department</th>
+              <th className="px-4 py-2">Phone</th>
+              <th className="px-4 py-2 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hods.length > 0 ? (
+              hods.map((hod) => (
+                <tr key={hod.id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-3">{hod.username}</td>
+                  <td className="px-4 py-3">{hod.email}</td>
+                  <td className="px-4 py-3">{hod.department_name}</td>
+                  <td className="px-4 py-3">{hod.phone}</td>
+                  <td className="px-4 py-3 flex justify-center gap-2">
+                    <Link
+                      to={`/admin/editfaculty/${hod.id}`}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(hod.id)}
+                      className="text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center py-4 text-gray-400">
+                  No Faculty's found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

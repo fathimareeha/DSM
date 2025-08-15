@@ -1,30 +1,23 @@
 
-# department/serializers.py
-from rest_framework import serializers
-from collegeapp.models import Department
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
-        fields = ['id', 'name','college']
-        read_only_fields = ['college']  # Make college auto-assigned, not client-provided
-
-
 
 from rest_framework import serializers
-from .models import HOD
-from collegeapp.models import UserProfile, Department, College
+from .models import HOD,Faculty
+from superadmin_app.models import Department,UserProfile
+from rest_framework.response import Response
+from rest_framework import status
 
 
-
+#HOD CREATION AND LISTING and DUD
 class HODCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+    
 
     class Meta:
         model = HOD
-        fields = ['username', 'email', 'password', 'phone', 'department', 'college']
+        fields = ['username', 'email', 'password', 'phone', 'department']
 
     def validate_username(self, value):
         if UserProfile.objects.filter(username=value).exists():
@@ -45,24 +38,68 @@ class HODCreateSerializer(serializers.ModelSerializer):
 
         return HOD.objects.create(user=user, **validated_data)
     
+
     
 
 class HODListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     email = serializers.EmailField(source='user.email')
     department_name = serializers.CharField(source='department.name')
-    college_name = serializers.CharField(source='college.college_name')
+   
 
     class Meta:
         model = HOD
-        fields = ['id', 'username', 'email', 'phone', 'department_name', 'college_name']
+        fields = ['id', 'username', 'email', 'phone', 'department_name']
 
+        
 
+class HODDetailSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
 
-from rest_framework import serializers
-from superadmin_app.models import UserProfile
-from .models import Faculty
+    class Meta:
+        model = HOD
+        fields = ['id', 'username', 'email', 'phone', 'department']
 
+    
+
+# serializers.py
+
+class HODUpdateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email')
+    password = serializers.CharField(write_only=True, required=False)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+
+    class Meta:
+        model = HOD
+        fields = ['username', 'email', 'phone', 'password', 'department']
+
+    def update(self, instance, validated_data):
+        # Update user model
+        user_data = validated_data.pop('user', {})
+        username = user_data.get('username')
+        email = user_data.get('email')
+        password = validated_data.pop('password', None)
+
+        if username:
+            instance.user.username = username
+        if email:
+            instance.user.email = email
+        if password:
+            instance.user.set_password(password)
+
+        instance.user.save()
+
+        # Update HOD fields
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.department = validated_data.get('department', instance.department)
+        instance.save()
+
+        return instance
+
+# FACULTY CREATION  LISTING and DUD
 class FacultyCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
@@ -70,7 +107,7 @@ class FacultyCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Faculty
-        fields = ['username', 'email', 'password', 'phone', 'designation', 'department', 'college']
+        fields = ['username', 'email', 'password', 'phone', 'department']
 
     def validate_username(self, value):
         if UserProfile.objects.filter(username=value).exists():
@@ -96,48 +133,311 @@ class FacultyListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     email = serializers.EmailField(source='user.email')
     department_name = serializers.CharField(source='department.name')
-    college_name = serializers.CharField(source='college.college_name')
+   
 
     class Meta:
         model = Faculty
-        fields = ['id', 'username', 'email', 'phone', 'designation', 'department_name', 'college_name']
+        fields = ['id', 'username', 'email', 'phone', 'department_name']
+
+class FacultyDetailSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+
+    class Meta:
+        model = HOD
+        fields = ['id', 'username', 'email', 'phone', 'department']
+
+
+
+class FacultyUpdateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email')
+    password = serializers.CharField(write_only=True, required=False)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+
+    class Meta:
+        model = HOD
+        fields = ['username', 'email', 'phone', 'password', 'department']
+
+    def update(self, instance, validated_data):
+        # Update user model
+        user_data = validated_data.pop('user', {})
+        username = user_data.get('username')
+        email = user_data.get('email')
+        password = validated_data.pop('password', None)
+
+        if username:
+            instance.user.username = username
+        if email:
+            instance.user.email = email
+        if password:
+            instance.user.set_password(password)
+
+        instance.user.save()
+
+        # Update HOD fields
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.department = validated_data.get('department', instance.department)
+        instance.save()
+
+        return instance
+    
+#HOSTEL CREATION
+from rest_framework import serializers
+from .models import Hostel, Student
+
+class HostelSerializer(serializers.ModelSerializer):
+    current_occupancy = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Hostel
+        fields = ['id', 'name', 'hostel_type', 'intake', 'address', 'current_occupancy']
+
+    def get_current_occupancy(self, obj):
+        return Student.objects.filter(hostel=obj).count()
+
+
+class StudentHostelSerializer(serializers.ModelSerializer):
+    hostel_name = serializers.CharField(source='hostel.name', read_only=True)
+
+    class Meta:
+        model = Student
+        fields = ['id', 'user', 'roll_no', 'hostel', 'hostel_name', 'room_number']
 
 
 
 from rest_framework import serializers
-from .models import Semester
+from .models import Student
+from superadmin_app.models import UserProfile, Course, Department, Semester
 
-class SemesterSerializer(serializers.ModelSerializer):
-    department_name = serializers.CharField(source='department.name', read_only=True)
-    department_id = serializers.IntegerField(write_only=True)
+# STUDENT CREATION
+class StudentCreateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(write_only=True)
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+    semester = serializers.PrimaryKeyRelatedField(queryset=Semester.objects.all())
+    photo = serializers.ImageField(required=False,allow_null=True)
 
     class Meta:
-        model = Semester
-        fields = ['id', 'name', 'department_id', 'department_name']
+        model = Student
+        fields = [
+            'username', 'email', 'password',
+            'phone', 'roll_no', 'course', 'department',
+            'semester', 'address', 'photo','gender'
+        ]
+
+    def validate_username(self, value):
+        if UserProfile.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
+
+    def create(self, validated_data):
+        username = validated_data.pop('username')
+        email = validated_data.pop('email')
+        password = validated_data.pop('password')
+
+        # Create linked UserProfile
+        user = UserProfile.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role='student'
+        )
+
+        return Student.objects.create(user=user, **validated_data)
 
 
 
+
+
+
+
+# STUDENT LIST
+class StudentListSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email')
+    course_name = serializers.CharField(source='course.name')
+    department_name = serializers.CharField(source='department.name')
+    semester_name = serializers.CharField(source='semester.number', read_only=True)
+
+    # photo = serializers.ImageField(use_url=True)
+    photo = serializers.ImageField(required=False,allow_null=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'id', 'username', 'email', 'phone', 'roll_no',
+            'course_name', 'department_name', 'semester_name',
+            'address', 'photo','gender'
+        ]
+
+
+# STUDENT DETAIL
+class StudentDetailSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    photo = serializers.ImageField(required=False, use_url=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'id', 'username', 'email', 'phone', 'roll_no',
+            'course', 'department', 'semester', 'address', 'photo','gender'
+        ]
+
+
+# STUDENT UPDATE
+class StudentUpdateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email')
+    password = serializers.CharField(write_only=True, required=False)
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+    semester = serializers.PrimaryKeyRelatedField(queryset=Semester.objects.all())
+    photo = serializers.ImageField(required=False,allow_null=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'username', 'email', 'phone', 'roll_no',
+            'password', 'course', 'department', 'semester',
+            'address', 'photo','gender'
+        ]
+
+    def update(self, instance, validated_data):
+        # Update UserProfile
+        user_data = validated_data.pop('user', {})
+        username = user_data.get('username')
+        email = user_data.get('email')
+        password = validated_data.pop('password', None)
+
+        if username:
+            instance.user.username = username
+        if email:
+            instance.user.email = email
+        if password:
+            instance.user.set_password(password)
+
+        instance.user.save()
+
+        # Update Student fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
+
+# serializers.py
+# serializers.py
+# serializers.py
 from rest_framework import serializers
-from .models import Subject
+from .models import CoordinatorsRole
 
-class SubjectSerializer(serializers.ModelSerializer):
-    semester_name = serializers.CharField(source='semester.name', read_only=True)
-    semester_id = serializers.IntegerField(write_only=True)
+
+
+
+class CoordinatorsRoleSerializer(serializers.ModelSerializer):
+    # Write-only for creation
+    username = serializers.CharField(write_only=True)
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    # Read-only for listing
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
 
     class Meta:
-        model = Subject
-        fields = ['id', 'name', 'code', 'semester_id', 'semester_name']
+        model = CoordinatorsRole
+        fields = [
+            "id",
+            "username", "email", "password",  # creation fields
+            "user_id", "user_username", "user_email",  # listing fields
+            "coordinators_role",
+            "can_access_library",
+            "can_access_exam",
+            "can_access_finance",
+            "can_access_placement",
+            "can_access_sports",
+            "can_access_lab",
+            "can_access_hostel",
+        ]
+
+    def create(self, validated_data):
+        username = validated_data.pop("username")
+        email = validated_data.pop("email")
+        password = validated_data.pop("password")
+        role = validated_data.get("coordinators_role")
+
+        # Auto-set permissions based on role
+        role_permission_map = {
+            "librarian": "can_access_library",
+            "controller_of_exam": "can_access_exam",
+            "finance_officer": "can_access_finance",
+            "placement_officer": "can_access_placement",
+            "sports_coordinator": "can_access_sports",
+            "lab_coordinator": "can_access_lab",
+            "hostel_manager": "can_access_hostel",
+        }
+
+        if role in role_permission_map:
+            validated_data[role_permission_map[role]] = True
+
+        # Create user account with role
+        user = UserProfile.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role=role  # This assumes UserProfile has a 'role' field
+        )
+
+        # Create coordinator role
+        return CoordinatorsRole.objects.create(user=user, **validated_data)
 
 
 
+
+# library_app/serializers.py
 from rest_framework import serializers
-from .models import SubjectAllocation
+from .models import Book
 
-class SubjectAllocationSerializer(serializers.ModelSerializer):
-    faculty_name = serializers.CharField(source='faculty.user.username', read_only=True)
-    subject_name = serializers.CharField(source='subject.name', read_only=True)
-    semester_name = serializers.CharField(source='semester.name', read_only=True)
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+
+
+#BUS 
+from rest_framework import serializers
+from .models import Bus, BusStop, StudentBusAllocation
+from .models import Student  # adjust path if needed
+
+class BusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bus
+        fields = '__all__'
+
+
+class BusStopSerializer(serializers.ModelSerializer):
+    bus_number = serializers.CharField(source='bus.bus_number', read_only=True)
 
     class Meta:
-        model = SubjectAllocation
-        fields = ['id', 'faculty', 'faculty_name', 'subject', 'subject_name', 'semester', 'semester_name']
+        model = BusStop
+        fields = ['id', 'bus', 'bus_number', 'stop_name', 'arrival_time']
+
+
+class StudentBusAllocationSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.user.username', read_only=True)
+    roll_no = serializers.CharField(source='student.roll_no', read_only=True)
+    bus_details = BusSerializer(source='bus', read_only=True)
+    stop_details = BusStopSerializer(source='stop', read_only=True)
+
+    class Meta:
+        model = StudentBusAllocation
+        fields = ['id', 'student', 'student_name', 'roll_no', 'bus', 'bus_details', 'stop', 'stop_details']
+

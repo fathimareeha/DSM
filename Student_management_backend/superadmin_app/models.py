@@ -18,7 +18,8 @@ class UserProfile(AbstractUser):
 
                 ('hod','hod'),
                 ('faculty','faculty'),
-                ('students','students'))
+                ('students','students'),
+                ('coordinators','coordinators'))
 
     
     
@@ -158,7 +159,7 @@ class Department(models.Model):  # Ex: CSE, ECE under B.Tech
         return f"{self.name} ({self.course.name})"
         
 class Semester(models.Model):  # Ex: Sem 1 to 8
-    number = models.IntegerField()
+    number = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     
     def __str__(self):
