@@ -154,14 +154,9 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'http://localhost:5173',
-# ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-# ]
 
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'   ##profile_pic
+MEDIA_ROOT = BASE_DIR / 'media'
+

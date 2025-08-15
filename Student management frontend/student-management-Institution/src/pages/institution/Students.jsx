@@ -1,78 +1,462 @@
-import React from 'react';
+// import React, { useEffect, useState } from 'react';
+// import { Link } from 'react-router-dom';
+// import { Pencil, Trash2, Eye } from 'lucide-react';
+// import axios from 'axios';
+
+// function Students() {
+//   const [students, setStudents] = useState([]);
+
+//   const fetchStudents = async () => {
+//     try {
+//       const token = localStorage.getItem('token');
+//       const response = await axios.get('http://127.0.0.1:8000/collegeapp/students/', {
+//         headers: {
+//           Authorization: `Token ${token}`,
+//         },
+//       });
+//       setStudents(response.data);
+//     } catch (error) {
+//       console.error('Error fetching students:', error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchStudents();
+//   }, []);
+
+//   const handleDelete = async (id) => {
+//     if (window.confirm('Are you sure you want to delete this student?')) {
+//       try {
+//         const token = localStorage.getItem('token');
+//         await axios.delete(`http://127.0.0.1:8000/collegeapp/students/${id}/`, {
+//           headers: {
+//             Authorization: `Token ${token}`,
+//           },
+//         });
+//         setStudents(students.filter((student) => student.id !== id));
+//       } catch (error) {
+//         console.error('Error deleting student:', error);
+//       }
+//     }
+//   };
+
+//   return (
+//     <div className="p-6">
+//       <div className="flex justify-between items-center mb-6">
+//         <h2 className="text-2xl font-bold text-indigo-800">🎓 Manage Students</h2>
+//         <Link
+//           to="/admin/studentss/add"
+//           className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+//         >
+//           ➕ Add Student
+//         </Link>
+//       </div>
+
+//       <div className="overflow-x-auto bg-white shadow rounded-lg">
+//         <table className="w-full table-auto text-sm text-left">
+//           <thead className="bg-indigo-100 text-indigo-800 font-semibold">
+//             <tr>
+//               <th className="px-4 py-2">Photo</th>
+//               <th className="px-4 py-2">Name</th>
+//               <th className="px-4 py-2">Roll No</th>
+//               <th className="px-4 py-2">Email</th>
+//               <th className="px-4 py-2">Course</th>
+//               <th className="px-4 py-2">Department</th>
+//               <th className="px-4 py-2">Semester</th>
+//               <th className="px-4 py-2">Phone</th>
+//               <th className="px-4 py-2 text-center">Actions</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {students.length > 0 ? (
+//               students.map((student) => (
+//                 <tr key={student.id} className="border-b hover:bg-gray-50">
+//                   <td className="px-4 py-3">
+//                     {student.photo ? (
+//                       <img
+//                         src={student.photo}
+//                         alt="student"
+//                         className="w-10 h-10 rounded-full object-cover"
+//                       />
+//                     ) : (
+//                       <span className="text-gray-400">No Photo</span>
+//                     )}
+//                   </td>
+//                   <td className="px-4 py-3">{student.username || student.user?.username}</td>
+//                   <td className="px-4 py-3">{student.roll_no}</td>
+//                   <td className="px-4 py-3">{student.email || student.user?.email}</td>
+//                   <td className="px-4 py-3">{student.course_name}</td>
+//                   <td className="px-4 py-3">{student.department_name}</td>
+//                   <td className="px-4 py-3">{student.semester_name}</td>
+//                   <td className="px-4 py-3">{student.phone}</td>
+//                   <td className="px-4 py-3 flex justify-center gap-2">
+//                     <Link
+//                       to={`/viewstudent/${student.id}`}
+//                       className="text-blue-600 hover:underline"
+//                     >
+//                       <Eye size={16} />
+//                     </Link>
+//                     <Link
+//                       to={`/admin/editstudent/${student.id}`}
+//                       className="text-green-600 hover:underline"
+//                     >
+//                       <Pencil size={16} />
+//                     </Link>
+//                     <button
+//                       onClick={() => handleDelete(student.id)}
+//                       className="text-red-600 hover:underline"
+//                     >
+//                       <Trash2 size={16} />
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))
+//             ) : (
+//               <tr>
+//                 <td colSpan="9" className="text-center py-4 text-gray-400">
+//                   No students found
+//                 </td>
+//               </tr>
+//             )}
+//           </tbody>
+//         </table>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default Students;
+
+
+// import React, { useEffect, useState } from 'react';
+// import { Link } from 'react-router-dom';
+// import { Pencil, Trash2, Eye } from 'lucide-react';
+// import axios from 'axios';
+
+// function Students() {
+//   const [students, setStudents] = useState([]);
+
+//   const fetchStudents = async () => {
+//     try {
+//       const token = localStorage.getItem('token');
+//       const response = await axios.get('http://127.0.0.1:8000/collegeapp/students/', {
+//         headers: {
+//           Authorization: `Token ${token}`,
+//         },
+//       });
+//       setStudents(response.data);
+//     } catch (error) {
+//       console.error('Error fetching students:', error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchStudents();
+//   }, []);
+
+//   const handleDelete = async (id) => {
+//     if (window.confirm('Are you sure you want to delete this student?')) {
+//       try {
+//         const token = localStorage.getItem('token');
+//         await axios.delete(`http://127.0.0.1:8000/collegeapp/students/${id}/`, {
+//           headers: {
+//             Authorization: `Token ${token}`,
+//           },
+//         });
+//         setStudents(students.filter((student) => student.id !== id));
+//       } catch (error) {
+//         console.error('Error deleting student:', error);
+//       }
+//     }
+//   };
+
+//   return (
+//     <div className="p-6">
+//       <div className="flex justify-between items-center mb-6">
+//         <h2 className="text-2xl font-bold text-indigo-800">🎓 Manage Students</h2>
+//         <Link
+//           to="/admin/studentss/add"
+//           className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+//         >
+//           ➕ Add Student
+//         </Link>
+//       </div>
+
+//       <div className="overflow-x-auto bg-white shadow rounded-lg">
+//         <table className="w-full table-auto text-sm text-left">
+//           <thead className="bg-indigo-100 text-indigo-800 font-semibold">
+//             <tr>
+//               <th className="px-4 py-2">Photo</th>
+//               <th className="px-4 py-2">Name</th>
+//               <th className="px-4 py-2">Roll No</th>
+//               <th className="px-4 py-2">Email</th>
+//               <th className="px-4 py-2">Course</th>
+//               <th className="px-4 py-2">Department</th>
+//               <th className="px-4 py-2">Semester</th>
+//               <th className="px-4 py-2">Phone</th>
+//               <th className="px-4 py-2">Gender</th> {/* New column */}
+//               <th className="px-4 py-2 text-center">Actions</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {students.length > 0 ? (
+//               students.map((student) => (
+//                 <tr key={student.id} className="border-b hover:bg-gray-50">
+//                   <td className="px-4 py-3">
+//                     {student.photo ? (
+//                       <img
+//                         src={student.photo}
+//                         alt="student"
+//                         className="w-10 h-10 rounded-full object-cover"
+//                       />
+//                     ) : (
+//                       <span className="text-gray-400">No Photo</span>
+//                     )}
+//                   </td>
+//                   <td className="px-4 py-3">{student.username || student.user?.username}</td>
+//                   <td className="px-4 py-3">{student.roll_no}</td>
+//                   <td className="px-4 py-3">{student.email || student.user?.email}</td>
+//                   <td className="px-4 py-3">{student.course_name}</td>
+//                   <td className="px-4 py-3">{student.department_name}</td>
+//                   <td className="px-4 py-3">{student.semester_name}</td>
+//                   <td className="px-4 py-3">{student.phone}</td>
+//                   <td className="px-4 py-3">
+//                     {student.gender === 'M'
+//                       ? 'Male'
+//                       : student.gender === 'F'
+//                       ? 'Female'
+//                       : student.gender === 'O'
+//                       ? 'Other'
+//                       : 'N/A'}
+//                   </td>
+//                   <td className="px-4 py-3 flex justify-center gap-2">
+//                     <Link
+//                       to={`/viewstudent/${student.id}`}
+//                       className="text-blue-600 hover:underline"
+//                     >
+//                       <Eye size={16} />
+//                     </Link>
+//                     <Link
+//                       to={`/admin/editstudent/${student.id}`}
+//                       className="text-green-600 hover:underline"
+//                     >
+//                       <Pencil size={16} />
+//                     </Link>
+//                     <button
+//                       onClick={() => handleDelete(student.id)}
+//                       className="text-red-600 hover:underline"
+//                     >
+//                       <Trash2 size={16} />
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))
+//             ) : (
+//               <tr>
+//                 <td colSpan="10" className="text-center py-4 text-gray-400">
+//                   No students found
+//                 </td>
+//               </tr>
+//             )}
+//           </tbody>
+//         </table>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default Students;
+
+
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Trash2, Eye } from 'lucide-react';
+import axios from 'axios';
 
-const dummyStudents = [
-  {
-    id: 1,
-    name: 'Reeha M',
-    rollno: 'CS101',
-    email: 'reeha@example.com',
-    department: 'CSE',
-    course: 'B.Tech',
-    semester: 'Sem 5',
-    phone: '9876543210',
-    photo: 'https://i.pravatar.cc/40?img=12',
-  },
-  {
-    id: 2,
-    name: 'Adil Rahman',
-    rollno: 'EC202',
-    email: 'adil@example.com',
-    department: 'ECE',
-    course: 'B.Tech',
-    semester: 'Sem 3',
-    phone: '9876543211',
-    photo: 'https://i.pravatar.cc/40?img=33',
-  },
-];
+function Students() {
+  const [students, setStudents] = useState([]);
+  const [hostels, setHostels] = useState([]);
+  const [selectedHostel, setSelectedHostel] = useState({});
+  const [roomNumbers, setRoomNumbers] = useState({});
 
-export default function Students() {
+  // Fetch students
+  const fetchStudents = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:8000/collegeapp/students/', {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setStudents(response.data);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  // Fetch hostels
+  const fetchHostels = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:8000/collegeapp/hostels/', {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setHostels(response.data);
+    } catch (error) {
+      console.error('Error fetching hostels:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchHostels();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this student?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://127.0.0.1:8000/collegeapp/students/${id}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setStudents(students.filter((s) => s.id !== id));
+    } catch (error) {
+      console.error('Error deleting student:', error);
+    }
+  };
+
+  const handleAssignHostel = async (studentId) => {
+    const hostelId = selectedHostel[studentId];
+    const roomNumber = roomNumbers[studentId] || null;
+
+    if (!hostelId) return alert('Please select a hostel');
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `http://127.0.0.1:8000/collegeapp/students/${studentId}/assign-hostel/${hostelId}/`,
+        { room_number: roomNumber },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      fetchStudents();
+      alert('Hostel assigned successfully');
+    } catch (error) {
+      console.error('Error assigning hostel:', error);
+      alert(error.response?.data?.error || 'Failed to assign hostel');
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-indigo-700">🎓 All Students</h2>
-        <Link to="/addstudent" className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+        <h2 className="text-2xl font-bold text-indigo-800">🎓 Manage Students</h2>
+        <Link
+          to="/admin/studentss/add"
+          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+        >
           ➕ Add Student
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border rounded-xl text-sm shadow-md">
-          <thead className="bg-indigo-100 text-indigo-800">
-            <tr>
-              <th className="p-3 text-left">Photo</th>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Roll No</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Department</th>
-              <th className="p-3 text-left">Semester</th>
-              <th className="p-3 text-left">Phone</th>
-              <th className="p-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dummyStudents.map((student) => (
-              <tr key={student.id} className="border-b">
-                <td className="p-3">
-                  <img src={student.photo} alt="student" className="w-10 h-10 rounded-full" />
-                </td>
-                <td className="p-3">{student.name}</td>
-                <td className="p-3">{student.rollno}</td>
-                <td className="p-3">{student.email}</td>
-                <td className="p-3">{student.department}</td>
-                <td className="p-3">{student.semester}</td>
-                <td className="p-3">{student.phone}</td>
-                <td className="p-3 flex gap-2">
-                  <button className="text-blue-600 hover:underline"><Eye size={16} /></button>
-                  <button className="text-green-600 hover:underline"><Pencil size={16} /></button>
-                  <button className="text-red-600 hover:underline"><Trash2 size={16} /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {students.length > 0 ? (
+          students.map((student) => (
+            <div
+              key={student.id}
+              className="bg-white shadow rounded-lg p-4 flex flex-col gap-3 hover:shadow-lg transition"
+            >
+              <div className="flex items-center gap-4">
+                {student.photo ? (
+                  <img
+                    src={student.photo}
+                    alt="student"
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-400">
+                    No Photo
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-lg">{student.username || student.user?.username}</h3>
+                  <p className="text-sm text-gray-500">{student.roll_no}</p>
+                  <p className="text-sm text-gray-500">{student.email || student.user?.email}</p>
+                  
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                <span>Course: {student.course_name}</span>
+                <span>Dept: {student.department_name}</span>
+                <span>Sem: {student.semester_name}</span>
+                <span>Phone: {student.phone}</span>
+                <span>Gender: {student.gender === 'M' ? 'Male' : student.gender === 'F' ? 'Female' : 'N/A'}</span>
+              </div>
+              <button
+                  onClick={() => handleAssignHostel(student.id)}
+                  className="bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                >
+                  Assign
+                </button>
+              
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedHostel[student.id] || ''}
+                  onChange={(e) =>
+                    setSelectedHostel({ ...selectedHostel, [student.id]: e.target.value })
+                  }
+                  className="border px-2 py-1 rounded flex-1"
+                >
+                  <option value="">Select Hostel</option>
+                  {hostels.map((hostel) => (
+                    <option key={hostel.id} value={hostel.id}>
+                      {hostel.name} ({hostel.current_occupancy}/{hostel.intake})
+                    </option>
+                  ))}
+                </select>
+                
+
+                <input
+                  type="text"
+                  value={roomNumbers[student.id] || ''}
+                  onChange={(e) =>
+                    setRoomNumbers({ ...roomNumbers, [student.id]: e.target.value })
+                  }
+                  placeholder="Room No"
+                  className="border px-2 py-1 rounded w-20"
+                />
+                
+
+                
+              </div>
+
+              <div className="flex justify-end gap-2 mt-2">
+                <Link
+                  to={`/viewstudent/${student.id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  <Eye size={16} />
+                </Link>
+                <Link
+                  to={`/admin/editstudent/${student.id}`}
+                  className="text-green-600 hover:underline"
+                >
+                  <Pencil size={16} />
+                </Link>
+                <button
+                  onClick={() => handleDelete(student.id)}
+                  className="text-red-600 hover:underline"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 col-span-full text-center">No students found</p>
+        )}
       </div>
     </div>
   );
 }
+
+export default Students;

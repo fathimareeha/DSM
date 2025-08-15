@@ -3,6 +3,7 @@ from . import views
 from rest_framework.authtoken.views import ObtainAuthToken
 from django.contrib.auth import views as auth_views
 
+
 urlpatterns=[
     path('login',views.AdminLoginView.as_view()),
     path('create_user/',views.CreateUserView.as_view()),
@@ -33,6 +34,14 @@ urlpatterns=[
     path('notification',views.NotificationListView.as_view()),
     path('mark_all_read/',views.mark_all_notifications_read),
     path('institution_delete/<int:pk>',views.DeleteInstitutionAndAdmin.as_view()),
-    path('admin_list',views.ListInstitutionAdminsWithDetails.as_view())
+    path('admin_list',views.ListInstitutionAdminsWithDetails.as_view()),
+    path('university',views.UniversityView.as_view()),
+    path('course',views.CourseView.as_view()),
+    path('course/upload/',views.BulkCourseUploadView.as_view(), name='course-upload'),
+    
+    path('department',views.DepartmentView.as_view()),
+    path('semester',views.SemesterView.as_view()),
+    path('subject',views.SubjectView.as_view()),
+    path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
    
 ]
