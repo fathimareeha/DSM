@@ -1,20 +1,16 @@
+
 import React from 'react';
 
-function Inputfield({ label, type = 'text', name, id,onchange }) {
+function Inputfield({ label, value, onChange }) {
   return (
-    
-    <div className="flex flex-col gap-1">
-      {label && (
-        <label htmlFor={id || name} className="text-sm font-medium text-gray-700">
-          {label}
-        </label>
-      )}
+    <div className="flex flex-col mb-4">
+      <label className="mb-1 text-sm text-gray-600 capitalize">{label}</label>
       <input
-        onChange={onchange}
-        id={id || name}
-        name={name}
-        type={type}
-        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        value={value} // ✅ bind the input to parent state
+        onChange={onChange} // ✅ notice the case
+        type={label === 'password' ? 'password' : 'text'}
+        className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={`Enter your ${label}`}
       />
     </div>
   );
