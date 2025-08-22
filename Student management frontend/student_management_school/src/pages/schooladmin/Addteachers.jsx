@@ -1,58 +1,70 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import React, { useState } from "react";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 function AddTeachers() {
-  const [teacherName, setTeacherName] = useState('');
-  const [gender, setGender] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [teacherName, setTeacherName] = useState("");
+  const [gender, setGender] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [profilePic, setProfilePic] = useState(null);
 
   const createTeacher = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     if (!teacherName || !gender || !password || !phone || !email || !profilePic) {
-      toast.error('All fields including profile picture are required');
+      toast.error("All fields including profile picture are required");
       return;
     }
+
+    if (!token) {
+      toast.error("No token found! Please log in again.");
+      return;
+    }
+
+    console.log("Token being sent:", token); // 🔎 Debug log
 
     try {
       // Prepare form data
       const formData = new FormData();
-      formData.append('username', teacherName);
-      formData.append('gender', gender);
-      formData.append('password', password);
-      formData.append('phone', phone);
-      formData.append('email', email);
-      formData.append('profile_picture', profilePic); // Backend field name should match
+      formData.append("username", teacherName);
+      formData.append("gender", gender);
+      formData.append("password", password);
+      formData.append("phone", phone);
+      formData.append("email", email);
+      formData.append("profile_picture", profilePic);
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/schoolapp/teachercreate/',
+        "http://127.0.0.1:8000/schoolapp/teachercreate/",
         formData,
         {
           headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'multipart/form-data',
+            Authorization: `Token ${token}`, // 👈 Change to Token if DRF TokenAuth
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      toast.success('Teacher Created Successfully');
+      console.log("Teacher created:", response.data);
+      toast.success("Teacher Created Successfully");
 
-      // Clear form
-      setTeacherName('');
-      setGender('');
-      setPassword('');
-      setPhone('');
-      setEmail('');
+      // Reset form
+      setTeacherName("");
+      setGender("");
+      setPassword("");
+      setPhone("");
+      setEmail("");
       setProfilePic(null);
-
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to create teacher');
+      console.error("Error creating teacher:", error.response?.data || error.message);
+
+      if (error.response?.status === 401) {
+        toast.error("Unauthorized. Please log in again.");
+      } else {
+        toast.error("Failed to create teacher");
+      }
     }
   };
 
@@ -80,7 +92,7 @@ function AddTeachers() {
             <div>
               <label className="block font-medium mb-2">Gender</label>
               <div className="flex items-center space-x-4">
-                {['Male', 'Female', 'Other'].map((g) => (
+                {["Male", "Female", "Other"].map((g) => (
                   <label key={g} className="flex items-center">
                     <input
                       type="radio"

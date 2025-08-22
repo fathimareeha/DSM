@@ -8,7 +8,6 @@ import Dashboard from './pages/schooladmin/Dashboard'
 import Login from './pages/schooladmin/Login'
 import { ToastContainer } from "react-toastify";
 import VicePrincipalList from './pages/schooladmin/Viceprincipallist'
-import AddCoordinators from './pages/schooladmin/Addcoordinators'
 import AddTeachers from './pages/schooladmin/Addteachers'
 import EditTeachers from './pages/schooladmin/EditTeachers'
 import CreateClass from './pages/schooladmin/Createclasses'
@@ -25,6 +24,12 @@ import BookCreateForm from './pages/schooladmin/Library/BookCreate'
 import BookList from './pages/schooladmin/Library/ListBook'
 import StudentCreate from './pages/schooladmin/Addstudents'
 import StudentEdit from './pages/schooladmin/EditStudents'
+import StaffCreateForm from './pages/schooladmin/Staffs/AddStaffs'
+import StaffList from './pages/schooladmin/Staffs/StaffsList'
+import AddBusForm from './pages/schooladmin/Transport/AddBus'
+import BusList from './pages/schooladmin/Transport/BusList'
+import AddHostel from './pages/schooladmin/Hostel/AddHostel'
+import HostelList from './pages/schooladmin/Hostel/HostelList'
 
 
 
@@ -41,6 +46,10 @@ function App() {
       <Route path='login' element={<Login/>}/>
       <Route path='/admin' element={<Layout/>}>
       <Route path='dashboard' element={<Dashboard/>}/>
+
+
+    {/* VICEPRINCIPAL */}
+
       <Route path='add/viceprincipal' element={<AddVicePrincipal/>}/>
       <Route path='list/viceprincipal' element={<VicePrincipalList/>}/>
       <Route path='edit/viceprincipal/:id' element={<EditVicePrincipal/>}/>
@@ -70,18 +79,38 @@ function App() {
       <Route path='list/subjects' element={<SubjectList/>} />
 
 
-      {/* Library */}
+    {/* LIBRARY */}
       <Route path='add/book' element={<BookCreateForm/>} />
       <Route path='list/books' element={<BookList/>} />
+
+
+    {/* STAFFS */}
+
+      <Route path='add/staff' element={<StaffCreateForm/>}/>
+      <Route path='list/staffs' element={<StaffList/>}/>
+
+
+    {/* TRANSPORT */}
+
+
+      <Route path='add/bus' element={<AddBusForm/>}/>
+      <Route path='list/bus' element={<BusList/>}/>
+
+
+    {/* HOSTEL */}
+
+      <Route path='add/hostel' element={<AddHostel/>}/>
+      <Route path='list/hostel' element={<HostelList/>}/>
+
+
       </Route>
 
-   
-      
-      
-      <Route path='/addcoordinators' element={<AddCoordinators/>}/>
-     
+    <Route>
 
-
+      {/* {teacherdashboard} */}
+    
+    </Route>
+    
     </Routes>
     <ToastContainer position="top-right" autoClose={3000} />
     </AuthProvider>
@@ -91,3 +120,64 @@ function App() {
 }
 
 export default App
+
+
+
+
+
+// import { Routes, Route } from "react-router-dom";
+// import AdminLayout from './layout/schooladmin/Layout';
+// import Dashboard from './pages/schooladmin/Dashboard';
+// import Login from './pages/schooladmin/Login';
+// import TeacherLayout from './layout/TeacherLayout';
+// import TeacherLogin from './pages/teacher/Login';
+// import StudentLayout from './layout/StudentLayout';
+// import StudentLogin from './pages/student/Login';
+// import ProtectedRoute from './components/ProtectedRoute';
+// import { useState } from 'react';
+
+// function App() {
+//   const [currentRole, setCurrentRole] = useState(null); // "admin", "teacher", "student"
+
+//   return (
+//     <Routes>
+//       {/* Admin */}
+//       <Route path="/admin-login" element={<Login setCurrentRole={setCurrentRole} />} />
+//       <Route path="/admin" element={
+//         <ProtectedRoute role="admin" currentRole={currentRole}>
+//           <AdminLayout />
+//         </ProtectedRoute>
+//       }>
+//         <Route path="dashboard" element={<Dashboard />} />
+//         {/* add other admin routes here */}
+//       </Route>
+
+//       {/* Teacher */}
+//       <Route path="/teacher-login" element={<TeacherLogin setCurrentRole={setCurrentRole} />} />
+//       <Route path="/teacher" element={
+//         <ProtectedRoute role="teacher" currentRole={currentRole}>
+//           <TeacherLayout />
+//         </ProtectedRoute>
+//       }>
+//         <Route path="dashboard" element={<h1>Teacher Dashboard</h1>} />
+//         {/* add teacher related pages here */}
+//       </Route>
+
+//       {/* Student */}
+//       <Route path="/student-login" element={<StudentLogin setCurrentRole={setCurrentRole} />} />
+//       <Route path="/student" element={
+//         <ProtectedRoute role="student" currentRole={currentRole}>
+//           <StudentLayout />
+//         </ProtectedRoute>
+//       }>
+//         <Route path="dashboard" element={<h1>Student Dashboard</h1>} />
+//         {/* add student related pages here */}
+//       </Route>
+
+//       {/* Default */}
+//       <Route path="/" element={<h1>Welcome! Please login.</h1>} />
+//     </Routes>
+//   );
+// }
+
+// export default App;

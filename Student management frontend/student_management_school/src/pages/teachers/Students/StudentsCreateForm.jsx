@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function StudentCreate() {
+function StudentCreateForm() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -266,6 +266,6 @@ function StudentCreate() {
   );
 }
 
-export default StudentCreate;
+export default StudentCreateForm;
 
 
