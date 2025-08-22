@@ -130,6 +130,7 @@ function HostelList() {
         headers: { Authorization: `Token ${token}` },
       });
       setHostels(response.data);
+      console.log(response)
     } catch (error) {
       console.error("Error fetching hostels:", error);
       toast.error("Failed to fetch hostels");

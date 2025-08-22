@@ -3,7 +3,7 @@ from superadmin_app.models import College, UserProfile
 from django.db import models
 from superadmin_app.models import Department,Course,Semester
 
-
+#HOD
 class HOD(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     phone = models.IntegerField()
@@ -15,8 +15,28 @@ class HOD(models.Model):
     def __str__(self):
         return f"HOD: {self.user.username} "
 
+# class HOD(models.Model):
+#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+#     phone = models.CharField(max_length=15)  # better than IntegerField for phone numbers
+#     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='hods')
+#     college = models.ForeignKey(
+#         College,
+#         on_delete=models.CASCADE,
+#         related_name='hods',
+#         null=True,
+#         blank=True
+#     )
 
+#     class Meta:
+#         unique_together = ('department', 'college')  
+#         # This means one HOD per department per college
 
+#     def __str__(self):
+#         dept_name = self.department.name if self.department else "No Department"
+#         college_name = self.college.college_name if self.college else "No College"
+#         return f"HOD: {self.user.username} ({dept_name} - {college_name})"
+
+#FACULTY
 class Faculty(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     phone = models.IntegerField()
@@ -24,7 +44,8 @@ class Faculty(models.Model):
     
     def __str__(self):
         return f"{self.user.username} "
-    
+
+#HOSTEL  
 class Hostel(models.Model):
     HOSTEL_TYPE_CHOICES = [
         ('Boys', 'Boys'),
@@ -40,7 +61,7 @@ class Hostel(models.Model):
     def __str__(self):
         return f"{self.name} ({self.hostel_type})"
 
-
+#STUDENT
 class Student(models.Model):
     GENDER_CHOICES = [
         ('M', 'Male'),
@@ -68,7 +89,7 @@ class Student(models.Model):
     class Meta:
         unique_together = ('roll_no', 'department')  # optional constraint
 
-
+#COORDINATOR
 class CoordinatorsRole(models.Model):
     ROLE_CHOICES = [
         ('librarian', 'librarian'),
@@ -98,7 +119,7 @@ class CoordinatorsRole(models.Model):
 
 
 
-
+#BOOK
 class Book(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
@@ -113,7 +134,7 @@ class Book(models.Model):
 
 
 
-from django.db import models
+#BUS
 
 class Bus(models.Model):
     bus_number = models.CharField(max_length=20, unique=True)
@@ -144,3 +165,22 @@ class StudentBusAllocation(models.Model):
         return f"{self.student.user.get_full_name()} → {self.bus.bus_number} ({self.stop.stop_name})"
 
 
+# EVENTS
+
+class Event(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="events")
+    created_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="created_events")
+
+    faculties = models.ManyToManyField(Faculty, blank=True)
+    hods = models.ManyToManyField(HOD, blank=True)
+    students = models.ManyToManyField(Student, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

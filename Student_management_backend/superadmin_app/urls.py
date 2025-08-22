@@ -43,5 +43,6 @@ urlpatterns=[
     path('semester',views.SemesterView.as_view()),
     path('subject',views.SubjectView.as_view()),
     path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
+    path('user_college/', views.UserCollegeView.as_view(), name='user_college'),
    
 ]

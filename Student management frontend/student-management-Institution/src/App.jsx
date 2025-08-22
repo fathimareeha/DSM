@@ -134,12 +134,31 @@ import HostelList from './pages/institution/HostelList'
 import AssignHostel from './pages/institution/Assignhostel'
 import AddBus from './pages/institution/AddBus'
 import BusList from './pages/institution/BusList'
+import BusStopList from './pages/institution/BusStopList'
+import StudentBus from './pages/institution/StudentBus'
+import AddStudentBusAllocation from './pages/institution/AddBusStusents'
+import { ToastContainer } from "react-toastify";
+import Layouthod from './layout/Hod/Layouthod'
+import Loginmembers from './pages/institution/Loginmembers'
+import Hoddashboard from './pages/institution/Hoddashboard'
 
 function App() {
   return (
     <Authprovider>
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick
+        rtl={false} 
+        pauseOnFocusLoss
+        draggable 
+        pauseOnHover
+      />
       <Routes>
         {/* Public route */}
+        
        
         
         <Route path='/login' element={<Login />} />
@@ -166,16 +185,23 @@ function App() {
           <Route path='studentss/add' element={<AddStudent />} />
           <Route path='editstudent/:id' element={<Editstudent/>}/>
 
-          <Route path='admin/staffs/add' element={<AddStaff/>}></Route>
-          <Route path='admin/staffs/list' element={<StaffList/>}/>
+          <Route path='staffs/add' element={<AddStaff/>}></Route>
+          <Route path='staffs/list' element={<StaffList/>}/>
 
 
-          <Route path='admin/books/add' element={<AddBook/>}/>
-          <Route path='admin/books/list' element={<BookList/>}/>
+          <Route path='books/add' element={<AddBook/>}/>
+          <Route path='books/list' element={<BookList/>}/>
 
 
-          <Route path='admin/bus/add' element={<AddBus/>}/>
-          <Route path='admin/bus/list' element={<BusList/>}/>
+          <Route path='bus/add' element={<AddBus/>}/>
+          <Route path='bus/list' element={<BusList/>}/>
+          <Route path='bus/stop/list' element={<BusStopList/>}/>
+          <Route path='bus/student/stop/list' element={<StudentBus/>}/>
+          <Route path='bus/student/stop/add' element={<AddStudentBusAllocation/>}/>
+          <Route path='events/create' element={<AddEvent />} />
+
+
+
           
           <Route path='courses' element={<ViewCourses />} />
           <Route path='users' element={<Users />} />
@@ -191,6 +217,18 @@ function App() {
            <Route path='edit-department/:id' element={<EditDepartment />} />
           <Route path='delete-department/:id' element={<DeleteDepartment />} />
         </Route>
+
+        <Route path='login/members' element={<Loginmembers/>}></Route>
+
+        <Route path='/hod' element={<Layouthod/>}>
+        <Route path='dash' element={<Hoddashboard/>}/>
+          
+
+        </Route>
+
+
+
+
       </Routes>
     </Authprovider>
   )
