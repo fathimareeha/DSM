@@ -33,30 +33,31 @@ const RazorpayPayment = ({ razorpayKey, amount, orderId }) => {
       //   alert(response.razorpay_order_id);
       //   alert(response.razorpay_signature);
       // },
-       handler: async function (response) {
-        try {
-          const token = localStorage.getItem("token");
-          const res = await axios.post(
-            `http://127.0.0.1:8000/superadmin_app/payment_verify/${order_details.package_id}/`,
-            {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-            },
-            {
-              headers: {
-                Authorization: `Token ${token}`,
-              },
-            }
-          );
-          console.log("Payment Verified:", res.data);
-          // Navigate or show success message here
-        } catch (err) {
-          console.error("Payment Verification Failed:", err);
-          // Optionally show error to user
-        }
+      handler: async function (response) {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/payment_verify/${order_details.package_id}/`,
+      {
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+        amount: order_details.amount // amount in paise
       },
-      
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+    console.log("Payment Verified:", res.data);
+    // Navigate or show success message here
+  } catch (err) {
+    console.error("Payment Verification Failed:", err);
+    // Optionally show error to user
+  }
+},
+
 
           
       

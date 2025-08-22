@@ -13,6 +13,7 @@ urlpatterns=[
     path('token/',ObtainAuthToken.as_view()),
     path('create_school/<int:pk>',views.CreateSchoolView.as_view()),
     path('create_college/<int:pk>',views.CreateCollegeView.as_view()),
+    path('std-codes/',views.STDCodeListView.as_view(), name='std-codes'),
     path('update_retrieve_delete_school/<int:pk>',views.UpdateRetireveDeleteSchoolView.as_view()),
     path('update_retrieve_delete_college/<int:pk>',views.UpdateRetireveDeleteCollegeView.as_view()),
     path('institution_login',views.InstitutionAdminLoginView.as_view()),
@@ -36,6 +37,8 @@ urlpatterns=[
     path('institution_delete/<int:pk>',views.DeleteInstitutionAndAdmin.as_view()),
     path('admin_list',views.ListInstitutionAdminsWithDetails.as_view()),
     path('university',views.UniversityView.as_view()),
+    path('list_university',views.ListUniversityView.as_view()),
+    path('university_detail/<int:pk>',views.UniversityDetailView.as_view()),
     path('course',views.CourseView.as_view()),
     path('course/upload/',views.BulkCourseUploadView.as_view(), name='course-upload'),
     
@@ -43,5 +46,9 @@ urlpatterns=[
     path('semester',views.SemesterView.as_view()),
     path('subject',views.SubjectView.as_view()),
     path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
-   
+    path('toggle-activation/<str:institution_type>/<int:pk>/', views.ToggleInstitutionActivationView.as_view(), name='toggle-activation'),
+    path("pincodes/",views. KeralaPincodeListView.as_view(), name="kerala-pincode-list"),
+     path('landing-page-content/<int:pk>/', views.LandingPageContentView.as_view(), name='landing-page-content'),
+     path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview"),
+
 ]

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState,useEffect } from 'react';
 import Input from '../Input';
 import { SuperadminContext } from '../../../context/super_admin/Superadmin_Context';
 import { stdcode } from '../../../static/Std_codes';
@@ -9,9 +9,10 @@ function SchoolForm() {
   const [school_name, setName] = useState('');
   const [address1, setAddress1] = useState('');
   const [address2, setAddress2] = useState('');
-  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
   const [state, setState] = useState('');
   const [pin_code, setPincode] = useState('');
+  const [pincodeOptions, setPincodeOptions] = useState([]);
   const [location, setLocation] = useState('');
   const [school_type, setType] = useState('');
   const [phone_number, setPhone_number] = useState('');
@@ -21,9 +22,36 @@ function SchoolForm() {
   const [udise_code, setUdise_code] = useState()
 
   const { school_create, institution_id ,loading} = useContext(SuperadminContext)
+
+
+const [stdCodeOptions, setStdCodeOptions] = useState([]);
+//fetch stdcodes
+useEffect(() => {
+  fetch("http://localhost:8000/superadmin_app/std-codes/")
+    .then(res => res.json())
+    .then(data => setStdCodeOptions(data))
+    .catch(err => console.error("Error fetching STD codes:", err));
+}, []);
+
+
+//fetch pincode
+  useEffect(() => {
+    fetch("http://localhost:8000/superadmin_app/pincodes/")
+      .then(res => res.json())
+      .then(data => {
+        const options = data.map(pin => ({
+          value: pin,
+          label: pin
+        }));
+        setPincodeOptions(options);
+      })
+      .catch(err => console.error("Error fetching pincodes:", err));
+  }, []);
+
+
   const handle_submit = (e) => {
     e.preventDefault();
-    school_create(institution_id, school_name, address1, address2, city, state, pin_code, udise_code, location, phone_number, landline_number, school_type, board);
+    school_create(institution_id, school_name, address1, address2, district, state, pin_code, udise_code, location, phone_number, landline_number, school_type, board);
 
   };
   const options = stdcode.map(item => ({
@@ -63,10 +91,10 @@ function SchoolForm() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Input
-              label="City"
+              label="District"
               type="text"
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City"
+              onChange={(e) => setDistrict(e.target.value)}
+              placeholder="District"
               required={true}
             />
             <Input
@@ -76,13 +104,15 @@ function SchoolForm() {
               placeholder="State"
               required={true}
             />
-            <Input
-              label="Pin Code"
-              type="text"
-              onChange={(e) => setPincode(e.target.value)}
-              placeholder="Pin Code"
-              required={true}
-            />
+             <div className="flex flex-col">
+              <label className="font-semibold">Pin Code</label>
+              <Select
+                options={pincodeOptions}
+                onChange={(selected) => setPincode(selected.value)}
+                placeholder="Select Pin Code"
+                className="bg-gray-200 rounded shadow"
+              />
+            </div>
 
             <Input
               label="Location"
@@ -112,11 +142,12 @@ function SchoolForm() {
                
 
                 
-                    <Select className="w-1/5  rounded bg-gray-200  shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                      options={options}
-                      onChange={(sel) => setStdCode(sel.value)}
-                      placeholder=" STD "
-                    />
+                   <Select
+  className="w-1/5 rounded bg-gray-200 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
+  options={stdCodeOptions}
+  onChange={(sel) => setStdCode(sel.value)}
+  placeholder="STD"
+/>
 
                 {/* Landline Number Input */}
                 <input

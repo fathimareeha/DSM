@@ -5,7 +5,7 @@ import { SuperadminContext } from '../../../context/super_admin/Superadmin_Conte
 function Create_packages() {
   const [institution_type,setInstitutionType]=useState('')
   const [planPackage,setPlanPackage]=useState('')
-  const [plan_type,setPlan_type]=useState('')
+  
   const [description,setDescription]=useState('')
   const [price,SetPrice]=useState('')
   const [features, setSelectedFeatures] = useState([]);
@@ -33,8 +33,8 @@ const availableFeatures =
        
 
         
-        create_packages(institution_type,planPackage,plan_type,description,features,price);
-        console.log({institution_type, planPackage, plan_type, description,features, price});
+        create_packages(institution_type,planPackage,description,features,price);
+        console.log({institution_type, planPackage, description,features, price});
         e.preventDefault();
       };
       
@@ -63,20 +63,13 @@ const availableFeatures =
             <option value="premium">Premium</option>
           </select>
           </div>
-          <div className="flex flex-col">
-              <label className=" font-semibold">Plan</label>
-          <select value={plan_type} onChange={(e) => setPlan_type(e.target.value)} name="" id="" className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none" required>
-            <option value="" disabled >Select a plan</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
-          </div>
           </div>
           <div>
           <label htmlFor="" className='font-semibold'>Description</label>
           
           <textarea onChange={(e) => setDescription(e.target.value)} className="w-full  py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"></textarea>
           </div>
+        
           <div className="mb-4">
   <h4 className="text-lg font-semibold mb-2">Select Features:</h4>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

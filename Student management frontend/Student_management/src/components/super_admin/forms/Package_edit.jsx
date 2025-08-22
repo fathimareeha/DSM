@@ -8,49 +8,51 @@ function Package_edit() {
   const navigate = useNavigate();
  const [institution_type,setInstitutionType]=useState('')
   const [planPackage, setPlanPackage] = useState('');
-  const [plan_type, setPlan_type] = useState('');
+ 
   const [description, setDescription] = useState('');
-   const [features, setSelectedFeatures] = useState([]);
+   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [price, setPrice] = useState('');
 
   const token = localStorage.getItem('token');
-  const availableFeatures = [
-    'SMS Notification',
-    'Email Support',
-    'Custom Branding',
-    'Multi-user Access',
-    'Priority Support',
-    
-  ];
+const schoolFeatures = ["Attendance", "Homework", "Parent Portal"];
+const collegeFeatures = ["Credits", "Semester System", "Library Access"];
+const availableFeatures =
+  institution_type === 'school' ? schoolFeatures :
+  institution_type === 'college' ? collegeFeatures :
+  [];
 
    
   // Fetch package data on mount
   useEffect(() => {
-      console.log("Editing package with ID:", id);
+  axios.get(`http://127.0.0.1:8000/superadmin_app/update_retrieve_package/${id}`, {
+    headers: { Authorization: `Token ${token}` }
+  }).then((res) => {
+    const data = res.data;
+    setInstitutionType(data.institution_type);
+    setPlanPackage(data.package); // ✅ fix: backend sends `package`, not `planPackage`
+    setDescription(data.description);
+    setPrice(data.price);
 
-    axios.get(`http://127.0.0.1:8000/superadmin_app/update_retrieve_package/${id}`, {
-      headers: { Authorization: `Token ${token}` }
-    }).then((res) => {
-      const data = res.data;
-      setInstitutionType(data.institution_type)
-      setPlanPackage(data.planPackage);
-      setPlan_type(data.plan_type);
-      setDescription(data.description);
-      setSelectedFeatures(data.features)
-      setPrice(data.price);
-    }).catch(err => {
-      console.error('Failed to fetch package:', err);
-    });
-  }, [id]);
+    if (Array.isArray(data.features)) {
+      setSelectedFeatures(data.features);
+    } else {
+      setSelectedFeatures([]);
+    }
+  }).catch(err => {
+    console.error('Failed to fetch package:', err);
+  });
+}, [id]);
+
 
   const handleFeatureChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setSelectedFeatures([...features, value]);
-    } else {
-      setSelectedFeatures(features.filter((feature) => feature !== value));
-    }
-  };
+  const { value, checked } = e.target;
+  if (checked) {
+    setSelectedFeatures([...selectedFeatures, value]);
+  } else {
+    setSelectedFeatures(selectedFeatures.filter((f) => f !== value));
+  }
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,9 +60,9 @@ function Package_edit() {
       await axios.put(`http://127.0.0.1:8000/superadmin_app/update_retrieve_package/${id}`, {
         institution_type,
         package: planPackage,
-        plan_type,
+    
         description,
-        features,
+        features: selectedFeatures,
         price,
       }, {
         headers: { Authorization: `Token ${token}` }
@@ -101,23 +103,9 @@ function Package_edit() {
               </select>
             </div>
 
-            <div className="flex flex-col">
-              <label className="font-semibold">Plan</label>
-              <select
-                value={plan_type}
-                onChange={(e) => setPlan_type(e.target.value)}
-                className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                required
-              >
-                <option value="" disabled>Select a plan</option>
+           </div>
 
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
+       
             <label className="font-semibold">Description</label>
             <textarea
               value={description}
@@ -125,21 +113,26 @@ function Package_edit() {
               className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
               required
             ></textarea>
-          </div>
-          <div>
-           <h4>Select Features:</h4>
+
+            
+          <h4 className="text-lg font-semibold mb-2">Select Features:</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          
       {availableFeatures.map((feature, index) => (
-        <label key={index}>
-          <input
-            type="checkbox"
-            value={feature}
-            checked={features.includes(feature)}
-            onChange={handleFeatureChange}
-          />
-          {feature}
-        </label>
+  <label key={index} className="flex items-center space-x-2 bg-gray-50 border border-gray-300 rounded-md px-3 py-2 hover:bg-gray-100 transition">
+    <input
+      type="checkbox"
+      value={feature}
+      checked={selectedFeatures.includes(feature)} // ✅ use selectedFeatures
+      onChange={handleFeatureChange}
+    />
+    {feature}
+  </label>
+))}
+
        
-      ))} </div>
+       
+       </div>
 
           <Input
             label="Price"

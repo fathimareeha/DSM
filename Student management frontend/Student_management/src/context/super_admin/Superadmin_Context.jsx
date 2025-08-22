@@ -135,12 +135,13 @@ export const SuperadminProvider = ({ children }) => {
     school_name,
     address1,
     address2,
-    city,
+    district,
     state,
     pin_code,
     udise_code,
     location,
     phone_number,
+    std_code,
     landline_number,
     school_type,
     board
@@ -152,12 +153,13 @@ export const SuperadminProvider = ({ children }) => {
           school_name,
           address1,
           address2,
-          city,
+          district,
           state,
           pin_code,
           udise_code,
           location,
           phone_number,
+          std_code,
           landline_number,
           school_type,
           board,
@@ -178,10 +180,10 @@ export const SuperadminProvider = ({ children }) => {
     }
   };
   //College create
-  const college_create = async (institutionId, college_name, address1, address2, city, state, pin_code, aishe_code, location, phone_number, landline_number, college_type, university) => {
+  const college_create = async (institutionId, college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type, selectedUniversity) => {
 
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`, { college_name, address1, address2, city, state, pin_code, aishe_code, location, phone_number, landline_number, college_type, university },
+      const response = await axios.post(`http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`, { college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type,university:selectedUniversity },
         {
           headers: {
             Authorization: `Token ${token}`
@@ -227,33 +229,20 @@ const handle_institution_login = async (username, password) => {
 };
 
 
-  //Checkout
+ //Checkout
   const [order_details, setOrder_details] = useState('');
 
-  const handle_package = async (id) => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/superadmin_app/checkout/${id}`, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      });
+const handle_package = async (packageId, amountToPay) => {
+  const response = await axios.post(
+    `http://127.0.0.1:8000/superadmin_app/checkout/${packageId}/`,
+    
+    { amount: amountToPay },
+    { headers: { Authorization: `Token ${token}` } }
+  );
 
-      // ✅ Add package_id manually into the response data
-      setOrder_details({
-        ...response.data,
-        package_id: id,
-      });
-
-      console.log({
-        ...response.data,
-        package_id: id,
-      });
-
-      navigate('/Checkout');  // Proceed to RazorpayPayment page
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  setOrder_details({ ...response.data, package_id: packageId, amount_to_pay: amountToPay });
+  navigate('/Checkout');
+};
   //all institution list
 
   const [institutions_list, setInstitutions_list] = useState([]);
@@ -288,11 +277,11 @@ const handle_institution_login = async (username, password) => {
 
   //create+packages
 
-  const create_packages = async (institution_type,planPackage, plan_type, description,features, price) => {
+  const create_packages = async (institution_type,planPackage, description,features, price) => {
 
     try {
       const numericPrice = parseFloat(price);
-      const response = await axios.post('http://127.0.0.1:8000/superadmin_app/create_package', {institution_type, package: planPackage, plan_type, description,features, price:numericPrice },
+      const response = await axios.post('http://127.0.0.1:8000/superadmin_app/create_package', {institution_type, package: planPackage, description,features, price:numericPrice },
         {
           headers:
           {

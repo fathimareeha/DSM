@@ -45,7 +45,8 @@ INSTALLED_APPS = [
  
     'schoolapp',
 
-    'collegeapp'
+    'collegeapp',
+    'ckeditor',
 
     
 ]
