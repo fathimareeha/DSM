@@ -21,8 +21,14 @@ from django.contrib.auth import get_user_model, authenticate
 from .serializer import AdminLoginSerializer
 from django.db.models import Sum, F
 from rest_framework.decorators import api_view
+
+from rest_framework import authentication
+from rest_framework.permissions import IsAuthenticated
+
+
 from datetime import date
 from decimal import Decimal
+
 from django.contrib.auth.tokens import default_token_generator
 from superadmin_app.constants.pincodes import PINCODE_CHOICES
 User = get_user_model()
@@ -182,7 +188,17 @@ class GetSchoolByInstitution(APIView):
         
 class GetCollegeByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes = [IsSuperAdminOrCollegeManager]
+    # permission_classes = [IsSuperAdminOrCollegeManager]
+    permission_classes = [IsAuthenticated]
+
+    
+    def get(self, request, institution_id):
+        # Use the correct field name
+        college = College.objects.filter(instution_obj__id=institution_id).first()
+        if college:
+            return Response({"college_name": college.college_name})
+        return Response({"college_name": "Unknown"})
+
 
     def get(self, request, institution_id):
         try:
@@ -228,6 +244,45 @@ class CreateCollegeView(generics.ListCreateAPIView):
             serializer.save(instution_obj=institution_obj)
         except Institution.DoesNotExist:
             raise serializers.ValidationError("Institution not found.")
+        
+# views.py collegeapp
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import authentication
+from .models import College
+from .serializer import CollegeSerializer
+from collegeapp.models import HOD
+
+class UserCollegeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            # ✅ If user is HOD
+            # hod = HOD.objects.filter(user=user).first()
+            # if hod:
+            #     # adjust this based on your actual model
+            #     college = hod.department.course.college  
+            #     return Response({"college_name": college.college_name})
+            hod = HOD.objects.filter(user=user).first()
+            if hod:
+                return Response({"college_name": hod.college.college_name})
+
+
+            # ✅ If admin
+            if hasattr(user, "institution"):
+                college = College.objects.filter(instution_obj=user.institution).first()
+                if college:
+                    return Response({"college_name": college.college_name})
+
+            return Response({"college_name": "Unknown"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
 
 from superadmin_app.constants.std_codes import STD_CODE_CHOICES
 class STDCodeListView(APIView):

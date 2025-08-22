@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializer import HODCreateSerializer,HODListSerializer,HODDetailSerializer,HODUpdateSerializer,FacultyCreateSerializer,FacultyListSerializer,FacultyUpdateSerializer,FacultyDetailSerializer,StudentUpdateSerializer,StudentDetailSerializer,StudentCreateSerializer,StudentListSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from superadmin_app.models import College
 
 
 class HODListCreateAPIView(generics.ListCreateAPIView):
@@ -28,7 +29,8 @@ class HODListCreateAPIView(generics.ListCreateAPIView):
             return Response({
                 "message": "HOD created successfully.",
                 "hod_id": hod.id,
-                "username": hod.user.username
+                "username": hod.user.username,
+                "college_name":hod.department.college.college_name
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -397,3 +399,102 @@ class MyBusAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return StudentBusAllocation.objects.select_related('bus', 'stop').get(student=self.request.user.student)
+
+
+
+
+
+# events/views.py
+# from rest_framework import generics, permissions
+# from .models import Event
+# from .serializer import EventSerializer
+# from .permissions import IsPrincipal
+
+
+
+# class EventListCreateView(generics.ListCreateAPIView):
+#     serializer_class = EventSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsPrincipal]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         if college:
+#             return Event.objects.filter(college=college).order_by("-id")
+#         return Event.objects.none()
+
+#     def perform_create(self, serializer):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         serializer.save(college=college, created_by=user)
+
+
+   
+from rest_framework import generics, permissions
+from .models import Event, College, Student, Faculty, HOD
+from .serializer import EventSerializer
+from .permissions import IsPrincipal
+
+class EventListCreateView(generics.ListCreateAPIView):
+    serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticated, IsPrincipal]
+
+    def get_queryset(self):
+        user = self.request.user
+        college = College.objects.filter(instution_obj=user.institution).first()
+        if college:
+            return Event.objects.filter(college=college).order_by("-id")
+        return Event.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        college = College.objects.filter(instution_obj=user.institution).first()
+        event = serializer.save(college=college, created_by=user)
+
+        send_to = self.request.data.get("send_to")
+
+        if send_to == "all":
+            event.students.set(Student.objects.filter(course__university=college.university))
+            event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
+            event.hods.set(HOD.objects.filter(department__course__university=college.university))
+
+        elif send_to == "students":
+            event.students.set(Student.objects.filter(course__university=college.university))
+
+        elif send_to == "faculties":
+            event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
+
+        elif send_to == "hods":
+            event.hods.set(HOD.objects.filter(department__course__university=college.university))
+        
+
+    
+
+
+# hod/views.py
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.contrib.auth import authenticate
+from rest_framework import status
+
+@api_view(['POST'])
+def login_view(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    user = authenticate(username=username, password=password)
+
+    if user:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            "token": token.key,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+        })
+    else:
+        return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)

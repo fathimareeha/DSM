@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView
+from .views import HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView,EventListCreateView,login_view
+from superadmin_app.views import GetCollegeByInstitution
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -48,6 +49,14 @@ urlpatterns = [
 
     # ---------- Student's own bus info ----------
     path('my-bus/', MyBusAPIView.as_view(), name='my-bus'),
+
+    path('get_college/<int:institution_id>/', GetCollegeByInstitution.as_view(), name='get_college'),
+
+    path("create/", EventListCreateView.as_view(), name="event-create"),
+
+
+    path('loginmembers/', login_view, name='login'),
+   
 
     
     # # path('semesters/', SemesterListCreateAPIView.as_view(), name='semester-list-create'),

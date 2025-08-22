@@ -46,9 +46,10 @@ urlpatterns=[
     path('semester',views.SemesterView.as_view()),
     path('subject',views.SubjectView.as_view()),
     path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
+    path('user_college/', views.UserCollegeView.as_view(), name='user_college'),
+   
     path('toggle-activation/<str:institution_type>/<int:pk>/', views.ToggleInstitutionActivationView.as_view(), name='toggle-activation'),
     path("pincodes/",views. KeralaPincodeListView.as_view(), name="kerala-pincode-list"),
      path('landing-page-content/<int:pk>/', views.LandingPageContentView.as_view(), name='landing-page-content'),
-     path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview"),
-
+     path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview")
 ]

@@ -71,11 +71,7 @@ class CollegeSerializer(serializers.ModelSerializer):
         model=College
         fields='__all__'
         read_only_fields=['id','registration_id','created_date','instution_obj']
-        
-       
 
-        
-        
 class InstitutionAdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)

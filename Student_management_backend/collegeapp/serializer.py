@@ -1,8 +1,7 @@
 
-
 from rest_framework import serializers
-from .models import HOD,Faculty
-from superadmin_app.models import Department,UserProfile
+from .models import HOD,Faculty,Hostel,Student,CoordinatorsRole
+from superadmin_app.models import Department,UserProfile,Course,Semester
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -45,11 +44,13 @@ class HODListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     email = serializers.EmailField(source='user.email')
     department_name = serializers.CharField(source='department.name')
+    college_name = serializers.CharField(source='department.college.college_name', read_only=True)
+
    
 
     class Meta:
         model = HOD
-        fields = ['id', 'username', 'email', 'phone', 'department_name']
+        fields = ['id', 'username', 'email', 'phone', 'department_name','college_name']
 
         
 
@@ -64,7 +65,6 @@ class HODDetailSerializer(serializers.ModelSerializer):
 
     
 
-# serializers.py
 
 class HODUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
@@ -183,9 +183,7 @@ class FacultyUpdateSerializer(serializers.ModelSerializer):
 
         return instance
     
-#HOSTEL CREATION
-from rest_framework import serializers
-from .models import Hostel, Student
+#HOSTEL CREATION LISTING
 
 class HostelSerializer(serializers.ModelSerializer):
     current_occupancy = serializers.SerializerMethodField()
@@ -207,11 +205,7 @@ class StudentHostelSerializer(serializers.ModelSerializer):
 
 
 
-from rest_framework import serializers
-from .models import Student
-from superadmin_app.models import UserProfile, Course, Department, Semester
-
-# STUDENT CREATION
+# STUDENT CREATION LISTING 
 class StudentCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
@@ -331,14 +325,7 @@ class StudentUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-# serializers.py
-# serializers.py
-# serializers.py
-from rest_framework import serializers
-from .models import CoordinatorsRole
-
-
-
+#COORDINATOR CREATING LISTING
 
 class CoordinatorsRoleSerializer(serializers.ModelSerializer):
     # Write-only for creation
@@ -431,6 +418,18 @@ class BusStopSerializer(serializers.ModelSerializer):
         fields = ['id', 'bus', 'bus_number', 'stop_name', 'arrival_time']
 
 
+# class StudentBusAllocationSerializer(serializers.ModelSerializer):
+#     student_name = serializers.CharField(source='student.user.username', read_only=True)
+#     roll_no = serializers.CharField(source='student.roll_no', read_only=True)
+#     bus_details = BusSerializer(source='bus', read_only=True)
+#     stop_details = BusStopSerializer(source='stop', read_only=True)
+
+#     class Meta:
+#         model = StudentBusAllocation
+#         fields = ['id', 'student', 'student_name', 'roll_no', 'bus', 'bus_details', 'stop', 'stop_details']
+
+
+
 class StudentBusAllocationSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.user.username', read_only=True)
     roll_no = serializers.CharField(source='student.roll_no', read_only=True)
@@ -440,4 +439,62 @@ class StudentBusAllocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentBusAllocation
         fields = ['id', 'student', 'student_name', 'roll_no', 'bus', 'bus_details', 'stop', 'stop_details']
+
+
+
+
+
+from rest_framework import serializers
+from .models import Event
+from .models import Student
+
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = Student
+        fields = ["id", "username", "email"]
+
+
+class FacultySerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = Faculty
+        fields = ["id", "username", "email"]
+
+
+class HODSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = HOD
+        fields = ["id", "username", "email"]
+
+
+
+class EventSerializer(serializers.ModelSerializer):
+    students = StudentSerializer(many=True, read_only=True)
+    faculties = FacultySerializer(many=True, read_only=True)
+    hods = HODSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "title",
+            "description",
+            "start_date",
+            "end_date",
+            "students",
+            "faculties",
+            "hods",
+            "created_at",
+        ]
+        read_only_fields = ["created_at"]
 
