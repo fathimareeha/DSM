@@ -9,9 +9,10 @@ function College_edit({ institution_id }) {
   const [college_name, setName] = useState('');
   const [address1, setAddress1] = useState('');
   const [address2, setAddress2] = useState('');
-  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
   const [state, setState] = useState('');
   const [pin_code, setPincode] = useState('');
+  const [pincodeOptions, setPincodeOptions] = useState([]);
   const [location, setLocation] = useState('');
   const [college_type, setType] = useState('');
   const [phone_number, setPhone_number] = useState('');
@@ -22,11 +23,50 @@ function College_edit({ institution_id }) {
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem('token');
+  const [universities, setUniversities] = useState([]);
+  const [selectedUniversity, setSelectedUniversity] = useState('');
 
-  const options = stdcode.map((item) => ({
-    value: item.code,
-    label: `${item.code}`,
-  }));
+
+  const [stdCodeOptions, setStdCodeOptions] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/superadmin_app/std-codes/")
+      .then(res => res.json())
+      .then(data => setStdCodeOptions(data))
+      .catch(err => console.error("Error fetching STD codes:", err));
+  }, []);
+
+
+  //fetch pincode
+  useEffect(() => {
+    fetch("http://localhost:8000/superadmin_app/pincodes/")
+      .then(res => res.json())
+      .then(data => {
+        const options = data.map(pin => ({
+          value: pin,
+          label: pin
+        }));
+        setPincodeOptions(options);
+      })
+      .catch(err => console.error("Error fetching pincodes:", err));
+  }, []);
+
+  // Fetch universities from your backend
+  useEffect(() => {
+
+    axios.get('http://127.0.0.1:8000/superadmin_app/university', {
+      headers: { Authorization: `Token ${token}` },
+    })
+      .then(res => {
+        console.log("University API Response:", res.data);
+        setUniversities(res.data);
+      })
+      .catch(err => {
+        console.error("Error fetching universities", err);
+      });
+  }, []);
+
+
 
   useEffect(() => {
     const fetchCollege = async () => {
@@ -43,7 +83,7 @@ function College_edit({ institution_id }) {
         setName(data.college_name);
         setAddress1(data.address1);
         setAddress2(data.address2);
-        setCity(data.city);
+        setDistrict(data.district);
         setState(data.state);
         setPincode(data.pin_code);
         setLocation(data.location);
@@ -52,7 +92,7 @@ function College_edit({ institution_id }) {
         setStdCode(data.std_code);
         setLandlineNumber(data.landline_number);
         setAishe_code(data.aishe_code);
-        setUniversity(data.university);
+        setSelectedUniversity(data.university);
       } catch (error) {
         console.error('Failed to fetch college data', error);
       } finally {
@@ -72,7 +112,7 @@ function College_edit({ institution_id }) {
           college_name,
           address1,
           address2,
-          city,
+          district,
           state,
           pin_code,
           location,
@@ -132,10 +172,10 @@ function College_edit({ institution_id }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Input
-              label="City"
+              label="District"
               type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
               required
             />
             <Input
@@ -145,26 +185,33 @@ function College_edit({ institution_id }) {
               onChange={(e) => setState(e.target.value)}
               required
             />
-            <Input
-              label="Pin Code"
-              type="text"
-              value={pin_code}
-              onChange={(e) => setPincode(e.target.value)}
-              required
-            />
+            <div className="flex flex-col">
+              <label className="font-semibold">Pin Code</label>
+              <Select
+                options={pincodeOptions}
+                value={pincodeOptions.find(opt => opt.value === pin_code)}
+                onChange={(selected) => setPincode(selected.value)}
+                placeholder="Select Pin Code"
+                className="bg-gray-200 rounded shadow"
+              />
+            </div>
+
+
+
+
             <Input
               label="Location"
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              
+
             />
             <Input
               label="AISHE Code"
               type="text"
               value={aishe_code}
               onChange={(e) => setAishe_code(e.target.value)}
-              
+
             />
             <Input
               label="Phone Number"
@@ -178,11 +225,14 @@ function College_edit({ institution_id }) {
               <label className="font-semibold">Landline Number</label>
               <div className="flex gap-2 items-center">
                 <Select
-                  className="w-1/5 rounded bg-gray-200 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                  options={options}
-                  onChange={(sel) => setStdCode(sel.value)}
-                  placeholder="STD"
-                />
+  className="w-1/5 rounded bg-gray-200 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
+  options={stdCodeOptions}
+  value={stdCodeOptions.find(opt => opt.value === std_code)} // <-- add this
+  onChange={(sel) => setStdCode(sel.value)}
+  placeholder="STD"
+/>
+
+
                 <input
                   type="number"
                   value={landline_number}
@@ -199,7 +249,7 @@ function College_edit({ institution_id }) {
                 value={college_type}
                 onChange={(e) => setType(e.target.value)}
                 className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                
+
               >
                 <option value="">Select Type</option>
                 <option value="private">Private</option>
@@ -212,19 +262,19 @@ function College_edit({ institution_id }) {
             <div className="flex flex-col">
               <label className="font-semibold">Universities</label>
               <select
-                value={university}
-                onChange={(e) => setUniversity(e.target.value)}
                 className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                
+                onChange={(e) => setSelectedUniversity(e.target.value)}
+                value={selectedUniversity}
               >
-                <option value="">Select University</option>
-                <option value="kerala technical university">Kerala Technical University (KTU)</option>
-                <option value="kannur university">Kannur University</option>
-                <option value="M G university">Mahatma Gandhi University</option>
+                <option value="">Select university</option>
+                {universities.map((uni) => (
+                  <option key={uni.id} value={uni.id}>
+                    {uni.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-
           <div className="flex justify-center pt-4">
             <button
               type="submit"

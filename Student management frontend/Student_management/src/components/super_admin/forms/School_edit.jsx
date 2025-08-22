@@ -9,9 +9,10 @@ function School_edit({ institution_id }) {
   const [school_name, setName] = useState('');
   const [address1, setAddress1] = useState('');
   const [address2, setAddress2] = useState('');
-  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
   const [state, setState] = useState('');
   const [pin_code, setPincode] = useState('');
+  const [pincodeOptions, setPincodeOptions] = useState([]);
   const [location, setLocation] = useState('');
   const [school_type, setType] = useState('');
   const [phone_number, setPhone_number] = useState('');
@@ -27,6 +28,31 @@ function School_edit({ institution_id }) {
     value: item.code,
     label: `${item.code}`,
   }));
+
+const [stdCodeOptions, setStdCodeOptions] = useState([]);
+
+useEffect(() => {
+  fetch("http://localhost:8000/superadmin_app/std-codes/")
+    .then(res => res.json())
+    .then(data => setStdCodeOptions(data))
+    .catch(err => console.error("Error fetching STD codes:", err));
+}, []);
+
+
+  //fetch pincode
+  useEffect(() => {
+    fetch("http://localhost:8000/superadmin_app/pincodes/")
+      .then(res => res.json())
+      .then(data => {
+        const options = data.map(pin => ({
+          value: pin,
+          label: pin
+        }));
+        setPincodeOptions(options);
+      })
+      .catch(err => console.error("Error fetching pincodes:", err));
+  }, []);
+
 
   useEffect(() => {
     const fetchSchool = async () => {
@@ -44,7 +70,7 @@ function School_edit({ institution_id }) {
         setName(data.school_name);
         setAddress1(data.address1);
         setAddress2(data.address2);
-        setCity(data.city);
+        setDistrict(data.district);
         setState(data.state);
         setPincode(data.pin_code);
         setLocation(data.location);
@@ -73,7 +99,7 @@ function School_edit({ institution_id }) {
           school_name,
           address1,
           address2,
-          city,
+          district,
           state,
           pin_code,
           location,
@@ -128,10 +154,10 @@ function School_edit({ institution_id }) {
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Input
-              label="City"
+              label="District"
               type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
               required
             />
             <Input
@@ -141,13 +167,16 @@ function School_edit({ institution_id }) {
               onChange={(e) => setState(e.target.value)}
               required
             />
-            <Input
-              label="Pin Code"
-              type="text"
-              value={pin_code}
-              onChange={(e) => setPincode(e.target.value)}
-              required
-            />
+            <div className="flex flex-col">
+              <label className="font-semibold">Pin Code</label>
+               <Select
+              options={pincodeOptions}
+              value={pincodeOptions.find(opt => opt.value === pin_code)}
+              onChange={(selected) => setPincode(selected.value)}
+              placeholder="Select Pin Code"
+              className="bg-gray-200 rounded shadow" />
+              </div>
+           
             <Input
               label="Location"
               type="text"
@@ -172,12 +201,15 @@ function School_edit({ institution_id }) {
             <div className="flex flex-col">
               <label className="font-semibold">Landline Number</label>
               <div className="flex gap-2 items-center">
-                <Select
-                  className="w-1/5 rounded bg-gray-200 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
-                  options={options}
-                  onChange={(sel) => setStdCode(sel.value)}
-                  placeholder="STD"
-                />
+                    <Select
+  className="w-1/5 rounded bg-gray-200 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
+  options={stdCodeOptions}
+ value={stdCodeOptions.find(opt => String(opt.value) === String(std_code))}
+// <-- preselect
+  onChange={(sel) => setStdCode(sel.value)}
+  placeholder="STD"
+/>
+
                 <input
                   type="number"
                   value={landline_number}

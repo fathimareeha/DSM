@@ -46,6 +46,10 @@ import CreateDepartment from './components/super_admin/forms/DepartmentForm'
 import CreateSemester from './components/super_admin/forms/SemesterForm'
 import CreateSubject from './components/super_admin/forms/SubjectForm'
 import UniversityForm from './components/super_admin/forms/UniversityForm'
+import LandingPageEditor from './components/super_admin/forms/LandingPageEditor'
+import Courses_list from './components/super_admin/list/UniversityList'
+import UniversityList from './components/super_admin/list/UniversityList'
+import UniversityDetailPage from './components/super_admin/list/UniversityDetailPage'
 
 
 
@@ -91,6 +95,9 @@ function App() {
       <Route path='department' element={<CreateDepartment/>}/>
       <Route path='semester' element={<CreateSemester/>}/>
       <Route path='subject' element={<CreateSubject/>}/>
+      <Route path='university_list' element={<UniversityList/>}/>
+      <Route path='universities/:id' element={<UniversityDetailPage/>} />
+      <Route path='content_editor' element={<LandingPageEditor/>}/>
 
 
 

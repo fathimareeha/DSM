@@ -44,7 +44,7 @@ function Details() {
       is_paid: false,
       payment_status: "trial_expired",
       package: 'N/A',
-      plan_type: 'N/A',
+      
       amount: 0,
       end_date: null
     });
@@ -78,7 +78,7 @@ function Details() {
               <InfoRow label="Address 1" value={institution.address1 || 'N/A'} />
               <InfoRow label= 'Address 2' value={institution.address2 }/>
               <InfoRow label="State" value={institution.state}/>
-              <InfoRow label="City" value={institution.city}/>
+              <InfoRow label="District" value={institution.district}/>
               <InfoRow label="Location" value={institution.location || 'N/A'} />
               <InfoRow label="Creation Date" value={institution.created_date} />
               <InfoRow label="Phone Number" value={institution.phone_number}/>
@@ -89,35 +89,50 @@ function Details() {
             </div>
           </div>
 
-          <div className="mt-10">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Payment Details</h2>
-            <div className="divide-y divide-gray-200 border rounded-md">
+        <div className="mt-10">
+  <h2 className="text-lg font-semibold text-gray-800 mb-4">Payment Details</h2>
+<div className="divide-y divide-gray-200 border rounded-md">
+  <InfoRow label="Package" value={paymentDetails.package} />
+  <InfoRow label="Amount" value={paymentDetails.amount} />
 
-              <InfoRow label="Package" value={paymentDetails.package}/>
-              <InfoRow label="Plan" value={paymentDetails.plan_type}/>
-              <InfoRow label="Amount" value={paymentDetails.amount}/>
-              {paymentDetails && (
-  <InfoRow
-    label="Payment Status"
-    value={
-      paymentDetails.is_paid ? (
-        <span className="badge bg-success">Paid</span>
-      ) : paymentDetails.payment_status === "trial" ? (
-        <span className="badge bg-warning text-dark">Trial</span>
-      ) : paymentDetails.payment_status === "trial_expired" ? (
-        <span className="badge bg-secondary">Trial Expired</span>
-      ) : (
-        <span className="badge bg-danger">Not Paid</span>
-      )
-    }
-  />
-)}
+  {paymentDetails && (
+    <InfoRow
+      label="Payment Status"
+      value={
+        paymentDetails.is_paid ? (
+          <span className="badge bg-success">Paid</span>
+        ) : paymentDetails.payment_status === "trial" ? (
+          <span className="badge bg-warning text-dark">Trial</span>
+        ) : paymentDetails.payment_status === "trial_expired" ? (
+          <span className="badge bg-secondary">Trial Expired</span>
+        ) : (
+          <span className="badge bg-danger">Not Paid</span>
+        )
+      }
+    />
+  )}
 
-              {paymentDetails.is_paid && (
-                  <InfoRow label="End Date" value={paymentDetails.end_date} />)}
-            </div>
+  {paymentDetails.is_paid && (
+    <InfoRow label="End Date" value={paymentDetails.end_date} />
+  )}
+
+  {/* ✅ Show Upgrade History (loop through all upgrades) */}
+  {paymentDetails.upgrade_history &&
+    paymentDetails.upgrade_history.length > 0 && (
+      <div className="p-2">
+        <h4 className="font-semibold text-gray-700 mb-2">Upgrade History</h4>
+        {paymentDetails.upgrade_history.map((upgrade, index) => (
+          <div key={index} className="mb-2  pb-2">
+            <InfoRow label="Upgraded From" value={upgrade.old_package} />
+            <InfoRow label="Upgraded To" value={upgrade.new_package} />
+            <InfoRow label="Upgrade Amount" value={upgrade.upgrade_amount} />
+            <InfoRow label="Upgrade Date" value={upgrade.upgrade_date} />
           </div>
-        </div>
+        ))}
+      </div>
+    )}
+</div>
+</div></div>
       </div>
     </div>
   );

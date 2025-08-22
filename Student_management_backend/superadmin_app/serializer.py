@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole,Subject,Semester,Department,Course,University
+from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole,Subject,Semester,Department,Course,University,LandingPageContent
 from django.contrib.auth import authenticate
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -60,13 +60,20 @@ class SchoolSerializer(serializers.ModelSerializer):
         model=School
         fields='__all__'
         read_only_fields=['id','registration_id','created_date','instution_obj']
-        
+        landline_number = serializers.IntegerField(required=False, allow_null=True)
+
         
 class CollegeSerializer(serializers.ModelSerializer):
+    university_name = serializers.CharField(source='university.name', read_only=True)
+    landline_number = serializers.IntegerField(required=False, allow_null=True)
+    university = serializers.PrimaryKeyRelatedField(queryset=University.objects.all())
     class Meta:
         model=College
         fields='__all__'
         read_only_fields=['id','registration_id','created_date','instution_obj']
+        
+       
+
         
         
 class InstitutionAdminLoginSerializer(serializers.Serializer):
@@ -178,4 +185,41 @@ class SubjectSerializer(serializers.ModelSerializer):
         model = Subject
         fields = ['id', 'name', 'semester','code', 'semester_id']       
 
-        
+
+class SubjectNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['id', 'name', 'code']
+
+class SemesterNestedSerializer(serializers.ModelSerializer):
+    subjects = SubjectNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Semester
+        fields = ['id', 'number', 'subjects']
+
+class DepartmentNestedSerializer(serializers.ModelSerializer):
+    semesters = SemesterNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'semesters']
+
+class CourseNestedSerializer(serializers.ModelSerializer):
+    departments = DepartmentNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ['id', 'name', 'departments']
+
+class UniversityNestedSerializer(serializers.ModelSerializer):
+    courses = CourseNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = University
+        fields = ['id', 'name', 'courses']
+
+class LandingPageContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandingPageContent
+        fields = '__all__'

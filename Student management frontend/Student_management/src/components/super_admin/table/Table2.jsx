@@ -4,11 +4,43 @@ import { useNavigate } from 'react-router-dom';
 import { Search_context } from '../../../context/super_admin/Search_context';
 
 function Table2() {
-  const { filteredCollegeList }=useContext(Search_context);
+
+
+  const { filteredCollegeList, 
+    universities,
+    selectedUniversity,
+    setSelectedUniversity,
+    districtFilter,
+    setDistrictFilter, }=useContext(Search_context);
   const navigate =useNavigate()
   return (
     
     <>
+     <div className="mb-4 flex gap-4">
+      
+
+      <select
+        value={selectedUniversity}
+        onChange={(e) => setSelectedUniversity(e.target.value)}
+        className="border px-2 py-1 rounded"
+      >
+        <option value="">All Universities</option>
+        {universities.map((u) => (
+          <option key={u.id} value={u.id}>
+            {u.name}
+          </option>
+        ))}
+      </select>
+
+      <input
+        type="text"
+        placeholder="Filter by district"
+        value={districtFilter}
+        onChange={(e) => setDistrictFilter(e.target.value)}
+        className="border px-2 py-1 rounded"
+      />
+    </div>
+
       <div className='overflow-x-auto'>
         <table class="min-w-full table-auto border border-gray-200 rounded-lg shadow-sm">
           <thead class="bg-white text-gray-700">
@@ -19,7 +51,7 @@ function Table2() {
               <th class="px-4 py-2 text-left">Pin code</th>
               <th class="px-4 py-2 text-left">Created Date</th>
               <th class="px-4 py-2 text-left">Phone Number</th>
-
+              <th class="px-4 py-2 text-left">University</th>
               <th class="px-4 py-2 text-left">Active</th>
               <th class="px-4 py-2 text-left">Details</th>
             </tr>
@@ -33,6 +65,8 @@ function Table2() {
               <td class="px-4 py-2">{college.pin_code}</td>
               <td class="px-4 py-2">{college.created_date}</td>
               <td class="px-4 py-2">{college.phone_number}</td>
+              <td class="px-4 py-2">{college.university_name}</td>
+
 
               <td class="px-4 py-2  font-medium"><span className={college.is_active ? 'text-green-600' : 'text-red-600'}>
                         {college.is_active ? 'Active' : 'Inactive'}</span></td>

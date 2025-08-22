@@ -10,6 +10,26 @@ function Table() {
 
   const token = localStorage.getItem('token')
 
+
+  const handleToggleActivation = async (id, type) => {
+  try {
+    const response = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/toggle_activation/${type}/${id}/`,
+      {},
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+
+    alert(`Institution ${response.data.status} successfully`);
+    InstitutionsList(); // Refresh the table data
+  } catch (error) {
+    console.error("Toggle activation error:", error.response?.data || error.message);
+  }
+};
+
   // ✅ Delete Function
  const handleDelete = async (id) => {
   try {
@@ -40,6 +60,7 @@ function Table() {
               <th className="px-4 py-2 text-left">Type</th>
               <th className="px-4 py-2 text-left">Institution Name</th>
               <th className="px-4 py-2 text-left">Active</th>
+              <th className="px-4 py-2 text-left">Action</th>
               <th className="px-4 py-2 text-left">Edit</th>
               <th className="px-4 py-2 text-left">Delete</th>
               <th className="px-4 py-2 text-left">Details</th>
@@ -58,6 +79,17 @@ function Table() {
                     {institution.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
+                <td className="px-4 py-2">
+  <button
+    className={`px-2 py-1 rounded text-white ${
+      institution.is_manually_deactivated ? 'bg-green-500' : 'bg-red-500'
+    }`}
+    onClick={() => handleToggleActivation(institution.id, institution.type)}
+  >
+    {institution.is_manually_deactivated ? 'Activate' : 'Deactivate'}
+  </button>
+</td>
+
                 <td class="px-4 py-2">
                 <Link class="text-red-500 hover:text-red-800" to={`/admin/edit_institution_form/${institution.id}`}>Edit</Link>
               </td>

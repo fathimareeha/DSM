@@ -40,6 +40,7 @@ function Sidebar() {
       icon: <FaUser />,
       dropdown: true,
       children: [
+        { label:'All Universities', to:'/admin/university_list'},
         { label:'University', to:'/admin/university'},
         { label:'Course', to:'/admin/course'},
         
@@ -49,6 +50,12 @@ function Sidebar() {
 
       ],
     },
+    {
+      label: 'Blog',
+      to: '/admin/content_editor',
+      icon: <FaHome />,
+    },
+    
   ];
 
   const toggleDropdown = (index) => {
