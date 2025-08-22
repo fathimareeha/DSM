@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
  
     'schoolapp',
+    'collegeapp',
+    'ckeditor',
 
-    'collegeapp'
 
     
 ]
@@ -155,5 +156,8 @@ REST_FRAMEWORK = {
 }
 
 
+
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+

@@ -47,7 +47,7 @@ function School_detail() {
       is_paid: false,
       payment_status: "trial_expired",
       package: 'N/A',
-      plan_type: 'N/A',
+      
       amount: 0,
       end_date: null
     });
@@ -75,7 +75,7 @@ function School_detail() {
               <InfoRow label="Address 1" value={institution.address1 || 'N/A'} />
               <InfoRow label= 'Address 2' value={institution.address2 }/>
               <InfoRow label="State" value={institution.state}/>
-              <InfoRow label="City" value={institution.city}/>
+              <InfoRow label="District" value={institution.district}/>
               <InfoRow label="Location" value={institution.location || 'N/A'} />
               <InfoRow label="Creation Date" value={institution.created_date} />
               <InfoRow label="Phone Number" value={institution.phone_number}/>
@@ -92,7 +92,7 @@ function School_detail() {
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Payment Details</h2>
             <div className="divide-y divide-gray-200 border rounded-md">
               <InfoRow label="Package" value={paymentDetails.package}/>
-              <InfoRow label="Plan" value={paymentDetails.plan_type}/>
+         
               <InfoRow label="Amount" value={paymentDetails.amount}/>
               {paymentDetails && (
   <InfoRow

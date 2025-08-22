@@ -4,6 +4,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
 from django.utils import timezone
+from superadmin_app.constants.pincodes import PINCODE_CHOICES
+from superadmin_app.constants.std_codes import STD_CODE_CHOICES
+from django.db.models import UniqueConstraint
+from django.db.models.functions import Lower
+
 
 
 # Create your models here.
@@ -52,14 +57,15 @@ class School(models.Model):
     registration_id = models.CharField(max_length=20, unique=True, blank=True) 
     school_name=models.CharField(max_length=100)
     address1=models.CharField(max_length=100)
-    address2=models.CharField(max_length=100)
-    city=models.CharField(max_length=50)
+    address2=models.CharField(max_length=100,blank=True, null=True)
+    district=models.CharField(max_length=50)
     state=models.CharField(max_length=50)
-    pin_code=models.CharField(max_length=50)
-    location=models.CharField(max_length=100)
-    udise_code=models.CharField(max_length=50)
+    pin_code=models.CharField(max_length=50,choices=PINCODE_CHOICES)
+    location=models.CharField(max_length=100,blank=True, null=True)
+    udise_code=models.CharField(max_length=50,blank=True, null=True)
     phone_number=models.IntegerField()
-    landline_number=models.IntegerField()
+    std_code = models.CharField(max_length=10, choices=STD_CODE_CHOICES, blank=True, null=True)
+    landline_number=models.IntegerField(blank=True, null=True)
     
     school_type_options=(
         ('aided','aided'),
@@ -67,7 +73,7 @@ class School(models.Model):
         ('private','private'),
         ('unaided','unaided')
     )
-    school_type=models.CharField(max_length=50,choices=school_type_options)
+    school_type=models.CharField(max_length=50,choices=school_type_options,blank=True, null=True)
     board_options=(
         ('state','state'),
         ('cbse','cbse'),
@@ -77,6 +83,7 @@ class School(models.Model):
     created_date=models.DateTimeField(auto_now_add=True)
     activation_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_manually_deactivated = models.BooleanField(default=False)
 
     
     # for automatically creating registartion id
@@ -94,6 +101,9 @@ class School(models.Model):
 class University(models.Model):
     name=models.CharField(max_length=100,null=True)
     
+    class Meta:
+        unique_together = ('name',)  
+        
     def __str__(self):
         return self.name
 
@@ -102,26 +112,28 @@ class College(models.Model):
     registration_id = models.CharField(max_length=20, unique=True, blank=True) 
     college_name=models.CharField(max_length=100)
     address1=models.CharField(max_length=100)
-    address2=models.CharField(max_length=100)
-    city=models.CharField(max_length=50)
+    address2=models.CharField(max_length=100,blank=True, null=True)
+    district=models.CharField(max_length=50)
     state=models.CharField(max_length=50)
-    pin_code=models.CharField(max_length=50)
-    location=models.CharField(max_length=100)
-    aishe_code=models.CharField(max_length=50)
+    pin_code=models.CharField(max_length=50,choices=PINCODE_CHOICES)
+    location=models.CharField(max_length=100,blank=True, null=True)
+    aishe_code=models.CharField(max_length=50,blank=True, null=True)
     phone_number=models.IntegerField()
-    landline_number=models.IntegerField()
+    std_code = models.CharField(max_length=10, choices=STD_CODE_CHOICES, blank=True, null=True)
+    landline_number=models.IntegerField(blank=True, null=True)
     college_type_options=(
         ('aided','aided'),
         ('government','government'),
         ('private','private'),
         ('unaided','unaided')
     )
-    college_type=models.CharField(max_length=50,choices=college_type_options)
+    college_type=models.CharField(max_length=50,choices=college_type_options,blank=True, null=True)
     
     university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='colleges')
     created_date=models.DateTimeField(auto_now_add=True)
     activation_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_manually_deactivated = models.BooleanField(default=False)
 
 
     
@@ -142,25 +154,37 @@ class Course(models.Model):
     name = models.CharField(max_length=100)   
     university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='courses',null=True)
     class Meta:
-        unique_together = ('name',) 
+       constraints = [
+            UniqueConstraint(
+                Lower('name'),
+                'university',
+                name='unique_course_name_per_university_case_insensitive'
+            )
+        ]
+
     
     def __str__(self):
         return self.name
     
 class Department(models.Model):  # Ex: CSE, ECE under B.Tech
     name = models.CharField(max_length=100)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE,related_name='departments')
 
 
     class Meta:
-        unique_together = ('name',)  
+        unique_together = ('name','course')  
         
     def __str__(self):
         return f"{self.name} ({self.course.name})"
         
 class Semester(models.Model):  # Ex: Sem 1 to 8
-    number = models.CharField(max_length=100)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+
+    number = models.IntegerField()
+    department = models.ForeignKey(Department, on_delete=models.CASCADE,related_name='semesters')
+    
+    class Meta:
+        unique_together = ('number','department')  
+
     
     def __str__(self):
         return f"Semester {self.number} - {self.department.name}"
@@ -168,7 +192,7 @@ class Semester(models.Model):  # Ex: Sem 1 to 8
 class Subject(models.Model):  # Ex: DBMS, Python, OS
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20,null=True)
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE,related_name='subjects')
 
     class Meta:
         unique_together = ('name', 'semester')
@@ -193,11 +217,7 @@ class SubscriptionPackage(models.Model):
     package = models.CharField(max_length=20,choices=package_options,default="trial")
    
     description = models.TextField(blank=True)
-    PLAN_CHOICES = [
-        ('monthly', 'Monthly'),
-        ('yearly', 'Yearly'),
-    ]
-    plan_type = models.CharField(max_length=10, choices=PLAN_CHOICES)
+ 
     features = models.JSONField(default=list, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -242,6 +262,7 @@ class Payment(models.Model):
     end_date = models.DateField(blank=True, null=True)
     
     is_paid = models.BooleanField(default=False)
+    upgrade_history = models.JSONField(default=list, blank=True)
 
 
 class Notification(models.Model):
@@ -273,5 +294,13 @@ def create_institution(sender, instance, created, **kwargs):
 
 
             
+from ckeditor.fields import RichTextField
 
+class LandingPageContent(models.Model):
+    title = models.CharField(max_length=255, default="Landing Page")
+    content = RichTextField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
 

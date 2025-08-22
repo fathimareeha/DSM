@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
+import Inputfield from "../../components/common/Inputfield.jsx";
 import Button from '../../components/common/Button';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import Inputfield from "../../components/common/Inputfield";
 
-
-function AddVicePrincipal() {
+function EditVicePrincipal() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -27,8 +26,8 @@ function AddVicePrincipal() {
         formData.append('profile_picture', profilePicture);
       }
 
-      const response = await axios.post(
-        'http://127.0.0.1:8000/schoolapp/createvp/',
+      const response = await axios.get(
+        'http://127.0.0.1:8000/schoolapp/vpdetail/${id}/',
         formData,
         {
           headers: {
@@ -62,7 +61,7 @@ function AddVicePrincipal() {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Add Vice Principal</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Edit Vice Principal</h2>
       <form onSubmit={vpcreate}>
         <Inputfield
           label="Username"
@@ -114,10 +113,10 @@ function AddVicePrincipal() {
           )}
         </div>
 
-        <Button type="submit" label="Add Vice Principal" />
+        <Button type="submit" label="Update Vice Principal" />
       </form>
     </div>
   );
 }
 
-export default AddVicePrincipal;
+export default EditVicePrincipal;
