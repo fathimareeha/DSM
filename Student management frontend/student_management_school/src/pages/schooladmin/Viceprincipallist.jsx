@@ -1,31 +1,43 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/institution/Authcontext";
-import { Pencil, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function VicePrincipalList() {
-  const { VpList, setVpList, token } = useContext(AuthContext);
+  const { vpList, setVpList, token } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Fetch Vice Principals
   const fetchVicePrincipals = async () => {
-    if (!token) return;
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     setLoading(true);
+    setError(null);
     try {
       const response = await axios.get(
         "http://127.0.0.1:8000/schoolapp/createvp/",
-        { headers: { Authorization: `Token ${token}` } }
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
       );
-      console.log("Fetched VPs:", response.data); // <-- see structure here
       setVpList(response.data);
-    } catch (error) {
-      console.error("Error fetching Vice Principals:", error);
+    } catch (err) {
+      console.error("Error fetching Vice Principals:", err);
+      setError("Failed to load Vice Principals.");
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchVicePrincipals();
   }, [token]);
@@ -36,25 +48,45 @@ function VicePrincipalList() {
     try {
       await axios.delete(
         `http://127.0.0.1:8000/schoolapp/vpdetails/${id}/`,
-        {
-          headers: { Authorization: `Token ${token}` },
-        }
+        { headers: { Authorization: `Token ${token}` } }
       );
-      setVpList((prev) => prev.filter((vp) => vp.id !== id));
-    } catch (error) {
-      console.error("Error deleting VP:", error);
+      setVpList((prev) => prev.filter((vp) => vp.vp_id !== id));
+    } catch (err) {
+      console.error("Error deleting VP:", err);
+      alert("Failed to delete Vice Principal.");
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-3xl font-bold text-indigo-800 mb-6 border-b pb-2">
-        Manage Vice Principals
-      </h2>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 border-b pb-2">
+        <h2 className="text-3xl font-bold text-indigo-800">
+          Manage Vice Principals
+        </h2>
+        <Link
+          to="/admin/add/viceprincipal"
+          className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition text-base font-medium"
+        >
+          <Plus className="w-5 h-5" />
+          Add Vice Principal
+        </Link>
+      </div>
 
+      {/* Table */}
       <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
         {loading ? (
           <p className="text-center py-6 text-gray-500">Loading...</p>
+        ) : error ? (
+          <div className="text-center py-6 text-red-500">
+            {error}{" "}
+            <button
+              onClick={fetchVicePrincipals}
+              className="ml-2 underline text-blue-600"
+            >
+              Retry
+            </button>
+          </div>
         ) : (
           <table className="w-full text-base text-left border-collapse">
             <thead className="bg-indigo-600 text-white text-lg">
@@ -68,21 +100,18 @@ function VicePrincipalList() {
               </tr>
             </thead>
             <tbody>
-              {VpList && VpList.length > 0 ? (
-                VpList.map((vp, index) => (
+              {vpList && vpList.length > 0 ? (
+                vpList.map((vp, index) => (
                   <tr
-                    key={vp.id}
+                    key={vp.vp_id}
                     className={`${
                       index % 2 === 0 ? "bg-gray-50" : "bg-white"
                     } hover:bg-indigo-50 transition`}
                   >
-                    <td className="px-6 py-4">{vp.id}</td>
+                    <td className="px-6 py-4">{vp.vp_id}</td>
                     <td className="px-6 py-4">
                       <img
-                        src={
-                          vp.profile_picture ||
-                          "https://via.placeholder.com/50"
-                        }
+                        src={vp.profile_picture || "https://via.placeholder.com/50"}
                         alt={vp.username}
                         className="w-12 h-12 rounded-full object-cover border"
                       />
@@ -92,13 +121,13 @@ function VicePrincipalList() {
                     <td className="px-6 py-4">{vp.phone}</td>
                     <td className="px-6 py-4 flex justify-center gap-3">
                       <Link
-                        to={`/admin/edit/viceprincipal/${vp.id}`}
+                        to={`/admin/edit/viceprincipal/${vp.vp_id}`}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-base font-medium"
                       >
                         <Pencil className="w-5 h-5" /> EDIT
                       </Link>
                       <button
-                        onClick={() => handleDelete(vp.id)}
+                        onClick={() => handleDelete(vp.vp_id)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-base font-medium"
                       >
                         <Trash2 className="w-5 h-5" /> DELETE

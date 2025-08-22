@@ -327,64 +327,113 @@ class StudentUpdateSerializer(serializers.ModelSerializer):
 
 #COORDINATOR CREATING LISTING
 
-class CoordinatorsRoleSerializer(serializers.ModelSerializer):
-    # Write-only for creation
-    username = serializers.CharField(write_only=True)
-    email = serializers.EmailField(write_only=True)
-    password = serializers.CharField(write_only=True)
+# class CoordinatorsRoleSerializer(serializers.ModelSerializer):
+#     # Write-only for creation
+#     username = serializers.CharField(write_only=True)
+#     email = serializers.EmailField(write_only=True)
+#     password = serializers.CharField(write_only=True)
 
-    # Read-only for listing
-    user_id = serializers.IntegerField(source="user.id", read_only=True)
-    user_username = serializers.CharField(source="user.username", read_only=True)
-    user_email = serializers.EmailField(source="user.email", read_only=True)
+#     # Read-only for listing
+#     user_id = serializers.IntegerField(source="user.id", read_only=True)
+#     user_username = serializers.CharField(source="user.username", read_only=True)
+#     user_email = serializers.EmailField(source="user.email", read_only=True)
+
+#     class Meta:
+#         model = CoordinatorsRole
+#         fields = [
+#             "id",
+#             "username", "email", "password",  # creation fields
+#             "user_id", "user_username", "user_email",  # listing fields
+#             "coordinators_role",
+#             "can_access_library",
+#             "can_access_exam",
+#             "can_access_finance",
+#             "can_access_placement",
+#             "can_access_sports",
+#             "can_access_lab",
+#             "can_access_hostel",
+#         ]
+
+#     def create(self, validated_data):
+#         username = validated_data.pop("username")
+#         email = validated_data.pop("email")
+#         password = validated_data.pop("password")
+#         role = validated_data.get("coordinators_role")
+
+#         # Auto-set permissions based on role
+#         role_permission_map = {
+#             "librarian": "can_access_library",
+#             "controller_of_exam": "can_access_exam",
+#             "finance_officer": "can_access_finance",
+#             "placement_officer": "can_access_placement",
+#             "sports_coordinator": "can_access_sports",
+#             "lab_coordinator": "can_access_lab",
+#             "hostel_manager": "can_access_hostel",
+#         }
+
+#         if role in role_permission_map:
+#             validated_data[role_permission_map[role]] = True
+
+#         # Create user account with role
+#         user = UserProfile.objects.create_user(
+#             username=username,
+#             email=email,
+#             password=password,
+#             role=role  # This assumes UserProfile has a 'role' field
+#         )
+
+#         # Create coordinator role
+#         return CoordinatorsRole.objects.create(user=user, **validated_data)
+
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import CoordinatorsRole
+
+User = get_user_model()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "first_name", "last_name"]
+
+class CoordinatorsRoleSerializer(serializers.ModelSerializer):
+    # Nest user details
+    user = UserSerializer()
 
     class Meta:
         model = CoordinatorsRole
         fields = [
             "id",
-            "username", "email", "password",  # creation fields
-            "user_id", "user_username", "user_email",  # listing fields
+            "user",
             "coordinators_role",
             "can_access_library",
             "can_access_exam",
             "can_access_finance",
-            "can_access_placement",
-            "can_access_sports",
+            "can_access_transport",
+            "can_access_arts_sports",
             "can_access_lab",
             "can_access_hostel",
         ]
 
     def create(self, validated_data):
-        username = validated_data.pop("username")
-        email = validated_data.pop("email")
-        password = validated_data.pop("password")
-        role = validated_data.get("coordinators_role")
+        user_data = validated_data.pop("user")
+        user = User.objects.create(**user_data)  # creates the linked user
+        coordinator_role = CoordinatorsRole.objects.create(user=user, **validated_data)
+        return coordinator_role
 
-        # Auto-set permissions based on role
-        role_permission_map = {
-            "librarian": "can_access_library",
-            "controller_of_exam": "can_access_exam",
-            "finance_officer": "can_access_finance",
-            "placement_officer": "can_access_placement",
-            "sports_coordinator": "can_access_sports",
-            "lab_coordinator": "can_access_lab",
-            "hostel_manager": "can_access_hostel",
-        }
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", None)
+        if user_data:
+            # update user details
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+            instance.user.save()
 
-        if role in role_permission_map:
-            validated_data[role_permission_map[role]] = True
-
-        # Create user account with role
-        user = UserProfile.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            role=role  # This assumes UserProfile has a 'role' field
-        )
-
-        # Create coordinator role
-        return CoordinatorsRole.objects.create(user=user, **validated_data)
-
+        # update coordinator role fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 

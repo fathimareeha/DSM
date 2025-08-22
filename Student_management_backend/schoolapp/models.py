@@ -116,15 +116,37 @@ class SubjectAllocation(models.Model):
  
 
 
+
+##HOSTEL
+
+
+class Hostel(models.Model):
+    HOSTEL_TYPE_CHOICES = [
+        ('Boys', 'Boys'),
+        ('Girls', 'Girls'),
+        ('mixed','Mixed')]
+
+    name = models.CharField(max_length=100)  # Hostel Name
+    hostel_type = models.CharField(max_length=10, choices=HOSTEL_TYPE_CHOICES)  # Hostel Type
+    intake = models.IntegerField()  # Total capacity
+    address = models.TextField(null=True, blank=True)  # Address
+
+    def __str__(self):
+        return f"{self.name} ({self.hostel_type})"
+
+
+##STUDENT
+
+
 class Student(models.Model):
-    
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
         ('Other', 'Other'),
     ]
+
     admissionNumber = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    rollNo = models.CharField(max_length=20, null=True, blank=True)  # made nullable for migration
+    rollNo = models.CharField(max_length=20, null=True, blank=True)
     studentName = models.CharField(max_length=100, null=True, blank=True)
     standard = models.CharField(max_length=20, null=True, blank=True)
     section = models.CharField(max_length=10, null=True, blank=True)
@@ -135,14 +157,46 @@ class Student(models.Model):
     relationship = models.CharField(max_length=50, null=True, blank=True)
     parentPhone = models.CharField(max_length=15, null=True, blank=True)
     profilePic = models.ImageField(upload_to='student_profiles/', blank=True, null=True)
-    gender = models.CharField(
-    
-    choices=GENDER_CHOICES,
-    default='Male'
-)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='Male')
+
+    # 🔗 Link student to a hostel
+    hostel = models.ForeignKey(Hostel,on_delete=models.SET_NULL,   # if hostel deleted, student.hostel = NULL
+        null=True, blank=True,related_name="students"
+    )
 
     def __str__(self):
         return f"{self.studentName} ({self.admissionNumber})"
+    
+    
+    
+    
+# class Student(models.Model):
+    
+#     GENDER_CHOICES = [
+#         ('Male', 'Male'),
+#         ('Female', 'Female'),
+#         ('Other', 'Other'),
+#     ]
+#     admissionNumber = models.CharField(max_length=50, unique=True, null=True, blank=True)
+#     rollNo = models.CharField(max_length=20, null=True, blank=True)  # made nullable for migration
+#     studentName = models.CharField(max_length=100, null=True, blank=True)
+#     standard = models.CharField(max_length=20, null=True, blank=True)
+#     section = models.CharField(max_length=10, null=True, blank=True)
+#     dob = models.DateField(null=True, blank=True)
+#     Email = models.EmailField(null=True, blank=True)
+#     studentAddress = models.TextField(null=True, blank=True)
+#     parentname = models.CharField(max_length=100, null=True, blank=True)
+#     relationship = models.CharField(max_length=50, null=True, blank=True)
+#     parentPhone = models.CharField(max_length=15, null=True, blank=True)
+#     profilePic = models.ImageField(upload_to='student_profiles/', blank=True, null=True)
+#     gender = models.CharField(
+    
+#     choices=GENDER_CHOICES,
+#     default='Male'
+# )
+
+#     def __str__(self):
+#         return f"{self.studentName} ({self.admissionNumber})"
 
 
 class Book(models.Model):
@@ -157,42 +211,123 @@ class Book(models.Model):
     def __str__(self):
         return f"{self.title}"
     
-from django.db import models
-from django.conf import settings
 
-class CoordinatorsRole(models.Model):
+
+##STAFF
+
+# class StaffRole(models.Model):
+#     ROLE_CHOICES = [
+#         ('librarian', 'Librarian'),
+#         ('exam_controller', 'Exam Controller'),
+#         ('finance_officer', 'Finance Officer'),
+#         ('arts_sports_coordinator', 'Arts&Sports Coordinator'),
+#         ('lab_coordinator', 'Lab Coordinator'),
+#         ('hostel_manager', 'Hostel Manager'),
+#     ]
+#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name="staff_profile")
+#     phone = models.CharField(max_length=15, blank=True, null=True)
+#     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
+#     user = models.OneToOneField(UserProfile,on_delete=models.CASCADE,related_name='staff_role_profile'  # ✅ Unique related_name
+#     )
+#     staffs_role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+#     can_access_library = models.BooleanField(default=False)
+#     can_access_exam = models.BooleanField(default=False)
+#     can_access_finance = models.BooleanField(default=False)
+#     can_access_arts_sports = models.BooleanField(default=False)
+#     can_access_lab = models.BooleanField(default=False)
+#     can_access_hostel = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return f"{self.user.username} - {self.coordinators_role}"
+
+class StaffRole(models.Model):
     ROLE_CHOICES = [
         ('librarian', 'Librarian'),
-        ('controller_of_exam', 'Controller of Exam'),
+        ('exam_controller', 'Exam Controller'),
         ('finance_officer', 'Finance Officer'),
-        ('transport_officer', 'Transport Officer'),
-        ('arts&sports_coordinator', 'Arts&Sports Coordinator'),
+        ('arts_sports_coordinator', 'Arts & Sports Coordinator'),
         ('lab_coordinator', 'Lab Coordinator'),
         ('hostel_manager', 'Hostel Manager'),
     ]
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.CASCADE,
-        related_name='coordinator_role'
+        related_name="schoolapp_staff_role"
     )
-    coordinators_role = models.CharField(
-        max_length=50, choices=ROLE_CHOICES
+    staff_role = models.CharField(
+        max_length=50,
+        choices=ROLE_CHOICES,
+        default="librarian"
     )
 
-    # Access permissions
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
+
     can_access_library = models.BooleanField(default=False)
     can_access_exam = models.BooleanField(default=False)
     can_access_finance = models.BooleanField(default=False)
-    can_access_transport = models.BooleanField(default=False)
     can_access_arts_sports = models.BooleanField(default=False)
     can_access_lab = models.BooleanField(default=False)
     can_access_hostel = models.BooleanField(default=False)
 
-    class Meta:
-        verbose_name = "Coordinator Role"
-        verbose_name_plural = "Coordinator Roles"
+    def save(self, *args, **kwargs):
+        # Reset all permissions first
+        self.can_access_library = False
+        self.can_access_exam = False
+        self.can_access_finance = False
+        self.can_access_arts_sports = False
+        self.can_access_lab = False
+        self.can_access_hostel = False
+
+        # Enable permission based on staff_role
+        if self.staff_role == "librarian":
+            self.can_access_library = True
+        elif self.staff_role == "exam_controller":
+            self.can_access_exam = True
+        elif self.staff_role == "finance_officer":
+            self.can_access_finance = True
+        elif self.staff_role == "arts_sports_coordinator":
+            self.can_access_arts_sports = True
+        elif self.staff_role == "lab_coordinator":
+            self.can_access_lab = True
+        elif self.staff_role == "hostel_manager":
+            self.can_access_hostel = True
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.username} - {self.get_coordinators_role_display()}"
+        return f"{self.user.username} - {self.staff_role}"
+
+##BUS
+
+class Bus(models.Model):
+    bus_number = models.CharField(max_length=20, unique=True)
+    route_name = models.CharField(max_length=100)
+    driver_name = models.CharField(max_length=100)
+    driver_phone = models.CharField(max_length=15)
+    capacity = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.bus_number} - {self.route_name}"
+
+
+class BusStop(models.Model):
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE, related_name="stops")
+    stop_name = models.CharField(max_length=100)
+    arrival_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.stop_name} ({self.bus.bus_number})"
+
+
+class StudentBusAllocation(models.Model):
+    student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='bus_allocation')
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
+    stop = models.ForeignKey(BusStop, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} → {self.bus.bus_number} ({self.stop.stop_name})"
+    
+
 

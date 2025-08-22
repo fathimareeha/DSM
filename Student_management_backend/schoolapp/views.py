@@ -1,46 +1,135 @@
 from django.db import models
 from rest_framework import generics, permissions,status,parsers
-from .models import VicePrincipal,Subject,Standard,Section,Teacher,Student,Book
-from .serializer import VicePrincipalCreateSerializer,VicePrincipalDetailSerializer,VicePrincipalUpdateSerializer,SubjectSerializer,StandardSerializer,SectionSerializer,TeacherSerializer,TeacherDetailSerializer,BookSerializer,BookDetailSerializer,StudentCreateSerializer,StudentDetailSerializer
+from .models import VicePrincipal,Subject,Standard,Section,Teacher,Student,Book,Hostel,StaffRole
+from .serializer import VicePrincipalCreateSerializer,VicePrincipalDetailSerializer,VicePrincipalUpdateSerializer,SubjectSerializer,StandardSerializer,SectionSerializer,TeacherSerializer,TeacherDetailSerializer,BookSerializer,BookDetailSerializer,StudentCreateSerializer,StudentDetailSerializer,HostelSerializer,StaffRoleSerializer,LoginSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import IntegrityError
 
+##LOGIN 
+
+
+
+# hod/views.py
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.contrib.auth import authenticate
+from rest_framework import status
+
+@api_view(['POST'])
+def staff_login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    user = authenticate(username=username, password=password)
+
+    if user:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            "token": token.key,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+        })
+    else:
+        return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+# from rest_framework.decorators import api_view
+
+
+# @api_view(["POST"])
+# def staff_login(request):
+#     serializer = LoginSerializer(data=request.data)
+#     if serializer.is_valid():
+#         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+#     print("❌ Serializer errors:", serializer.errors)  # DEBUG
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# from rest_framework.authtoken.models import Token
+# from rest_framework.response import Response
+# from rest_framework.decorators import api_view
+# from django.contrib.auth import authenticate
+# from rest_framework import status
+
+# @api_view(['POST'])
+# def login_view(request):
+#     username = request.data.get('username')
+#     password = request.data.get('password')
+
+#     user = authenticate(username=username, password=password)
+
+#     if user:
+#         token, created = Token.objects.get_or_create(user=user)
+#         return Response({
+#             "token": token.key,
+#             "user": {
+#                 "id": user.id,
+#                 "username": user.username,
+#                 "email": user.email,
+#                 "role": user.role
+#             }
+#         })
+#     else:
+#         return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
 ## VICE PRINCIPAL ##
 
 
-
-
-
 class VicePrincipalCreateListView(generics.ListCreateAPIView):
-    serializer_class = VicePrincipalCreateSerializer  
-    queryset = VicePrincipal.objects.all()
+    serializer_class = VicePrincipalCreateSerializer
+    queryset = VicePrincipal.objects.select_related('userprofile').all()
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]  # ✅ Allow images + JSON
+    parser_classes = [
+        parsers.MultiPartParser,
+        parsers.FormParser,
+        parsers.JSONParser
+    ]
 
+    # Custom create
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        print("Received data:", request.data)
-
         if serializer.is_valid():
             try:
                 vp = serializer.save()
                 return Response({
                     "message": "Vice Principal created successfully.",
                     "vp_id": vp.id,
-                    "username": vp.userprofile.username,  # ✅ directly from UserProfile
-                    "email":vp.userprofile.email,
-                    "phone":vp.phone,
-                    "profile_picture":vp.profile_picture.url if vp.profile_picture else None
+                    "username": vp.userprofile.username,
+                    "email": vp.userprofile.email,
+                    "phone": vp.phone,
+                    "profile_picture": vp.profile_picture.url if vp.profile_picture else None
                 }, status=status.HTTP_201_CREATED)
             except IntegrityError:
                 return Response(
                     {"error": "Username already exists."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Custom list
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        data = [
+            {
+                "vp_id": vp.id,
+                "username": vp.userprofile.username,
+                "email": vp.userprofile.email,
+                "phone": vp.phone,
+                "profile_picture": vp.profile_picture.url if vp.profile_picture else None
+            }
+            for vp in queryset
+        ]
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class VicePrincipalDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -55,8 +144,6 @@ class VicePrincipalDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        # Use partial updates to allow missing fields
         serializer = self.get_serializer(instance, data=request.data, partial=True)
 
         if serializer.is_valid():
@@ -68,13 +155,13 @@ class VicePrincipalDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                     {"error": "Username already exists."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
         return Response({"message": "Vice Principal deleted"}, status=status.HTTP_204_NO_CONTENT)
+
 
 
  
@@ -151,6 +238,8 @@ class SubjectDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     
 ## TEACHERS ##
 
+
+
 class TeacherCreateListView(generics.ListCreateAPIView):
     queryset = Teacher.objects.select_related('user').all()
     permission_classes = [permissions.IsAuthenticated]
@@ -183,6 +272,61 @@ class TeacherDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 #     lookup_field = 'id'
     
     
+    
+    
+    
+# ✅ Hostel CRUD
+class HostelListCreateView(generics.ListCreateAPIView):
+    queryset = Hostel.objects.all()
+    serializer_class = HostelSerializer
+
+
+class HostelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Hostel.objects.all()
+    serializer_class = HostelSerializer
+
+
+# ✅ Assign hostel to student
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Student, Hostel
+
+class AssignHostelView(APIView):
+    def patch(self, request, student_id, hostel_id):
+        # Get student
+        student = get_object_or_404(Student, id=student_id)
+
+        # Get hostel
+        hostel = get_object_or_404(Hostel, id=hostel_id)
+
+        # Check if hostel is full
+        current_occupancy = Student.objects.filter(hostel=hostel).count()
+        if current_occupancy >= hostel.intake:
+            return Response(
+                {"error": "Hostel is already full"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Assign hostel to student
+        student.hostel = hostel
+        student.save()
+
+        # Updated occupancy after assigning
+        current_occupancy = Student.objects.filter(hostel=hostel).count()
+
+        return Response({
+            "id": student.id,
+            "user": student.user.id,
+            "roll_no": student.roll_no,
+            "hostel": hostel.id,
+            "hostel_name": hostel.name,
+            "room_number": getattr(student, "room_number", None),
+            "current_occupancy": current_occupancy,
+            "hostel_capacity": hostel.intake
+        }, status=status.HTTP_200_OK)
 
 
 
@@ -320,69 +464,67 @@ class BookDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-
-from .models import CoordinatorsRole
-from .serializer import CoordinatorsRoleSerializer
+from rest_framework import status, permissions
 
 
-class CoordinatorsRoleListCreateView(APIView):
-    permission_classes = [permissions.IsAuthenticated]  # remove if you want public access
+# Create a new StaffRole
+from rest_framework import generics, permissions
+from .models import StaffRole
+from .serializer import StaffRoleSerializer
 
-    def get(self, request):
-        coordinators = CoordinatorsRole.objects.select_related("user").all()
-        serializer = CoordinatorsRoleSerializer(coordinators, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+# List & Create
+from rest_framework.authentication import TokenAuthentication
 
-    def post(self, request):
-        serializer = CoordinatorsRoleSerializer(data=request.data)
-        if serializer.is_valid():
-            coordinator = serializer.save()
-            return Response({
-                "message": "Coordinator account created successfully",
-                "data": CoordinatorsRoleSerializer(coordinator).data
-            }, status=status.HTTP_201_CREATED)
-
-        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CoordinatorsRoleDetailView(APIView):
+class StaffRoleListAPIView(generics.ListCreateAPIView):
+    queryset = StaffRole.objects.all()
+    serializer_class = StaffRoleSerializer
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
-        return get_object_or_404(CoordinatorsRole, pk=pk)
+# Retrieve, Update, Delete
+class StaffRoleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = StaffRole.objects.all()
+    serializer_class = StaffRoleSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, pk):
-        coordinator = self.get_object(pk)
-        serializer = CoordinatorsRoleSerializer(coordinator)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, pk):
-        coordinator = self.get_object(pk)
-        serializer = CoordinatorsRoleSerializer(coordinator, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Coordinator updated successfully",
-                "data": serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework import generics
+from rest_framework.response import Response
+from .models import Bus, BusStop, StudentBusAllocation
+from .serializer import BusSerializer, BusStopSerializer, StudentBusAllocationSerializer
+from rest_framework.permissions import IsAuthenticated
 
-    def patch(self, request, pk):
-        coordinator = self.get_object(pk)
-        serializer = CoordinatorsRoleSerializer(coordinator, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Coordinator partially updated",
-                "data": serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+# ---------- Bus ----------
+class BusListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Bus.objects.all()
+    serializer_class = BusSerializer
+    permission_classes = [IsAuthenticated]
 
-    def delete(self, request, pk):
-        coordinator = self.get_object(pk)
-        coordinator.user.delete()  # also deletes linked user
-        coordinator.delete()
-        return Response({"message": "Coordinator deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+class BusDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Bus.objects.all()
+    serializer_class = BusSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# ---------- Bus Stop ----------
+class BusStopListCreateAPIView(generics.ListCreateAPIView):
+    queryset = BusStop.objects.all()
+    serializer_class = BusStopSerializer
+    permission_classes = [IsAuthenticated]
+
+class BusStopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BusStop.objects.all()
+    serializer_class = BusStopSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# ---------- Student Bus Allocation ----------
+class StudentBusAllocationListCreateAPIView(generics.ListCreateAPIView):
+    queryset = StudentBusAllocation.objects.all()
+    serializer_class = StudentBusAllocationSerializer
+    permission_classes = [IsAuthenticated]
+
+class StudentBusAllocationDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = StudentBusAllocation.objects.all()
+    serializer_class = StudentBusAllocationSerializer
+    permission_classes = [IsAuthenticated]
