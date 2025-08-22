@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
@@ -17,6 +16,7 @@ import {
   CalendarDays,
   FileText,
   UserCheck,
+  UserCog ,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -31,21 +31,30 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { label: 'Dashboard', to: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+    {
+      label: 'Dashboard',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      children: [
+        { label: 'Admin Dashboard', to: '/admin/dashboard' },
+        // { label: 'Teachers Dashboard', to: '' },
+        // { label: 'Student Dashboard', to: '' },
+        // { label: 'Paents Dashboard', to: '' },
+      ],
+    },
     {
       label: 'VicePrincipal',
       icon: <UserCheck className="w-5 h-5" />,
       children: [
         { label: 'Add VicePrincipal', to: '/admin/add/viceprincipal' },
         { label: 'Viceprincipal List', to: '/admin/list/viceprincipal' },
-      ]
+      ],
     },
     {
       label: 'Teachers',
       icon: <Users className="w-5 h-5" />,
       children: [
-        { label: 'Add Teacher', to: '/teachers/add' },
-        { label: 'Teacher List', to: '/teachers' },
+        { label: 'Add Teacher', to: '/admin/add/teachers' },
+        { label: 'Teacher List', to: '/admin/list/teachers' },
       ],
     },
     {
@@ -53,36 +62,57 @@ const Sidebar = () => {
       icon: <Building2 className="w-5 h-5" />,
       children: [
         { label: 'Add Class', to: '/admin/createclass/' },
-        { label: 'View Classes', to: '' },
+        { label: 'View Classes', to: '/admin/standardlist/' },
       ],
     },
     {
       label: 'Students',
       icon: <GraduationCap className="w-5 h-5" />,
       children: [
-        { label: 'Add Student', to: '/addstudents' },
-        { label: 'Student List', to: '/students' },
+        { label: 'Add Student', to: '/admin/add/students' },
+        { label: 'Student List', to: '/admin/list/students' },
       ],
     },
     {
       label: 'Subjects',
       icon: <BookOpen className="w-5 h-5" />,
       children: [
+
+        { label: 'Create Subjects', to: '/admin/create/subject'},
+        { label: 'Subject List', to: '/admin/list/subjects' },
         { label: 'Assign Subjects', to: '/subjects/assign' },
-        { label: 'Subject List', to: '/subjects' },
+
       ],
     },
+    {
+      label: 'Staffs',
+      icon: <UserCog className="w-5 h-5" />,
+      children: [
+        { label: 'Add Staff', to: '/admin/add/staff' },
+        { label: 'Staff List', to: '/admin/list/staffs' },
+      ],
+    },
+    
+    {
+      label: 'Library',
+      icon: <Library className="w-5 h-5" />,
+      children: [
+        { label: 'Add Book', to: '/admin/add/book' },
+        { label: 'Book List', to: '/admin/list/books' },
+      ],
+    },
+    
     { label: 'Attendance', to: '/attendance', icon: <ClipboardList className="w-5 h-5" /> },
     { label: 'Exams', to: '/exams', icon: <FileText className="w-5 h-5" /> },
-    { label: 'Library', to: '/library', icon: <Library className="w-5 h-5" /> },
+    // { label: 'Library', to: '/library',  },
     { label: 'Transport', to: '/transport', icon: <Bus className="w-5 h-5" /> },
     { label: 'Events', to: '/events', icon: <CalendarDays className="w-5 h-5" /> },
     { label: 'Settings', to: '/settings', icon: <Settings className="w-5 h-5" /> },
     { label: 'Help', to: '/help', icon: <CircleHelp className="w-5 h-5" /> },
   ];
-  
+
   return (
-<aside className="w-64 sticky top-0 bg-gray-900 text-white shadow-lg flex flex-col justify-between">
+    <aside className="w-64 sticky top-0 bg-gray-900 text-white shadow-lg flex flex-col justify-between">
       <div>
         <div className="px-6 py-4 text-2xl font-extrabold border-b border-indigo-700">
           🏫 School Admin
@@ -105,23 +135,22 @@ const Sidebar = () => {
                     {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {isOpen && (
-                    <div className="pl-12 flex flex-col gap-1 mt-1">
+                    <ul className="pl-12 list-disc list-inside flex flex-col gap-1 mt-1">
                       {children.map((child) => (
-                        <NavLink
-                          key={child.label}
-                          to={child.to}
-                          className={({ isActive }) =>
-                            `text-sm rounded-md px-2 py-1 transition ${
-                              isActive
-                                ? 'bg-blue-700 text-white'
-                                : 'text-blue-200 hover:bg-blue-700'
-                            }`
-                          }
-                        >
-                          {child.label}
-                        </NavLink>
+                        <li key={child.label}>
+                          <NavLink
+                            to={child.to}
+                            className={({ isActive }) =>
+                              `text-sm rounded-md px-2 py-1 transition ${
+                                isActive ? 'bg-blue-700 text-white' : 'text-blue-200 hover:bg-blue-700'
+                              }`
+                            }
+                          >
+                            {child.label}
+                          </NavLink>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   )}
                 </div>
               );

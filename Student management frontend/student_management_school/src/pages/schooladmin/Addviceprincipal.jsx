@@ -1,108 +1,123 @@
 import React, { useState } from 'react';
+import Button from '../../components/common/Button';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import Inputfield from "../../components/common/Inputfield";
 
-const AddVicePrincipal = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    qualification: '',
-    experience: ''
-  });
 
-  const [submitted, setSubmitted] = useState(false);
+function AddVicePrincipal() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null); // File state
+  const [previewPic, setPreviewPic] = useState(null); // Preview state
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const vpcreate = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+
+    try {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+      formData.append('email', email);
+      formData.append('phone', phone);
+      if (profilePicture) {
+        formData.append('profile_picture', profilePicture);
+      }
+
+      const response = await axios.post(
+        'http://127.0.0.1:8000/schoolapp/createvp/',
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log(response);
+      toast.success('VP Created');
+
+      // Clear form
+      setUsername('');
+      setPassword('');
+      setEmail('');
+      setPhone('');
+      setProfilePicture(null);
+      setPreviewPic(null);
+    } catch (error) {
+      console.log(error);
+      toast.error('Failed to create VP');
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Replace with API call
-    console.log('Submitted Vice Principal:', formData);
-    setSubmitted(true);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      qualification: '',
-      experience: ''
-    });
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setProfilePicture(file);
+    setPreviewPic(file ? URL.createObjectURL(file) : null);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded-lg shadow">
-      <h2 className="text-2xl font-semibold mb-4">Add Vice Principal</h2>
-      {submitted && (
-        <div className="mb-4 text-green-600 font-medium">
-          Vice Principal added successfully!
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1 font-medium">Full Name</label>
+    <div className="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
+      <h2 className="text-2xl font-bold mb-4 text-center">Add Vice Principal</h2>
+      <form onSubmit={vpcreate}>
+        <Inputfield
+          label="Username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        <Inputfield
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <Inputfield
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <Inputfield
+          label="Phone"
+          type="text"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+
+        {/* Profile Picture Field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Profile Picture
+          </label>
           <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-400"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
+          {previewPic && (
+            <div className="mt-3 text-center">
+              <img
+                src={previewPic}
+                alt="Preview"
+                className="w-24 h-24 rounded-full mx-auto object-cover"
+              />
+            </div>
+          )}
         </div>
-        <div>
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">Phone</label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">Qualification</label>
-          <input
-            type="text"
-            name="qualification"
-            value={formData.qualification}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">Experience (years)</label>
-          <input
-            type="number"
-            name="experience"
-            value={formData.experience}
-            onChange={handleChange}
-            required
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-400"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          Add Vice Principal
-        </button>
+
+        <Button type="submit" label="Add Vice Principal" />
       </form>
     </div>
   );
-};
+}
 
 export default AddVicePrincipal;

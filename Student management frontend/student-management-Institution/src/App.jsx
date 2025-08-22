@@ -122,27 +122,61 @@ import AddFaculty from './pages/institution/AddFaculty'
 import { Authprovider } from './context/institution/Authcontext'
 import EditDepartment from './pages/institution/EditDepartment'
 import DeleteDepartment from './pages/institution/DeleteDepartment'
+import EditHod from './pages/institution/EditHod'
+import EditFaculty from './pages/institution/EditFaculty'
+import Editstudent from './pages/institution/Editstudent'
+import AddStaff from './pages/institution/AddStaff'
+import StaffList from './pages/institution/StaffList'
+import AddBook from './pages/institution/AddBook'
+import BookList from './pages/institution/BookList'
+import AddHostel from './pages/institution/AddHostel'
+import HostelList from './pages/institution/HostelList'
+import AssignHostel from './pages/institution/Assignhostel'
+import AddBus from './pages/institution/AddBus'
+import BusList from './pages/institution/BusList'
 
 function App() {
   return (
     <Authprovider>
       <Routes>
         {/* Public route */}
+       
+        
         <Route path='/login' element={<Login />} />
 
         {/* Admin protected layout */}
         <Route path='/admin' element={<Layout />}>
           <Route path='dash' element={<Dashboard />} />
+
+          <Route path='hods/add' element={<AddHod />} />
           <Route path='hod' element={<ManageHod />} />
-          <Route path='hod/add' element={<AddHod />} />
-          <Route path='departments/add' element={<AddDepartment />} />
-          <Route path='department' element={<ViewDepartments />} />
-          <Route path='edit-department/:id' element={<EditDepartment />} />
-          <Route path='delete-department/:id' element={<DeleteDepartment />} />
+          <Route path="edithod/:id" element={<EditHod />} />
+
           <Route path='faculty/add' element={<AddFaculty />} />
-          <Route path='faculty' element={<ViewFaculty />} />
+          <Route path='facultys' element={<ViewFaculty />} />
+          <Route path="editfaculty/:id" element={<EditFaculty />} />
+
+          <Route path='hostel/add' element={<AddHostel/>}/>
+          <Route path='hostel/list' element={<HostelList/>}/>
+          <Route path="/admin/assign-hostel/:studentId" element={<AssignHostel />} />
+
+
+
           <Route path='students' element={<Students />} />
-          <Route path='students/add' element={<AddStudent />} />
+          <Route path='studentss/add' element={<AddStudent />} />
+          <Route path='editstudent/:id' element={<Editstudent/>}/>
+
+          <Route path='admin/staffs/add' element={<AddStaff/>}></Route>
+          <Route path='admin/staffs/list' element={<StaffList/>}/>
+
+
+          <Route path='admin/books/add' element={<AddBook/>}/>
+          <Route path='admin/books/list' element={<BookList/>}/>
+
+
+          <Route path='admin/bus/add' element={<AddBus/>}/>
+          <Route path='admin/bus/list' element={<BusList/>}/>
+          
           <Route path='courses' element={<ViewCourses />} />
           <Route path='users' element={<Users />} />
           <Route path='addcourse' element={<AddCourse />} />
@@ -152,6 +186,10 @@ function App() {
           <Route path='academic/marks' element={<FacultyMarksEntry />} />
           <Route path='academic/attendance' element={<AttendancePage />} />
           <Route path='reports' element={<Reports />} />
+          <Route path='departments/add' element={<AddDepartment />} />
+          <Route path='department' element={<ViewDepartments />} />
+           <Route path='edit-department/:id' element={<EditDepartment />} />
+          <Route path='delete-department/:id' element={<DeleteDepartment />} />
         </Route>
       </Routes>
     </Authprovider>

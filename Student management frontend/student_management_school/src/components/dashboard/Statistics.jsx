@@ -1,7 +1,9 @@
 import React from 'react';
 import DashboardCard from '../common/Card';
 import CalendarCard from '../common/Calender';
-import AttendanceWidget from '../common/Chart';
+import AttendanceChart from '../common/Chart';
+import UpcomingEvents from '../common/Upcomingevents';
+
 
 function Statistics() {
   // Handle calendar date selection
@@ -52,12 +54,12 @@ function Statistics() {
       </div>
 
       {/* Calendar Component */}
-      <div className="flex justify-start">
+      <div className="flex justify-start gap-15">
         <CalendarCard onDateChange={handleDateChange} />
+        <AttendanceChart/>
+        <UpcomingEvents/>
       </div>
-      {/* <div>
-        <AttendanceWidget/>
-      </div> */}
+    
     </div>
   );
 }

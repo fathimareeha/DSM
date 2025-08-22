@@ -1,26 +1,46 @@
-import React, { useContext, useEffect, useState } from 'react';
+
+
+
+
+import React, { useEffect, useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import axios from 'axios'; // or dummy data
-import { Authcontext } from '../../context/institution/Authcontext';
+import axios from 'axios';
 
 function ManageHod() {
-  const {hodlist} = useContext(Authcontext)
   const [hods, setHods] = useState([]);
 
-  // ✅ Fetch HODs (dummy for now)
+  const fetchHods = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:8000/collegeapp/hods/', {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      setHods(response.data);
+    } catch (error) {
+      console.error('Error fetching HODs:', error);
+    }
+  };
+
   useEffect(() => {
-    // Replace with real API call
-    setHods([
-      { id: 1, name: 'Dr. Ayesha Khan', email: 'ayesha@college.com', department: 'CSE' },
-      { id: 2, name: 'Mr. Ravi Patel', email: 'ravi@college.com', department: 'ECE' },
-    ]);
+    fetchHods();
   }, []);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this HOD?')) {
-      // axios.delete(`/api/hods/${id}`)
-      setHods(hods.filter((hod) => hod.id !== id));
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://127.0.0.1:8000/collegeapp/hods/${id}/`, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        setHods(hods.filter((hod) => hod.id !== id));
+      } catch (error) {
+        console.error('Error deleting HOD:', error);
+      }
     }
   };
 
@@ -36,35 +56,38 @@ function ManageHod() {
               <th className="px-4 py-2">Email</th>
               <th className="px-4 py-2">Department</th>
               <th className="px-4 py-2">Phone</th>
-              
-
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {hodlist.map((hod) => (
-              <tr key={hod.id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3">{hod.username}</td>
-                <td className="px-4 py-3">{hod.email}</td>
-                <td className="px-4 py-3">{hod.department_name}</td>
-                <td className="px-4 py-3">{hod.phone}</td>
-                
-                <td className="px-4 py-3 flex justify-center gap-2">
-                  <Link
-                    to={`/edithod/${hod.id}`}
-                    className="text-indigo-600 hover:underline"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Link>
-                  <button onClick={() => handleDelete(hod.id)} className="text-red-500">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {hods.length === 0 && (
+            {hods.length > 0 ? (
+              hods.map((hod) => (
+                <tr key={hod.id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-3">{hod.username}</td>
+                  <td className="px-4 py-3">{hod.email}</td>
+                  <td className="px-4 py-3">{hod.department_name}</td>
+                  <td className="px-4 py-3">{hod.phone}</td>
+                  <td className="px-4 py-3 flex justify-center gap-2">
+                    <Link
+                      to={`/admin/edithod/${hod.id}`}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(hod.id)}
+                      className="text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
-                <td colSpan="4" className="text-center py-4 text-gray-400">No HODs found</td>
+                <td colSpan="5" className="text-center py-4 text-gray-400">
+                  No HODs found
+                </td>
               </tr>
             )}
           </tbody>
@@ -75,53 +98,3 @@ function ManageHod() {
 }
 
 export default ManageHod;
-
-
-
-// import React, { useContext } from 'react'
-// import { SuperadminContext } from '../../../context/super_admin/Superadmin_Context'
-
-// function StaffTable() {
-
-//     const {staffList}=useContext(SuperadminContext)
-//   return (
-//     <>
-//       <div className='overflow-x-auto'>
-//         <table className="min-w-full table-auto border border-gray-200 rounded-lg shadow-sm">
-//           <thead className="bg-white text-gray-700">
-//             <tr>
-             
-//               <th className="px-4 py-2 text-left">User name</th>
-//               <th className="px-4 py-2 text-left">Email</th>
-              
-              
-//               <th className="px-4 py-2 text-left">Details</th>
-//             </tr>
-//           </thead>
-//           <tbody className="text-gray-700">
-//             {staffList.map((staffs)=>
-            
-           
-             
-//             <tr className="bg-gray-50 hover:bg-gray-100">
-              
-//               <td className="px-4 py-2">{staffs.username}</td>
-//               <td className="px-4 py-2">{staffs.email}</td>
-             
-              
-//               <td className="px-4 py-2">
-//                 <button>View</button>
-//               </td>
-//             </tr>
-// )}
-           
-
-//           </tbody>
-//         </table>
-
-//       </div>
-//     </>
-//   )
-// }
-
-// export default StaffTable

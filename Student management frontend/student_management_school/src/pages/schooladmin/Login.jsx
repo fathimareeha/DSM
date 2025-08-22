@@ -54,10 +54,10 @@
 import React, { useContext, useState } from 'react'
 import Inputfield from '../../components/common/Inputfield'
 import Button from '../../components/common/Button'
-import { Authcontext } from '../../context/institution/Authcontext'
+import { AuthContext, } from '../../context/institution/Authcontext'
 
 function Login() {
-  const {school_login} = useContext(Authcontext)
+  const {school_login} = useContext(AuthContext)
   const [username,setusername] = useState("")
   const [password,setpassword] = useState("")
   return (

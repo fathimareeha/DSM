@@ -1442,7 +1442,7 @@ class UniversityDetailView(generics.RetrieveAPIView):
 
 class CourseView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[permissions.IsAuthenticated]
 
     serializer_class = CourseSerializer
 
@@ -1450,7 +1450,8 @@ class CourseView(generics.ListCreateAPIView):
             university_id = self.request.query_params.get('university_id')
             if university_id:
                 return Course.objects.filter(university_id=university_id)
-            return Course.objects.none() 
+            return Course.objects.all()
+
 
 import openpyxl
 from rest_framework.parsers import MultiPartParser    # handle file uploads
@@ -1511,7 +1512,7 @@ class BulkCourseUploadView(APIView):
 
 class DepartmentView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[permissions.IsAuthenticated]
    
     serializer_class = DepartmentSerializer
     
@@ -1528,7 +1529,7 @@ class DepartmentView(generics.ListCreateAPIView):
 
 class SemesterView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[permissions.IsAuthenticated]
     queryset = Semester.objects.all()
     serializer_class = SemesterSerializer
     
