@@ -9,8 +9,8 @@ from superadmin_app.models import College
 
 
 from rest_framework import generics, permissions
-from .models import CollegeCourse, CollegeDepartment, Course, Department
-from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
+# from .models import CollegeCourse, CollegeDepartment, Course, Department
+# from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
 
 # CollegeCourse: Principal assigns a Course to their College
 # from rest_framework.exceptions import ValidationError
@@ -58,84 +58,84 @@ from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
 
 #         serializer.save()
 
-from rest_framework import generics, permissions
-from rest_framework.exceptions import ValidationError
-from .models import CollegeCourse, CollegeDepartment
-from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
-from superadmin_app.models import College
+# from rest_framework import generics, permissions
+# from rest_framework.exceptions import ValidationError
+# from .models import CollegeCourse, CollegeDepartment
+# from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
+# from superadmin_app.models import College
 
 
-# CollegeCourse: Principal assigns a Course to their College
-class CollegeCourseListCreateView(generics.ListCreateAPIView):
-    serializer_class = CollegeCourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# # CollegeCourse: Principal assigns a Course to their College
+# class CollegeCourseListCreateView(generics.ListCreateAPIView):
+#     serializer_class = CollegeCourseSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        institution = self.request.user.institution
-        college = College.objects.filter(instution_obj=institution).first()
-        if not college:
-            return CollegeCourse.objects.none()
-        # ✅ Fetch related course + university
-        return (
-            CollegeCourse.objects.filter(college=college)
-            .select_related("course", "course__university")
-        )
-
-
-
-# CollegeDepartment: Principal assigns a Department under a Course for their College
-class CollegeDepartmentListCreateView(generics.ListCreateAPIView):
-    serializer_class = CollegeDepartmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        institution = self.request.user.institution
-        college = College.objects.filter(instution_obj=institution).first()
-        if not college:
-            return CollegeDepartment.objects.none()
-        # ✅ Fetch related course, university, department
-        return (
-            CollegeDepartment.objects.filter(college_course__college=college)
-            .select_related("college_course__course", "college_course__course__university", "department")
-        )
+#     def get_queryset(self):
+#         institution = self.request.user.institution
+#         college = College.objects.filter(instution_obj=institution).first()
+#         if not college:
+#             return CollegeCourse.objects.none()
+#         # ✅ Fetch related course + university
+#         return (
+#             CollegeCourse.objects.filter(college=college)
+#             .select_related("course", "course__university")
+#         )
 
 
 
+# # CollegeDepartment: Principal assigns a Department under a Course for their College
+# class CollegeDepartmentListCreateView(generics.ListCreateAPIView):
+#     serializer_class = CollegeDepartmentSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-from rest_framework import generics, permissions
-from superadmin_app.models import Course, Department, College
-from .serializer import CourseSerializer, DepartmentSerializer
-
-
-# ✅ Get all courses from the logged-in user's university
-class AvailableCourseListView(generics.ListAPIView):
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        college = College.objects.filter(instution_obj=user.institution).first()
-        if not college:
-            return Course.objects.none()
-
-        # ✅ Now get university from college
-        university = college.university
-        return Course.objects.filter(university=university)
+#     def get_queryset(self):
+#         institution = self.request.user.institution
+#         college = College.objects.filter(instution_obj=institution).first()
+#         if not college:
+#             return CollegeDepartment.objects.none()
+#         # ✅ Fetch related course, university, department
+#         return (
+#             CollegeDepartment.objects.filter(college_course__college=college)
+#             .select_related("college_course__course", "college_course__course__university", "department")
+#         )
 
 
-# ✅ Get all departments under a course from the user's university
-class AvailableDepartmentListView(generics.ListAPIView):
-    serializer_class = DepartmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        college = College.objects.filter(instution_obj=user.institution).first()
-        if not college:
-            return Department.objects.none()
 
-        university = college.university
-        return Department.objects.filter(course__university=university)
+# from rest_framework import generics, permissions
+# from superadmin_app.models import Course, Department, College
+# from .serializer import CourseSerializer, DepartmentSerializer
+
+
+# # ✅ Get all courses from the logged-in user's university
+# class AvailableCourseListView(generics.ListAPIView):
+#     serializer_class = CourseSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         if not college:
+#             return Course.objects.none()
+
+#         # ✅ Now get university from college
+#         university = college.university
+#         return Course.objects.filter(university=university)
+
+
+# # ✅ Get all departments under a course from the user's university
+# class AvailableDepartmentListView(generics.ListAPIView):
+#     serializer_class = DepartmentSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         if not college:
+#             return Department.objects.none()
+
+#         university = college.university
+#         return Department.objects.filter(course__university=university)
 
 
 class HODListCreateAPIView(generics.ListCreateAPIView):
