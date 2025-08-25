@@ -1,11 +1,17 @@
 from django.urls import path
-from .views import HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView,EventListCreateView,login_view
+from .views import  HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView,EventListCreateView,login_view
 from superadmin_app.views import GetCollegeByInstitution
 from django.conf import settings
 from django.conf.urls.static import static
 
 
 urlpatterns = [
+
+    # path("college-courses/", CollegeCourseListCreateView.as_view(), name="college-courses"),
+    # path("college-departments/", CollegeDepartmentListCreateView.as_view(), name="college-departments"),
+
+    #  path("available-courses/", AvailableCourseListView.as_view(), name="available-courses"),
+    # path("available-departments/<int:course_id>/", AvailableDepartmentListView.as_view(), name="available-departments"),
     
     path('hods/', HODListCreateAPIView.as_view(), name='list-create-hod'),
     path('hods/<int:id>/', HODDetailAPIView.as_view(), name='hod-detail'),

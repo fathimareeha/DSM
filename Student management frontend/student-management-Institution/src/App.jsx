@@ -201,6 +201,9 @@ function App() {
           <Route path='events/create' element={<AddEvent />} />
 
 
+          <Route path='addcourse' element={<AddCourse />} />
+
+
 
           
           <Route path='courses' element={<ViewCourses />} />
