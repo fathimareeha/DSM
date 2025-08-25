@@ -4,26 +4,26 @@ from django.db import models
 from superadmin_app.models import Department,Course,Semester
 
 
-class CollegeCourse(models.Model):
-    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="college_courses")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="college_courses")
+# class CollegeCourse(models.Model):
+#     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="college_courses")
+#     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="college_courses")
 
-    class Meta:
-        unique_together = ('college', 'course')
+#     class Meta:
+#         unique_together = ('college', 'course')
 
-    def __str__(self):
-        return f"{self.college.college_name} - {self.course.name}"
+#     def __str__(self):
+#         return f"{self.college.college_name} - {self.course.name}"
 
 
-class CollegeDepartment(models.Model):
-    college_course = models.ForeignKey(CollegeCourse, on_delete=models.CASCADE, related_name="college_departments")
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="college_departments")
+# class CollegeDepartment(models.Model):
+#     college_course = models.ForeignKey(CollegeCourse, on_delete=models.CASCADE, related_name="college_departments")
+#     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="college_departments")
 
-    class Meta:
-        unique_together = ('college_course', 'department')
+#     class Meta:
+#         unique_together = ('college_course', 'department')
 
-    def __str__(self):
-        return f"{self.college_course.college.college_name} - {self.department.name}"
+#     def __str__(self):
+#         return f"{self.college_course.college.college_name} - {self.department.name}"
 
 
 #HOD
