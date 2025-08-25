@@ -179,7 +179,7 @@ class Department(models.Model):  # Ex: CSE, ECE under B.Tech
         
 class Semester(models.Model):  # Ex: Sem 1 to 8
 
-    number = models.IntegerField()
+    number = models.CharField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE,related_name='semesters')
     
     class Meta:

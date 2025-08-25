@@ -372,11 +372,23 @@ import {
   ChevronUp,
   LogOut,
   Hotel,
+  BookOpen,
 } from 'lucide-react';
 import { Disclosure } from '@headlessui/react';
 
 const navItems = [
   { name: 'Dashboard', to: '/admin/dash', icon: LayoutDashboard },
+  {
+    name: 'Select courses & Departments',
+    icon:  BookOpen,
+    children: [
+      { name: 'Select Courses', to: '/admin/addcourse' },
+      // { name: 'Hod List', to: '/admin/hod' },
+      // { name: 'Add Faculty', to: '/admin/faculty/add' },
+      // { name: 'Faculty List', to: '/admin/facultys' },
+    ],
+  },
+
   {
     name: 'HOD & Faculty',
     icon: Users,

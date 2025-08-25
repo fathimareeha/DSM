@@ -3,38 +3,38 @@ from superadmin_app.models import College, UserProfile
 from django.db import models
 from superadmin_app.models import Department,Course,Semester
 
+
+class CollegeCourse(models.Model):
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="college_courses")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="college_courses")
+
+    class Meta:
+        unique_together = ('college', 'course')
+
+    def __str__(self):
+        return f"{self.college.college_name} - {self.course.name}"
+
+
+class CollegeDepartment(models.Model):
+    college_course = models.ForeignKey(CollegeCourse, on_delete=models.CASCADE, related_name="college_departments")
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="college_departments")
+
+    class Meta:
+        unique_together = ('college_course', 'department')
+
+    def __str__(self):
+        return f"{self.college_course.college.college_name} - {self.department.name}"
+
+
 #HOD
 class HOD(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     phone = models.IntegerField()
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='hods')
-    
-    class Meta:
-        unique_together = ( 'department',)
+    department = models.OneToOneField(Department, on_delete=models.CASCADE, related_name='hod')
 
     def __str__(self):
-        return f"HOD: {self.user.username} "
+        return f"HOD: {self.user.username}"
 
-# class HOD(models.Model):
-#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-#     phone = models.CharField(max_length=15)  # better than IntegerField for phone numbers
-#     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='hods')
-#     college = models.ForeignKey(
-#         College,
-#         on_delete=models.CASCADE,
-#         related_name='hods',
-#         null=True,
-#         blank=True
-#     )
-
-#     class Meta:
-#         unique_together = ('department', 'college')  
-#         # This means one HOD per department per college
-
-#     def __str__(self):
-#         dept_name = self.department.name if self.department else "No Department"
-#         college_name = self.college.college_name if self.college else "No College"
-#         return f"HOD: {self.user.username} ({dept_name} - {college_name})"
 
 #FACULTY
 class Faculty(models.Model):

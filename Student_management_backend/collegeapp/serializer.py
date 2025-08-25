@@ -1,10 +1,205 @@
 
 from rest_framework import serializers
 from .models import HOD,Faculty,Hostel,Student,CoordinatorsRole
-from superadmin_app.models import Department,UserProfile,Course,Semester
+from superadmin_app.models import Department,UserProfile,Course,Semester,College
 from rest_framework.response import Response
 from rest_framework import status
 
+
+# from rest_framework import serializers
+# from .models import CollegeCourse, CollegeDepartment, Course, Department
+
+
+# class CollegeCourseSerializer(serializers.ModelSerializer):
+#     university_name = serializers.SerializerMethodField()
+#     course_name = serializers.CharField(source='course.name', read_only=True)
+
+#     class Meta:
+#         model = CollegeCourse
+#         fields = ['id', 'course', 'course_name', 'university_name','college']
+
+#     def create(self, validated_data):
+#         request = self.context.get('request')
+#         user = request.user
+#         # Get the principal’s college
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         validated_data['college'] = college
+#         return super().create(validated_data)
+
+#     def get_university_name(self, obj):
+#         return obj.college.university.name if obj.college and obj.college.university else None
+
+
+
+# class CollegeDepartmentSerializer(serializers.ModelSerializer):
+    
+#     department_name = serializers.CharField(source="department.name", read_only=True)
+#     course_name = serializers.CharField(source="college_course.course.name", read_only=True)
+
+#     class Meta:
+#         model = CollegeDepartment
+#         fields = ["id", "college_course", "department", "department_name", "course_name"]
+#         extra_kwargs = {
+#             "college_course": {"write_only": True}
+#         }
+        
+
+from rest_framework import serializers
+from .models import CollegeCourse, CollegeDepartment, Course, Department
+
+
+# class CollegeCourseSerializer(serializers.ModelSerializer):
+#     university_name = serializers.SerializerMethodField()
+#     course_name = serializers.CharField(source='course.name', read_only=True)
+
+#     class Meta:
+#         model = CollegeCourse
+#         fields = ['id', 'course', 'course_name', 'university_name', 'college']
+
+#     def create(self, validated_data):
+#         request = self.context.get('request')
+#         user = request.user
+#         # Get the principal’s college
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         validated_data['college'] = college
+#         return super().create(validated_data)
+
+#     def get_university_name(self, obj):
+#         # Assuming Course has a ForeignKey to University
+#         return obj.course.university.name if obj.course and obj.course.university else None
+
+
+# class CollegeDepartmentSerializer(serializers.ModelSerializer):
+#     department_name = serializers.CharField(source="department.name", read_only=True)
+#     course_name = serializers.CharField(source="college_course.course.name", read_only=True)
+#     university_name = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = CollegeDepartment
+#         fields = ["id", "college_course", "department", "department_name", "course_name", "university_name"]
+#         extra_kwargs = {
+#             "college_course": {"write_only": True}
+#         }
+
+#     def get_university_name(self, obj):
+#         return (
+#             obj.college_course.course.university.name
+#             if obj.college_course and obj.college_course.course and obj.college_course.course.university
+#             else None
+#         )
+
+
+from rest_framework import serializers
+from .models import CollegeCourse, CollegeDepartment
+from superadmin_app.models import Course, Department, College
+
+
+class CollegeCourseSerializer(serializers.ModelSerializer):
+    university_name = serializers.SerializerMethodField()
+    course_name = serializers.CharField(source='course.name', read_only=True)
+
+    class Meta:
+        model = CollegeCourse
+        fields = ['id', 'course', 'course_name', 'university_name']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        college = College.objects.filter(instution_obj=user.institution).first()
+        validated_data['college'] = college
+        return super().create(validated_data)
+
+    def get_university_name(self, obj):
+        return obj.course.university.name if obj.course and obj.course.university else None
+
+
+class CollegeDepartmentSerializer(serializers.ModelSerializer):
+    department_name = serializers.CharField(source="department.name", read_only=True)
+    course_name = serializers.CharField(source="college_course.course.name", read_only=True)
+    university_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CollegeDepartment
+        fields = ["id", "college_course", "department", "department_name", "course_name", "university_name"]
+        extra_kwargs = {
+            "college_course": {"write_only": True}
+        }
+
+    def get_university_name(self, obj):
+        return (
+            obj.college_course.course.university.name
+            if obj.college_course and obj.college_course.course and obj.college_course.course.university
+            else None
+        )
+
+
+
+# collegeapp/serializer.py
+from rest_framework import serializers
+from .models import CollegeCourse, CollegeDepartment
+from superadmin_app.models import Course, Department   # <-- import from superadmin_app
+
+# ----------------------------
+# Existing serializers
+# ----------------------------
+# collegeapp/serializers.py
+from rest_framework import serializers
+from .models import CollegeCourse
+
+class CollegeCourseSerializer(serializers.ModelSerializer):
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    university_name = serializers.CharField(source="course.university.name", read_only=True)
+
+    class Meta:
+        model = CollegeCourse
+        fields = ["id", "course_name", "university_name"]
+
+
+
+class CollegeDepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollegeDepartment
+        fields = "__all__"
+
+# ----------------------------
+# New serializers (for available courses/departments per university)
+# ----------------------------
+class CourseSerializer(serializers.ModelSerializer):
+    university_name = serializers.CharField(source="university.name", read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ["id", "name", "university_name"]
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    university_name = serializers.CharField(source="course.university.name", read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ["id", "name", "course_name", "university_name"]
+
+
+class CourseNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['id', 'name', 'university']
+        
+class CollegeCourseNestedSerializer(serializers.ModelSerializer):
+    course = CourseNestedSerializer(read_only=True)
+
+    class Meta:
+        model = CollegeCourse
+        fields = ['id', 'course']
+
+class CollegeDepartmentSerializer(serializers.ModelSerializer):
+    college_course = CollegeCourseNestedSerializer(read_only=True)
+    department_name = serializers.CharField(source='department.name', read_only=True)
+
+    class Meta:
+        model = CollegeDepartment
+        fields = ['id', 'college_course', 'department', 'department_name']
 
 #HOD CREATION AND LISTING and DUD
 class HODCreateSerializer(serializers.ModelSerializer):
@@ -12,7 +207,6 @@ class HODCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
     department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
-    
 
     class Meta:
         model = HOD
@@ -21,6 +215,12 @@ class HODCreateSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if UserProfile.objects.filter(username=value).exists():
             raise serializers.ValidationError("This username is already taken.")
+        return value
+
+    def validate_department(self, value):
+        # ✅ Prevent multiple HODs in one department
+        if HOD.objects.filter(department=value).exists():
+            raise serializers.ValidationError("This department already has an HOD assigned.")
         return value
 
     def create(self, validated_data):
@@ -36,9 +236,7 @@ class HODCreateSerializer(serializers.ModelSerializer):
         )
 
         return HOD.objects.create(user=user, **validated_data)
-    
 
-    
 
 class HODListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
