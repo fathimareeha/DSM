@@ -29,12 +29,12 @@ const Card = ({ icon, total, percentage, active, inactive, label }) => {
 
       {/* Active/Inactive */}
       <div className="flex justify-between text-sm text-gray-700 font-medium">
-        <span>
+        {/* <span>
           Active : <span className="font-bold text-green-600">{active}</span>
         </span>
         <span>
           Inactive : <span className="font-bold text-red-600">{inactive}</span>
-        </span>
+        </span> */}
       </div>
     </div>
   );

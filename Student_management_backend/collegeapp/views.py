@@ -9,161 +9,229 @@ from superadmin_app.models import College
 
 
 from rest_framework import generics, permissions
-# from .models import CollegeCourse, CollegeDepartment, Course, Department
-# from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
-
-# CollegeCourse: Principal assigns a Course to their College
-# from rest_framework.exceptions import ValidationError
-
-# class CollegeCourseListCreateView(generics.ListCreateAPIView):
-#     serializer_class = CollegeCourseSerializer
-#     queryset = CollegeCourse.objects.all()
-
-#     def get_serializer_context(self):
-#         context = super().get_serializer_context()
-#         context['request'] = self.request
-#         return context
-
-#     def perform_create(self, serializer):
-#         institution = self.request.user.institution
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if not college:
-#             raise ValidationError("No college found for this institution.")
-#         serializer.save(college=college)
 
 
+# views.py
+from rest_framework import generics, permissions, authentication
+from .models import CollegeAcademicSelection
+from .serializer import CollegeAcademicSelectionSerializer
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import CollegeAcademicSelection, College
+from .serializer import CollegeAcademicSelectionSerializer
 
-# # CollegeDepartment: Principal assigns a Department under a Course for their College
-# class CollegeDepartmentListCreateView(generics.ListCreateAPIView):
-#     serializer_class = CollegeDepartmentSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+class CollegeAcademicSelectionListCreateView(APIView):
+    def get(self, request):
+        user = request.user  
 
-#     def get_queryset(self):
-#         institution = self.request.user.institution
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if not college:
-#             return CollegeDepartment.objects.none()
-#         return CollegeDepartment.objects.filter(college_course__college=college)
+        # if the user is a college principal
+        if hasattr(user, "institution"):  
+            # get the college linked with this institution
+            college = College.objects.filter(instution_obj=user.institution).first()
+            if not college:
+                return Response({"error": "No college found for this principal"}, status=404)
 
-#     def perform_create(self, serializer):
-#         institution = self.request.user.institution
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if not college:
-#             raise ValidationError("No college found for this institution.")
+            selections = CollegeAcademicSelection.objects.filter(college=college)
+            serializer = CollegeAcademicSelectionSerializer(selections, many=True)
+            return Response(serializer.data)
 
-#         college_course = serializer.validated_data.get("college_course")
-#         if not college_course or college_course.college != college:
-#             raise ValidationError("Invalid course: you can only add departments under your own college’s courses.")
-
-#         serializer.save()
-
-# from rest_framework import generics, permissions
-# from rest_framework.exceptions import ValidationError
-# from .models import CollegeCourse, CollegeDepartment
-# from .serializer import CollegeCourseSerializer, CollegeDepartmentSerializer
-# from superadmin_app.models import College
-
-
-# # CollegeCourse: Principal assigns a Course to their College
-# class CollegeCourseListCreateView(generics.ListCreateAPIView):
-#     serializer_class = CollegeCourseSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         institution = self.request.user.institution
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if not college:
-#             return CollegeCourse.objects.none()
-#         # ✅ Fetch related course + university
-#         return (
-#             CollegeCourse.objects.filter(college=college)
-#             .select_related("course", "course__university")
-#         )
+        return Response({"error": "User is not linked to a college"}, status=400)
 
 
 
-# # CollegeDepartment: Principal assigns a Department under a Course for their College
-# class CollegeDepartmentListCreateView(generics.ListCreateAPIView):
-#     serializer_class = CollegeDepartmentSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         institution = self.request.user.institution
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if not college:
-#             return CollegeDepartment.objects.none()
-#         # ✅ Fetch related course, university, department
-#         return (
-#             CollegeDepartment.objects.filter(college_course__college=college)
-#             .select_related("college_course__course", "college_course__course__university", "department")
-#         )
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Course
+from .serializer import CourseSerializer
 
 
+# ✅ List all courses (with nested departments, semesters, subjects)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Course
+from .serializer import CourseSerializer
+from superadmin_app.models import College  # adjust path
 
 
-# from rest_framework import generics, permissions
-# from superadmin_app.models import Course, Department, College
-# from .serializer import CourseSerializer, DepartmentSerializer
+class CourseListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        courses = Course.objects.none()  # default empty queryset
+
+        # HOD → only courses of their college's university
+        if hasattr(user, "hod"):
+            college = user.hod.college
+            if college and college.university:
+                courses = Course.objects.filter(university=college.university)
+
+        # Institution admin / principal / superadmin
+        elif user.role in ["institution_admin", "staff", "superadmin"]:
+            if hasattr(user, "institution"):
+                colleges = College.objects.filter(instution_obj=user.institution)
+                courses = Course.objects.filter(university__colleges__in=colleges).distinct()
+
+        # If no courses found
+        if not courses.exists():
+            return Response({"error": "No courses found for this user"}, status=404)
+
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
+
+class CourseDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        user = request.user
+        college = None
+
+        # 1️⃣ Check if user is HOD
+        if hasattr(user, "hod"):
+            college = user.hod.college
+
+        # 2️⃣ Check if user is principal/admin
+        elif hasattr(user, "institution"):
+            college = College.objects.filter(instution_obj=user.institution).first()
+
+        if not college:
+            return Response({"error": "No college assigned to this user"}, status=400)
+
+        try:
+            course = Course.objects.get(pk=pk)
+        except Course.DoesNotExist:
+            return Response({"error": "Course not found"}, status=404)
+
+        # Here you can serialize and count departments/subjects
+        serializer = CourseSerializer(course)
+        return Response(serializer.data)
+    
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Course, CollegeAcademicSelection
+from superadmin_app.models import College
+
+class SelectedCourseCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Find the college of the logged-in user
+        college = None
+        if hasattr(user, "hod"):
+            college = user.hod.college
+        elif hasattr(user, "institution"):
+            college = College.objects.filter(instution_obj=user.institution).first()
+
+        if not college:
+            return Response({"error": "No college assigned to this user"}, status=400)
+
+        # Count only courses allowed via CollegeAcademicSelection
+        selected_courses = Course.objects.filter(college_academic_selections__college=college).distinct()
+        return Response({"total_courses": selected_courses.count()})
 
 
-# # ✅ Get all courses from the logged-in user's university
-# class AvailableCourseListView(generics.ListAPIView):
-#     serializer_class = CourseSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         college = College.objects.filter(instution_obj=user.institution).first()
-#         if not college:
-#             return Course.objects.none()
-
-#         # ✅ Now get university from college
-#         university = college.university
-#         return Course.objects.filter(university=university)
+from .models import Course, Department, CollegeAcademicSelection, HOD
+from .serializer import CourseSerializer, HODCreateSerializer, HODListSerializer
+from superadmin_app.models import College
 
 
-# # ✅ Get all departments under a course from the user's university
-# class AvailableDepartmentListView(generics.ListAPIView):
-#     serializer_class = DepartmentSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+# ✅ Get all courses allowed for this college (via CollegeAcademicSelection)
+class SelectedCoursesView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         college = College.objects.filter(instution_obj=user.institution).first()
-#         if not college:
-#             return Department.objects.none()
+    def get(self, request):
+        user = request.user
+        college = College.objects.filter(instution_obj=user.institution).first()
 
-#         university = college.university
-#         return Department.objects.filter(course__university=university)
+        if not college:
+            return Response({"error": "No college linked to this user"}, status=400)
+
+        # 🎓 Get only courses allowed by selection
+        selected_courses = Course.objects.filter(
+            college_academic_selections__college=college
+        ).prefetch_related("departments__semesters__subjects").distinct()
+
+        serializer = CourseSerializer(selected_courses, many=True)
+        return Response(serializer.data)
+
+
+# ✅ Get departments of a selected course (filtered by the college’s selection)
+class SelectedDepartmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, course_id):
+        user = request.user
+        college = College.objects.filter(instution_obj=user.institution).first()
+
+        if not college:
+            return Response({"error": "No college linked to this user"}, status=400)
+
+        # 🔒 Check if this course is allowed for this college
+        if not CollegeAcademicSelection.objects.filter(college=college, course_id=course_id).exists():
+            return Response({"error": "This course is not allowed for your college"}, status=403)
+
+        # ✅ Get departments under this course
+        departments = Department.objects.filter(course_id=course_id)
+        data = [{"id": d.id, "name": d.name} for d in departments]
+        return Response(data)
+
+
+
+from rest_framework import generics, permissions
+
+class CollegeAcademicSelectionCreateView(generics.ListCreateAPIView):
+    serializer_class = CollegeAcademicSelectionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CollegeAcademicSelection.objects.filter(college=self.request.user.college)
+
+    def perform_create(self, serializer):
+        serializer.save(college=self.request.user.college)
+
+
+
+
 
 
 class HODListCreateAPIView(generics.ListCreateAPIView):
-    queryset = HOD.objects.all()
     permission_classes = [IsAuthenticated]
-    
+
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return HODCreateSerializer
-        return HODListSerializer
+        return HODCreateSerializer if self.request.method == 'POST' else HODListSerializer
+
     def get_serializer_context(self):
         return {'request': self.request}
 
+    def get_queryset(self):
+        return HOD.objects.filter(college__instution_obj=self.request.user.institution)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        print("Received data:", request.data)
+        serializer.is_valid(raise_exception=True)
 
+        hod = serializer.save()  # ✅ college handled inside serializer
 
-        if serializer.is_valid():
-            hod = serializer.save()
-            return Response({
-                "message": "HOD created successfully.",
-                "hod_id": hod.id,
-                "username": hod.user.username,
-                "college_name":hod.department.college.college_name
-            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "message": "HOD created successfully.",
+            "hod_id": hod.id,
+            "username": hod.user.username,
+            "college_name": hod.college.college_name
+        }, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class HODDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = HOD.objects.all()
@@ -178,9 +246,34 @@ class HODDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
+
 class FacultyListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Faculty.objects.all()
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # HOD: only their department
+        if hasattr(user, "hod"):
+            return Faculty.objects.filter(department=user.hod.department)
+
+        # College admin or superadmin
+        if user.role in ["institution_admin", "staff", "superadmin"]:
+            if hasattr(user, "institution"):
+                # Get all colleges under this institution
+                colleges = College.objects.filter(instution_obj=user.institution)
+                
+                # Get all courses under these colleges
+                courses = Course.objects.filter(university__colleges__in=colleges).distinct()
+
+                # Get all departments under these courses
+                departments = Department.objects.filter(course__in=courses)
+
+                # Get all faculties under these departments
+                return Faculty.objects.filter(department__in=departments)
+
+        # Default: empty
+        return Faculty.objects.none()
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -189,7 +282,6 @@ class FacultyListCreateAPIView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         if serializer.is_valid():
             faculty = serializer.save()
             return Response({
@@ -197,7 +289,6 @@ class FacultyListCreateAPIView(generics.ListCreateAPIView):
                 "faculty_id": faculty.id,
                 "username": faculty.user.username
             }, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -211,6 +302,30 @@ class FacultyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
             return FacultyUpdateSerializer
         return FacultyDetailSerializer
     
+
+
+# views.py
+from rest_framework import generics, permissions,authentication
+from .models import FacultySubjectAssignment, HOD
+from .serializer import FacultySubjectAssignmentSerializer
+from superadmin_app.serializer import SemesterSerializer
+from superadmin_app.models import Semester
+
+class FacultySubjectAssignmentView(generics.ListCreateAPIView):
+    serializer_class = FacultySubjectAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        hod = HOD.objects.filter(user=self.request.user).first()
+        if not hod:
+            return FacultySubjectAssignment.objects.none()
+        return FacultySubjectAssignment.objects.filter(assigned_by=hod)
+    
+    def get_serializer_context(self):
+        return {"request": self.request}
+    
+
+
 
 #HOSTEL 
 from rest_framework import generics
@@ -273,36 +388,112 @@ class AssignHostelView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+# from rest_framework import generics, status
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from .models import Student
+# from .serializer import StudentCreateSerializer, StudentListSerializer, StudentDetailSerializer, StudentUpdateSerializer
+# from rest_framework.views import APIView 
+# class StudentListCreateAPIView(generics.ListCreateAPIView):
+#     queryset = Student.objects.all()
+#     permission_classes = [IsAuthenticated]
+
+#     def get_serializer_class(self):
+#         if self.request.method == 'POST':
+#             return StudentCreateSerializer
+#         return StudentListSerializer
+
+#     def get_serializer_context(self):
+#         return {'request': self.request}
+
+#     def create(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+
+#         if serializer.is_valid():
+#             student = serializer.save()
+#             return Response({
+#                 "message": "Student created successfully.",
+#                 "student_id": student.id,
+#                 "username": student.user.username
+#             }, status=status.HTTP_201_CREATED)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 from .models import Student
-from .serializer import StudentCreateSerializer, StudentListSerializer, StudentDetailSerializer, StudentUpdateSerializer
-from rest_framework.views import APIView 
+from collegeapp.models import HOD  # adjust import if needed
+
+# class StudentListCreateAPIView(generics.ListCreateAPIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         # If user is a HOD → filter by their department
+#         if hasattr(user, "hod"):  # assuming UserProfile ↔ HOD relation
+#             return Student.objects.filter(department=user.hod.department)
+#         # If not a HOD (like admin) → show all students
+#         return Student.objects.all()
+
+#     def get_serializer_class(self):
+#         if self.request.method == 'POST':
+#             return StudentCreateSerializer
+#         return StudentListSerializer
+
+#     def get_serializer_context(self):
+#         return {'request': self.request}
+
+#     def create(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         if serializer.is_valid():
+#             student = serializer.save()
+#             return Response({
+#                 "message": "Student created successfully.",
+#                 "student_id": student.id,
+#                 "username": student.user.username
+#             }, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 class StudentListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Student.objects.all()
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+
+        # HOD → only their department’s students
+        if hasattr(user, "hod"):
+            return Student.objects.filter(department=user.hod.department)
+
+        # Institution Admin / Staff / Superadmin → all students under their institution
+        if user.role in ["institution_admin", "staff", "superadmin"]:
+            if hasattr(user, "institution"):
+                return Student.objects.filter(
+                    department__course__university__colleges__instution_obj=user.institution
+                ).distinct()
+
+        # Default → none
+        return Student.objects.none()
+
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return StudentCreateSerializer
-        return StudentListSerializer
+        return StudentCreateSerializer if self.request.method == 'POST' else StudentListSerializer
 
     def get_serializer_context(self):
-        return {'request': self.request}
+        return {"request": self.request}
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if serializer.is_valid():
-            student = serializer.save()
-            return Response({
-                "message": "Student created successfully.",
-                "student_id": student.id,
-                "username": student.user.username
-            }, status=status.HTTP_201_CREATED)
+        student = serializer.save()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "message": "Student created successfully.",
+            "student_id": student.id,
+            "username": student.user.username,
+            "department": student.department.name,
+        }, status=status.HTTP_201_CREATED)
+
 
 
 class StudentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -412,6 +603,13 @@ class CoordinatorsRoleListCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+
+class CoordinatorsRoleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CoordinatorsRole.objects.select_related("user").all()
+    serializer_class = CoordinatorsRoleSerializer
+    permission_classes = [IsAuthenticated]
 
 # library_app/views.py
 from rest_framework import generics, permissions
@@ -565,41 +763,108 @@ from .models import Event, College, Student, Faculty, HOD
 from .serializer import EventSerializer
 from .permissions import IsPrincipal
 
+# class EventListCreateView(generics.ListCreateAPIView):
+#     serializer_class = EventSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsPrincipal]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         if college:
+#             return Event.objects.filter(college=college).order_by("-id")
+#         return Event.objects.none()
+
+#     def perform_create(self, serializer):
+#         user = self.request.user
+#         college = College.objects.filter(instution_obj=user.institution).first()
+#         event = serializer.save(college=college, created_by=user)
+
+#         send_to = self.request.data.get("send_to")
+
+#         if send_to == "all":
+#             event.students.set(Student.objects.filter(course__university=college.university))
+#             event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
+#             event.hods.set(HOD.objects.filter(department__course__university=college.university))
+
+#         elif send_to == "students":
+#             event.students.set(Student.objects.filter(course__university=college.university))
+
+#         elif send_to == "faculties":
+#             event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
+
+#         elif send_to == "hods":
+#             event.hods.set(HOD.objects.filter(department__course__university=college.university))
+        
+
+    
+
+# views.py
+from rest_framework import generics, permissions
+from rest_framework.exceptions import PermissionDenied
+from .models import Event, College, Student, Faculty, HOD
+from .serializer import EventSerializer
+
 class EventListCreateView(generics.ListCreateAPIView):
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated, IsPrincipal]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        college = College.objects.filter(instution_obj=user.institution).first()
-        if college:
-            return Event.objects.filter(college=college).order_by("-id")
+
+        # Principal / Institution Admin: all events of their college
+        if user.role == "institution_admin":
+            college = College.objects.filter(instution_obj=user.institution).first()
+            if college:
+                return Event.objects.filter(college=college).order_by("-start_date")
+            return Event.objects.none()
+
+        # HOD: events assigned to them
+        elif user.role == "hod":
+            hod_obj = HOD.objects.filter(user=user).first()
+            if hod_obj:
+                return Event.objects.filter(hods=hod_obj).order_by("-start_date")
+            return Event.objects.none()
+
+        # Faculty: events assigned to them
+        elif user.role == "faculty":
+            faculty_obj = Faculty.objects.filter(user=user).first()
+            if faculty_obj:
+                return Event.objects.filter(faculties=faculty_obj).order_by("-start_date")
+            return Event.objects.none()
+
+        # Student: events assigned to them
+        elif user.role == "students":
+            student_obj = Student.objects.filter(user=user).first()
+            if student_obj:
+                return Event.objects.filter(students=student_obj).order_by("-start_date")
+            return Event.objects.none()
+
         return Event.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
+
+        if user.role != "institution_admin":
+            raise PermissionDenied("Only institution admin can create events")
+
         college = College.objects.filter(instution_obj=user.institution).first()
         event = serializer.save(college=college, created_by=user)
 
         send_to = self.request.data.get("send_to")
 
+        # Assign to appropriate users based on the same university
+        university = college.university
+
         if send_to == "all":
-            event.students.set(Student.objects.filter(course__university=college.university))
-            event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
-            event.hods.set(HOD.objects.filter(department__course__university=college.university))
-
+            event.students.set(Student.objects.filter(course__university=university))
+            event.faculties.set(Faculty.objects.filter(department__course__university=university))
+            event.hods.set(HOD.objects.filter(department__course__university=university))
         elif send_to == "students":
-            event.students.set(Student.objects.filter(course__university=college.university))
-
+            event.students.set(Student.objects.filter(course__university=university))
         elif send_to == "faculties":
-            event.faculties.set(Faculty.objects.filter(department__course__university=college.university))
-
+            event.faculties.set(Faculty.objects.filter(department__course__university=university))
         elif send_to == "hods":
-            event.hods.set(HOD.objects.filter(department__course__university=college.university))
-        
-
-    
-
+            event.hods.set(HOD.objects.filter(department__course__university=university))
 
 # hod/views.py
 from rest_framework.authtoken.models import Token
@@ -628,3 +893,71 @@ def login_view(request):
         })
     else:
         return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+
+# from rest_framework import generics, permissions
+# from .models import HODAttendance
+# from .serializer import HODAttendanceSerializer
+# from rest_framework.exceptions import PermissionDenied
+
+
+# class HODAttendanceListCreateView(generics.ListCreateAPIView):
+#     serializer_class = HODAttendanceSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get_queryset(self):
+#         user = self.request.user
+
+#         if user.role == "institution_admin":  
+#             # Principal/Admin → see all HODs' attendance
+#             return HODAttendance.objects.all()
+#         elif user.role == "hod":
+#             # HOD → see only their own attendance
+#             return HODAttendance.objects.filter(hod=user)
+#         else:
+#             # Others → no access (empty queryset)
+#             return HODAttendance.objects.none()
+
+#     def perform_create(self, serializer):
+#         # Only HODs can mark their own attendance
+#         if self.request.user.role == "hod":
+#             serializer.save(hod=self.request.user)
+#         else:
+#             raise PermissionDenied("Only HODs can mark attendance")
+
+
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+from .models import HODAttendance, HOD
+from .serializer import HODAttendanceSerializer
+
+class HODAttendanceListCreateView(generics.ListCreateAPIView):
+    serializer_class = HODAttendanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == "institution_admin":
+            # Get all HODs under this institution
+            hods = HOD.objects.filter(college__instution_obj__user_object=user)
+            # Filter attendance for those HODs
+            return HODAttendance.objects.filter(hod__in=hods.values_list('user', flat=True))
+        
+        elif user.role == "hod":
+            # HOD → see only their own attendance
+            return HODAttendance.objects.filter(hod=user)
+        
+        else:
+            # Others → no access
+            return HODAttendance.objects.none()
+
+    def perform_create(self, serializer):
+        # Only HODs can mark their own attendance
+        if self.request.user.role == "hod":
+            serializer.save(hod=self.request.user)
+        else:
+            raise PermissionDenied("Only HODs can mark attendance")
