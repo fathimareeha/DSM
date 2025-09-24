@@ -179,28 +179,69 @@ export const SuperadminProvider = ({ children }) => {
       setloading(false)
     }
   };
-  //College create
-  const college_create = async (institutionId, college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type, selectedUniversity) => {
+  // College create
+const college_create = async (
+  institutionId,
+  college_name,
+  address1,
+  address2,
+  district,
+  state,
+  pin_code,
+  aishe_code,
+  location,
+  phone_number,
+  std_code,
+  landline_number,
+  college_type,
+  selectedUniversity,
+  logo
+) => {
+  setloading(true);
+  try {
+    const formData = new FormData();
+    formData.append("college_name", college_name);
+    formData.append("address1", address1);
+    formData.append("address2", address2);
+    formData.append("district", district);
+    formData.append("state", state);
+    formData.append("pin_code", pin_code);
+    formData.append("aishe_code", aishe_code);
+    formData.append("location", location);
+    formData.append("phone_number", phone_number);
+    formData.append("std_code", std_code);
+    formData.append("landline_number", landline_number);
+    formData.append("college_type", college_type);
+    formData.append("university", selectedUniversity);
 
-    try {
-      const response = await axios.post(`http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`, { college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type,university:selectedUniversity },
-        {
-          headers: {
-            Authorization: `Token ${token}`
-          }
-        }
-      )
-
-      console.log(response.data);
-      toast.success('College Registered Successfully')
-    } catch (error) {
-      console.error("Error creating school:", error.response?.data || error.message);
+    if (logo) {
+      formData.append("logo", logo); // ✅ file upload
     }
-    finally {
-      setloading(false)
-    }
 
+    const response = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "multipart/form-data", // ✅ important
+        },
+      }
+    );
+
+    console.log(response.data);
+    toast.success("College Registered Successfully");
+  } catch (error) {
+    console.error(
+      "Error creating college:",
+      error.response?.data || error.message
+    );
+    toast.error("Failed to register college");
+  } finally {
+    setloading(false);
   }
+};
+
   //institution_admin login
 const handle_institution_login = async (username, password) => {
   setloading(true);

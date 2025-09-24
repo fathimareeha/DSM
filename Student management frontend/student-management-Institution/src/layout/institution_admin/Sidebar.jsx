@@ -1,171 +1,3 @@
-
-// import React from 'react';
-// import { NavLink } from 'react-router-dom';
-// import {
-//   LayoutDashboard,
-//   Users,
-//   BookOpen,
-//   ClipboardList,
-//   BarChart2,
-//   Settings,
-//   LogOut,
-//   Building2,
-//   FileText,
-//   Library,
-//   ChefHat,
-//   Banknote,
-//   Bus,
-//   UserCog,
-//   GraduationCap,
-//   CalendarDays,
-//   HeartPulse,
-//   CircleHelp,
-//   ChevronDown,
-//   ChevronUp,
-// } from 'lucide-react';
-// import { Disclosure } from '@headlessui/react';
-
-// const navItems = [
-//   { name: 'Dashboard', icon: LayoutDashboard, to: '/admin/dash' },
-//   {
-//     name: 'Departments',
-//     icon: Building2,
-//     children: [
-//       { name: 'Add Department', to: '/admin/departments/add' },
-//       { name: 'View Departments', to: '/admin/department' },
-//     ],
-//   },
-//   {
-//     name: 'HOD & Faculty',
-//     icon: Users,
-//     children: [
-//       { name: 'Add HOD', to: '/admin/hod/add' },
-//       { name: 'Hod List', to: '/admin/hod' },
-//       { name: 'Add Faculty', to: '/admin/faculty/add' },
-//       { name: 'Faculty List', to: '/admin/faculty' },
-//     ],
-//   },
-//   {
-//     name: 'Students',
-//     icon: GraduationCap,
-//     children: [
-//       { name: 'Add Student', to: '/admin/students/add' },
-//       { name: 'View Students', to: '/admin/students' },
-//     ],
-//   },
-//   {
-//     name: 'Academic',
-//     icon: BookOpen,
-//     children: [
-//       { name: 'Subject Allocation', to: '/academic/subjects' },
-//       { name: 'Attendance', to: '/academic/attendance' },
-//       { name: 'Marks', to: '/academic/marks' },
-//       { name: 'Materials', to: '/academic/materials' },
-//       { name: 'Feedback', to: '/academic/feedback' },
-//     ],
-//   },
-//   {
-//     name: 'Coordinators',
-//     icon: UserCog,
-//     children: [
-//       { name: 'Exams', to: '/coordinators/exams' },
-//       { name: 'Placements', to: '/coordinators/placements' },
-//       { name: 'Events', to: '/coordinators/events' },
-//       { name: 'Circulars', to: '/coordinators/circulars' },
-//       { name: 'Lab', to: '/coordinators/labs' },
-//       { name: 'Health', to: '/coordinators/health' },
-//     ],
-//   },
-//   { name: 'Library', icon: Library, to: '/library' },
-//   { name: 'Food', icon: ChefHat, to: '/food' },
-//   { name: 'Finance', icon: Banknote, to: '/finance' },
-//   { name: 'Transportation', icon: Bus, to: '/transport' },
-//   { name: 'Reports', icon: BarChart2, to: '/reports' },
-//   { name: 'Settings', icon: Settings, to: '/settings' },
-// ];
-
-// function Sidebar() {
-//   return (
-//     <aside className="w-64 sticky top-0 bg-white  shadow-md hidden md:flex flex-col justify-between border-r border-gray-200">
-//       {/* Top Logo/Title */}
-//       <div>
-//         <div className="px-6 py-4 text-xl font-extrabold border-b  border-gray-200 tracking-wide ">
-//           COET
-//         </div>
-
-//         {/* Navigation */}
-//         <nav className="px-3 py-5 space-y-2 text-sm font-medium">
-//           {navItems.map(({ name, icon: Icon, to, children }) =>
-//             children ? (
-//               <Disclosure as="div" key={name}>
-//                 {({ open }) => (
-//                   <>
-//                     <Disclosure.Button className="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-blue-100">
-//                       <span className="flex items-center gap-3">
-//                         <Icon className="w-5 h-5" />
-//                         {name}
-//                       </span>
-//                       {open ? (
-//                         <ChevronUp className="w-4 h-4" />
-//                       ) : (
-//                         <ChevronDown className="w-4 h-4" />
-//                       )}
-//                     </Disclosure.Button>
-//                     <Disclosure.Panel className="ml-8 mt-1 space-y-1">
-//                       {children.map((child) => (
-//                         <NavLink
-//                           to={child.to}
-//                           key={child.name}
-//                           className={({ isActive }) =>
-//                             `block px-4 py-2 rounded-md transition ${
-//                               isActive
-//                                 ? 'bg-blue-200'
-//                                 :  'hover:bg-blue-100'
-//                             }`
-//                           }
-//                         >
-//                           {child.name}
-//                         </NavLink>
-//                       ))}
-//                     </Disclosure.Panel>
-//                   </>
-//                 )}
-//               </Disclosure>
-//             ) : (
-//               <NavLink
-//                 key={name}
-//                 to={to}
-//                 className={({ isActive }) =>
-//                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-//                     isActive
-//                       ? 'bg-blue-200 border-l-4 border-blue-500'
-//                       : 'hover:bg-blue-100 pl-[0.9rem]'
-//                   }`
-//                 }
-//               >
-//                 <Icon className="w-5 h-5" />
-//                 {name}
-//               </NavLink>
-//             )
-//           )}
-//         </nav>
-//       </div>
-
-//       {/* Bottom - Logout */}
-//       <div className="px-4 py-4 border-t border-gray-200">
-//         <button className="w-full flex items-center justify-center gap-2 bg-blue-100 py-2 rounded-lg font-semibold hover:bg-blue-200 transition">
-//           <LogOut className="w-4 h-4" />
-//           Logout
-//         </button>
-//       </div>
-//     </aside>
-//   );
-// }
-
-// export default Sidebar;
-
-
-
 // import React, { useEffect, useState } from 'react';
 // import { NavLink } from 'react-router-dom';
 // import axios from 'axios';
@@ -179,114 +11,73 @@
 //   ChevronDown,
 //   ChevronUp,
 //   LogOut,
-//   Hotel
+//   Hotel,
+//   BookOpen,
 // } from 'lucide-react';
 // import { Disclosure } from '@headlessui/react';
 
 // const navItems = [
 //   { name: 'Dashboard', to: '/admin/dash', icon: LayoutDashboard },
-//   {
-//     name: 'HOD & Faculty',
-//     icon: Users,
-//     children: [
-//       { name: 'Add HOD', to: '/admin/hods/add' },
-//       { name: 'Hod List', to: '/admin/hod' },
-//       { name: 'Add Faculty', to: '/admin/faculty/add' },
-//       { name: 'Faculty List', to: '/admin/facultys' },
-//     ],
-//   },
-//   {
-//     name: 'Students',
-//     icon: GraduationCap,
-//     children: [
-//       { name: 'Add Student', to: '/admin/studentss/add' },
-//       { name: 'View Students', to: '/admin/students' },
-//     ],
-//   },
-//   {
-//     name: 'Staffs',
-//     icon: UserCog,
-//     children: [
-//       { name: 'Add Staffs', to: 'admin/staffs/add' },
-//       { name: 'Staffs List', to: 'admin/staffs/list' },
-//     ],
-//   },
-//   { 
-//     name: 'Library', icon: Library,
-//     children: [
-//       { name: 'Add Books', to: 'admin/books/add' },
-//       { name: 'Books List', to: 'admin/books/list' },
-//     ],
-//    },
-//    { 
-//     name: 'Hostel', icon: Hotel,
-//     children: [
-//       { name: 'Add Hostel', to: 'hostel/add' },
-//       { name: 'Hostel List', to: 'hostel/list' },
-//     ],
-//    },
-//    { 
-//     name: 'Transport', icon: Bus,
-//     children: [
-//       { name: 'Add Bus', to: 'admin/bus/add' },
-//       { name: 'Bus List', to: 'admin/bus/list' },
-//       { name: 'Bus Stop List', to: 'admin/bus/stop/list' },
-//       { name: 'Add Bus to Students', to: 'admin/bus/student/stop/add' },
-//       { name: 'Student List', to: 'admin/bus/student/stop/list' },
-//     ],
-//    },
+//   { name: 'Select courses & Departments', icon: BookOpen, children: [{ name: 'Select Courses', to: '/admin/addcourse' }] },
+//   { name: 'HOD & Faculty', icon: Users, children: [{ name: 'Add HOD', to: '/admin/hods/add' }, { name: 'Hod List', to: '/admin/hod' }, { name: 'Add Faculty', to: '/admin/faculty/add' }, { name: 'Faculty List', to: '/admin/facultys' }] },
+//   { name: 'Students', icon: GraduationCap, children: [{ name: 'Add Student', to: '/admin/studentss/add' }, { name: 'View Students', to: '/admin/students' }] },
+//   { name: 'Staffs', icon: UserCog, children: [{ name: 'Add Staffs', to: '/admin/staffs/add' }, { name: 'Staffs List', to: '/admin/staffs/list' }] },
+//   { name: 'Library', icon: Library, children: [{ name: 'Add Books', to: '/admin/books/add' }, { name: 'Books List', to: '/admin/books/list' }] },
+//   { name: 'Hostel', icon: Hotel, children: [{ name: 'Add Hostel', to: '/admin/hostel/add' }, { name: 'Hostel List', to: '/admin/hostel/list' }] },
+//   { name: 'Transport', icon: Bus, children: [{ name: 'Add Bus', to: '/admin/bus/add' }, { name: 'Bus List', to: '/admin/bus/list' }, { name: 'Bus Stop List', to: '/admin/bus/stop/list' }, { name: 'Add Bus to Students', to: '/admin/bus/student/stop/add' }, { name: 'Student List', to: '/admin/bus/student/stop/list' }] },
+//   { name: 'Events', icon: Bus, children: [{ name: 'Add Events', to: '/admin/events/create' }] },
 // ];
 
-// function Sidebar() {
+// function Sidebar({ mobileOpen, setMobileOpen }) {
 //   const [collegeName, setCollegeName] = useState('Loading...');
+//   const [collegeLogo, setCollegeLogo] = useState(null);
 
 //   useEffect(() => {
-//   const fetchCollegeName = async () => {
-//     try {
-//       const user = JSON.parse(localStorage.getItem('user'));
-//       const institutionId = Number(user?.institution_id);
-//       const token = user?.token; // make sure your token is saved in localStorage
+//     const fetchCollegeName = async () => {
+//       try {
+//         const token = localStorage.getItem("token");
+//         if (!token) return;
 
-//       if (!institutionId || !token) {
-//         setCollegeName('Unknown');
-//         return;
+//         const res = await axios.get(
+//           "http://127.0.0.1:8000/superadmin_app/user_college/",
+//           { headers: { Authorization: `Token ${token}` } }
+//         );
+
+//         setCollegeName(res.data?.college_name || "Unknown");
+//         setCollegeLogo(res.data?.logo || null);
+//       } catch (error) {
+//         setCollegeName("Unknown");
+//         setCollegeLogo(null);
 //       }
+//     };
 
-//       const res = await axios.get(
-//         `http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`,
-//         {
-//           headers: {
-//             Authorization: `Token ${token}`, // or 'Bearer ' if your backend expects Bearer
-//           },
-//         }
-//       );
-
-//       if (res.data) {
-//         setCollegeName(res.data.college_name || 'Unknown');
-//       } else {
-//         setCollegeName('Unknown');
-//       }
-//     } catch (error) {
-//       console.error('Failed to fetch college name:', error);
-//       setCollegeName('Unknown');
-//     }
-//   };
-
-//   fetchCollegeName();
-// }, []);
-
-
+//     fetchCollegeName();
+//   }, []);
 
 //   return (
-//     <aside className="w-64 sticky top-0 bg-white shadow-md hidden md:flex flex-col justify-between border-r border-gray-200">
-//       {/* College Name on Top */}
-//       <div>
-//         <div className="px-6 py-4 text-xl font-extrabold border-b border-gray-200 tracking-wide">
-//           {collegeName}
+//     <>
+//       {/* Sidebar */}
+//       <aside className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-white to-gray-50 shadow-lg border-r border-gray-200 transform transition-transform z-50
+//         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative`}>
+        
+//         {/* College Header */}
+//         <div className="px-6 py-6 border-b border-gray-100">
+//           <div className="flex items-center gap-5 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl shadow p-5">
+//             <div className="w-20 h-20 flex items-center justify-center bg-white rounded-full border border-indigo-200 shadow-md overflow-hidden">
+//               {collegeLogo ? (
+//                 <img src={collegeLogo} alt="College Logo" className="w-full h-full object-cover rounded-full" />
+//               ) : (
+//                 <span className="text-xs text-gray-400">No Logo</span>
+//               )}
+//             </div>
+//             <div className="flex flex-col">
+//               <h2 className="text-lg font-semibold text-gray-800">{collegeName || 'College Name'}</h2>
+//             </div>
+//           </div>
 //         </div>
 
-//         {/* Navigation Menu */}
-//         <nav className="px-3 py-5 space-y-2 text-sm font-medium">
+//         {/* Navigation */}
+//         <nav className="flex-1 px-3 py-5 space-y-2 text-sm font-medium overflow-y-auto">
 //           {navItems.map(({ name, icon: Icon, to, children }) =>
 //             children ? (
 //               <Disclosure as="div" key={name}>
@@ -302,12 +93,10 @@
 //                     <Disclosure.Panel className="ml-8 mt-1 space-y-1">
 //                       {children.map((child) => (
 //                         <NavLink
+//                           key={child.to || child.name}
 //                           to={child.to}
-//                           key={child.name}
 //                           className={({ isActive }) =>
-//                             `block px-4 py-2 rounded-md transition ${
-//                               isActive ? 'bg-blue-200' : 'hover:bg-blue-100'
-//                             }`
+//                             `block px-4 py-2 rounded-md transition ${isActive ? 'bg-blue-200' : 'hover:bg-blue-100'}`
 //                           }
 //                         >
 //                           {child.name}
@@ -322,11 +111,7 @@
 //                 key={name}
 //                 to={to}
 //                 className={({ isActive }) =>
-//                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-//                     isActive
-//                       ? 'bg-blue-200 border-l-4 border-blue-500'
-//                       : 'hover:bg-blue-100 pl-[0.9rem]'
-//                   }`
+//                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive ? 'bg-blue-200 border-l-4 border-blue-500' : 'hover:bg-blue-100 pl-[0.9rem]'}`
 //                 }
 //               >
 //                 <Icon className="w-5 h-5" />
@@ -335,22 +120,30 @@
 //             )
 //           )}
 //         </nav>
-//       </div>
 
-//       {/* Logout Button */}
-//       <div className="px-4 py-4 border-t border-gray-200">
-//         <button
-//           className="w-full flex items-center justify-center gap-2 bg-blue-100 py-2 rounded-lg font-semibold hover:bg-blue-200 transition"
-//           onClick={() => {
-//             localStorage.clear();
-//             window.location.href = '/'; // Redirect to login page
-//           }}
-//         >
-//           <LogOut className="w-4 h-4" />
-//           Logout
-//         </button>
-//       </div>
-//     </aside>
+//         {/* Logout */}
+//         <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
+//           <button
+//             className="w-full flex items-center justify-center gap-2 bg-blue-100 py-2 rounded-lg font-semibold hover:bg-blue-200 transition"
+//             onClick={() => {
+//               localStorage.clear();
+//               window.location.href = '/';
+//             }}
+//           >
+//             <LogOut className="w-4 h-4" />
+//             Logout
+//           </button>
+//         </div>
+//       </aside>
+
+//       {/* Overlay for mobile */}
+//       {mobileOpen && (
+//         <div
+//           className="fixed inset-0 bg-black opacity-30 z-40 md:hidden"
+//           onClick={() => setMobileOpen(false)}
+//         ></div>
+//       )}
+//     </>
 //   );
 // }
 
@@ -373,6 +166,8 @@ import {
   LogOut,
   Hotel,
   BookOpen,
+  CalendarCheck,
+  ArrowRight
 } from 'lucide-react';
 import { Disclosure } from '@headlessui/react';
 
@@ -380,15 +175,9 @@ const navItems = [
   { name: 'Dashboard', to: '/admin/dash', icon: LayoutDashboard },
   {
     name: 'Select courses & Departments',
-    icon:  BookOpen,
-    children: [
-      { name: 'Select Courses', to: '/admin/addcourse' },
-      // { name: 'Hod List', to: '/admin/hod' },
-      // { name: 'Add Faculty', to: '/admin/faculty/add' },
-      // { name: 'Faculty List', to: '/admin/facultys' },
-    ],
+    icon: BookOpen,
+    children: [{ name: 'Select Courses', to: '/admin/addcourse' }],
   },
-
   {
     name: 'HOD & Faculty',
     icon: Users,
@@ -399,178 +188,164 @@ const navItems = [
       { name: 'Faculty List', to: '/admin/facultys' },
     ],
   },
-  {
-    name: 'Students',
-    icon: GraduationCap,
-    children: [
-      { name: 'Add Student', to: '/admin/studentss/add' },
-      { name: 'View Students', to: '/admin/students' },
-    ],
-  },
-  {
-    name: 'Staffs',
-    icon: UserCog,
-    children: [
-      { name: 'Add Staffs', to: '/admin/staffs/add' },
-      { name: 'Staffs List', to: '/admin/staffs/list' },
-    ],
-  },
-  {
-    name: 'Library',
-    icon: Library,
-    children: [
-      { name: 'Add Books', to: '/admin/books/add' },
-      { name: 'Books List', to: '/admin/books/list' },
-    ],
-  },
-  {
-    name: 'Hostel',
-    icon: Hotel,
-    children: [
-      { name: 'Add Hostel', to: '/admin/hostel/add' },
-      { name: 'Hostel List', to: '/admin/hostel/list' },
-    ],
-  },
-  {
-    name: 'Transport',
-    icon: Bus,
-    children: [
-      { name: 'Add Bus', to: '/admin/bus/add' },
-      { name: 'Bus List', to: '/admin/bus/list' },
-      { name: 'Bus Stop List', to: '/admin/bus/stop/list' },
-      { name: 'Add Bus to Students', to: '/admin/bus/student/stop/add' },
-      { name: 'Student List', to: '/admin/bus/student/stop/list' },
-    ],
-  },
+    { name: 'Students', icon: GraduationCap, children: [{ name: 'Add Student', to: '/admin/studentss/add' }, { name: 'View Students', to: '/admin/students' }] },
+  { name: 'Staffs', icon: UserCog, children: [{ name: 'Add Staffs', to: '/admin/staffs/add' }, { name: 'Staffs List', to: '/admin/staffs/list' }] },
+  { name: 'Library', icon: Library, children: [{ name: 'Add Books', to: '/admin/books/add' }, { name: 'Books List', to: '/admin/books/list' }] },
+  { name: 'Hostel', icon: Hotel, children: [{ name: 'Add Hostel', to: '/admin/hostel/add' }, { name: 'Hostel List', to: '/admin/hostel/list' }] },
+  { name: 'Transport', icon: Bus, children: [{ name: 'Add Bus', to: '/admin/bus/add' }, { name: 'Bus List', to: '/admin/bus/list' }, { name: 'Bus Stop List', to: '/admin/bus/stop/list' }, { name: 'Add Bus to Students', to: '/admin/bus/student/stop/add' }, { name: 'Student List', to: '/admin/bus/student/stop/list' }] },
+  { name: 'Events', icon: ArrowRight, children: [{ name: 'Add Events', to: '/admin/events/create' },{name:'Events List', to: '/admin/event'}]
+ },
 
-  {
-    name: 'Events',
-    icon: Bus,
-    children: [
-      { name: 'Add Events', to: '/admin/events/create' },
-      // { name: 'Bus List', to: '/admin/bus/list' },
-      // { name: 'Bus Stop List', to: '/admin/bus/stop/list' },
-      // { name: 'Add Bus to Students', to: '/admin/bus/student/stop/add' },
-      // { name: 'Student List', to: '/admin/bus/student/stop/list' },
-    ],
-  },
+
+
+{
+  name: 'Attendance',
+  icon: CalendarCheck, // or CalendarCheck from lucide-react if you want
+  children: [
+    { name: 'HOD Attendance', to: '/admin/hod-attendance' },
+    { name: 'Faculty Attendance', to: '/admin/faculty/attendance' },
+    { name: 'Student Attendance', to: '/admin/student/attendance' },
+  ],
+}
 ];
 
-function Sidebar() {
+function Sidebar({ mobileOpen, setMobileOpen }) {
   const [collegeName, setCollegeName] = useState('Loading...');
+  const [collegeLogo, setCollegeLogo] = useState(null);
 
-useEffect(() => {
-  const fetchCollegeName = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+  useEffect(() => {
+    const fetchCollegeName = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setCollegeName("Unknown");
+          return;
+        }
+
+        const res = await axios.get(
+          "http://127.0.0.1:8000/superadmin_app/user_college/",
+          { headers: { Authorization: `Token ${token}` } }
+        );
+
+        setCollegeName(res.data?.college_name || "Unknown");
+        setCollegeLogo(res.data?.logo || null);
+      } catch (error) {
+        console.error("Failed to fetch college name:", error);
         setCollegeName("Unknown");
-        return;
+        setCollegeLogo(null);
       }
+    };
 
-      const res = await axios.get(
-        "http://127.0.0.1:8000/superadmin_app/user_college/",
-        { headers: { Authorization: `Token ${token}` } }
-      );
-
-      setCollegeName(res.data?.college_name || "Unknown");
-    } catch (error) {
-      console.error("Failed to fetch college name:", error);
-      setCollegeName("Unknown");
-    }
-  };
-
-  fetchCollegeName();
-}, []);
+    fetchCollegeName();
+  }, []);
 
   return (
-    <aside className="w-64 h-screen sticky top-0 bg-white shadow-md hidden md:flex flex-col border-r border-gray-200">
-  <div className="px-6 py-5">
-  <div className="flex items-center gap-3 bg-white border rounded-xl shadow-sm p-3">
-    {/* College Logo */}
-    <div className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
-      <img 
-        src="/college-logo.png"  // replace with your logo API or static path
-        alt="College Logo"
-        className="w-10 h-10 object-contain"
-      />
+    <>
+      {/* Sidebar */}
+      <aside
+  className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-white to-gray-50 shadow-lg w-64 z-50 transform transition-transform md:translate-x-0 ${
+    mobileOpen ? 'translate-x-0' : '-translate-x-full'
+  }`}
+>
+  {/* Wrap header + nav + logout in a flex-col container with overflow */}
+  <div className="flex flex-col h-full">
+    {/* College Header */}
+    <div className="px-6 py-6 border-b border-gray-100 flex-shrink-0">
+      <div className="flex items-center gap-5 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl shadow p-5">
+        <div className="w-20 h-20 flex items-center justify-center bg-white rounded-full border border-indigo-200 shadow-md overflow-hidden">
+          {collegeLogo ? (
+            <img
+              src={collegeLogo}
+              alt="College Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <span className="text-xs text-gray-400">No Logo</span>
+          )}
+        </div>
+        <div className="flex flex-col">
+          <h2 className="text-lg font-semibold text-gray-800">{collegeName}</h2>
+        </div>
+      </div>
     </div>
 
-    {/* College Name */}
-    <h2 className="text-lg font-semibold text-gray-800">
-      {collegeName}
-    </h2>
-  </div>
-</div>
+    {/* Navigation - scrollable */}
+    <nav className="flex-1 px-3 py-5 space-y-2 text-sm font-medium overflow-y-auto">
+      {navItems.map(({ name, icon: Icon, to, children }) =>
+        children ? (
+          <Disclosure as="div" key={name}>
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-blue-100">
+                  <span className="flex items-center gap-3">
+                    <Icon className="w-5 h-5" />
+                    {name}
+                  </span>
+                  {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Disclosure.Button>
+                <Disclosure.Panel className="ml-8 mt-1 space-y-1">
+                  {children.map((child) => (
+                    <NavLink
+                      key={child.to || child.name}
+                      to={child.to}
+                      className={({ isActive }) =>
+                        `block px-4 py-2 rounded-md transition ${
+                          isActive ? 'bg-blue-200' : 'hover:bg-blue-100'
+                        }`
+                      }
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {child.name}
+                    </NavLink>
+                  ))}
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+        ) : (
+          <NavLink
+            key={name}
+            to={to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                isActive
+                  ? 'bg-blue-200 border-l-4 border-blue-500'
+                  : 'hover:bg-blue-100 pl-[0.9rem]'
+              }`
+            }
+            onClick={() => setMobileOpen(false)}
+          >
+            <Icon className="w-5 h-5" />
+            {name}
+          </NavLink>
+        )
+      )}
+    </nav>
 
-
-
-  {/* Scrollable navigation menu */}
-  <nav className="flex-1 px-3 py-5 space-y-2 text-sm font-medium overflow-y-auto">
-    {navItems.map(({ name, icon: Icon, to, children }) =>
-      children ? (
-        <Disclosure as="div" key={name}>
-          {({ open }) => (
-            <>
-              <Disclosure.Button className="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-blue-100">
-                <span className="flex items-center gap-3">
-                  <Icon className="w-5 h-5" />
-                  {name}
-                </span>
-                {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </Disclosure.Button>
-              <Disclosure.Panel className="ml-8 mt-1 space-y-1">
-                {children.map((child) => (
-                  <NavLink
-                    key={child.to || child.name}
-                    to={child.to}
-                    className={({ isActive }) =>
-                      `block px-4 py-2 rounded-md transition ${
-                        isActive ? 'bg-blue-200' : 'hover:bg-blue-100'
-                      }`
-                    }
-                  >
-                    {child.name}
-                  </NavLink>
-                ))}
-              </Disclosure.Panel>
-            </>
-          )}
-        </Disclosure>
-      ) : (
-        <NavLink
-          key={name}
-          to={to}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              isActive
-                ? 'bg-blue-200 border-l-4 border-blue-500'
-                : 'hover:bg-blue-100 pl-[0.9rem]'
-            }`
-          }
-        >
-          <Icon className="w-5 h-5" />
-          {name}
-        </NavLink>
-      )
-    )}
-  </nav>
-
-  {/* Logout Button - Fixed at bottom */}
-  <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
-    <button
-      className="w-full flex items-center justify-center gap-2 bg-blue-100 py-2 rounded-lg font-semibold hover:bg-blue-200 transition"
-      onClick={() => {
-        localStorage.clear();
-        window.location.href = '/';
-      }}
-    >
-      <LogOut className="w-4 h-4" />
-      Logout
-    </button>
+    {/* Logout - always at bottom */}
+    <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
+      <button
+        className="w-full flex items-center justify-center gap-2 bg-blue-100 py-2 rounded-lg font-semibold hover:bg-blue-200 transition"
+        onClick={() => {
+          localStorage.clear();
+          window.location.href = '/';
+        }}
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </button>
+    </div>
   </div>
 </aside>
 
+      {/* Overlay for mobile */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-30 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        ></div>
+      )}
+    </>
   );
 }
 

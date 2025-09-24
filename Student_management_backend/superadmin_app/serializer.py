@@ -67,10 +67,12 @@ class CollegeSerializer(serializers.ModelSerializer):
     university_name = serializers.CharField(source='university.name', read_only=True)
     landline_number = serializers.IntegerField(required=False, allow_null=True)
     university = serializers.PrimaryKeyRelatedField(queryset=University.objects.all())
+    
     class Meta:
         model=College
         fields='__all__'
         read_only_fields=['id','registration_id','created_date','instution_obj']
+        
 
 class InstitutionAdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -166,9 +168,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get("request")
-        if request and hasattr(request.user, "college"):
-            college = request.user.college
-            self.fields['course_id'].queryset = Course.objects.filter(university=college.university)
+        print("Allowed courses:", self.fields['course_id'].queryset.values_list("id", flat=True))
+
+        # if request and hasattr(request.user, "college"):
+        #     college = request.user.college
+        #     self.fields['course_id'].queryset = Course.objects.filter(university=college.university)
+        if request:
+            if hasattr(request.user, "college") and request.user.college:
+                college = request.user.college
+                self.fields['course_id'].queryset = Course.objects.filter(university=college.university)
+            else:
+                # superadmin fallback
+                self.fields['course_id'].queryset = Course.objects.all()
+
 
 
 class SemesterSerializer(serializers.ModelSerializer):
@@ -186,9 +198,20 @@ class SemesterSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get("request")
+        print("Allowed departments:", self.fields['department_id'].queryset.values_list("id", flat=True))
+
+
         if request and hasattr(request.user, "college"):
             college = request.user.college
             self.fields['department_id'].queryset = Department.objects.filter(course__university=college.university)
+        else:
+            self.fields['department_id'].queryset = Department.objects.all()
+        # if hasattr(request.user, "college"):
+        #     college = request.user.college
+        #     self.fields['department_id'].queryset = Department.objects.filter(course__university=college.university)
+        # else:
+        #     self.fields['department_id'].queryset = Department.objects.all()
+
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -209,6 +232,8 @@ class SubjectSerializer(serializers.ModelSerializer):
         if request and hasattr(request.user, "college"):
             college = request.user.college
             self.fields['semester_id'].queryset = Semester.objects.filter(department__course__university=college.university)
+        else:
+            self.fields['semester_id'].queryset = Semester.objects.all()
 
 
     

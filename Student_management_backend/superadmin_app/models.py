@@ -134,6 +134,14 @@ class College(models.Model):
     activation_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_manually_deactivated = models.BooleanField(default=False)
+    logo = models.ImageField(
+        upload_to="college_logos/",
+        blank=True,
+        null=True,
+        
+    )
+
+    
 
 
     

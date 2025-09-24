@@ -122,15 +122,14 @@ import { toast } from "react-toastify";
 function HostelList() {
   const [hostels, setHostels] = useState([]);
 
-  // Fetch hostels
   const fetchHostels = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/collegeapp/hostels/", {
-        headers: { Authorization: `Token ${token}` },
-      });
+      const response = await axios.get(
+        "http://127.0.0.1:8000/collegeapp/hostels/",
+        { headers: { Authorization: `Token ${token}` } }
+      );
       setHostels(response.data);
-      console.log(response)
     } catch (error) {
       console.error("Error fetching hostels:", error);
       toast.error("Failed to fetch hostels");
@@ -141,7 +140,6 @@ function HostelList() {
     fetchHostels();
   }, []);
 
-  // Delete hostel
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this hostel?")) return;
     try {
@@ -159,8 +157,9 @@ function HostelList() {
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-indigo-800">
+        <h2 className="text-2xl font-bold text-indigo-800 flex items-center gap-2">
           <Hotel size={24} /> Manage Hostels
         </h2>
         <Link
@@ -171,6 +170,7 @@ function HostelList() {
         </Link>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="w-full table-auto text-sm text-left">
           <thead className="bg-indigo-100 text-indigo-800 font-semibold">
@@ -178,7 +178,7 @@ function HostelList() {
               <th className="px-4 py-2">Name</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Intake</th>
-              <th className="px-4 py-2">Current Students</th> {/* New column */}
+              <th className="px-4 py-2">Current Students</th>
               <th className="px-4 py-2">Address</th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
@@ -190,9 +190,7 @@ function HostelList() {
                   <td className="px-4 py-3">{hostel.name}</td>
                   <td className="px-4 py-3">{hostel.hostel_type}</td>
                   <td className="px-4 py-3">{hostel.intake}</td>
-                  <td className="px-4 py-3">
-                    {hostel.current_occupancy || 0} {/* Number of students */}
-                  </td>
+                  <td className="px-4 py-3">{hostel.current_occupancy || 0}</td>
                   <td className="px-4 py-3">{hostel.address || "-"}</td>
                   <td className="px-4 py-3 flex justify-center gap-2">
                     <Link
@@ -209,7 +207,7 @@ function HostelList() {
                     </Link>
                     <button
                       onClick={() => handleDelete(hostel.id)}
-                      className="text-red-600 hover:underline"
+                      className="text-red-500"
                     >
                       <Trash2 size={16} />
                     </button>

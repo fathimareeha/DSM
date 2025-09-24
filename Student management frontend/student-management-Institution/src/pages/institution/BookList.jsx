@@ -12,11 +12,7 @@ function BookList() {
       const token = localStorage.getItem("token");
       const response = await axios.get(
         "http://127.0.0.1:8000/collegeapp/books/",
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
+        { headers: { Authorization: `Token ${token}` } }
       );
       setBooks(response.data);
     } catch (err) {
@@ -36,9 +32,7 @@ function BookList() {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(`http://127.0.0.1:8000/collegeapp/books/${id}/`, {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
+          headers: { Authorization: `Token ${token}` },
         });
         setBooks(books.filter((book) => book.id !== id));
       } catch (error) {
@@ -48,59 +42,47 @@ function BookList() {
     }
   };
 
-  if (loading) return <p className="text-center">⏳ Loading books...</p>;
-  if (error)
-    return (
-      <p className="text-center text-red-600 font-semibold">
-        ❌ {error}
-      </p>
-    );
+  if (loading) return <p className="text-center mt-10 text-gray-500">⏳ Loading books...</p>;
+  if (error) return <p className="text-center mt-10 text-red-600 font-semibold">❌ {error}</p>;
 
   return (
-    <div className="max-w-4xl mx-auto bg-white shadow p-6 rounded-md">
-      <h2 className="text-2xl font-bold text-indigo-800 mb-6">📚 Book List</h2>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold text-blue-800 mb-6">📚 Book List</h2>
 
       {books.length === 0 ? (
         <p className="text-gray-500">No books found.</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-indigo-100">
-              <th className="border p-2">#</th>
-              <th className="border p-2">Title</th>
-              <th className="border p-2">Author</th>
-              <th className="border p-2">ISBN</th>
-              <th className="border p-2">Category</th>
-              <th className="border p-2">Added Date</th>
-              <th className="border p-2">Copies</th>
-              <th className="border p-2 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {books.map((book, index) => (
-              <tr key={book.id} className="hover:bg-gray-50">
-                <td className="border p-2">{index + 1}</td>
-                <td className="border p-2">{book.title}</td>
-                <td className="border p-2">{book.author}</td>
-                <td className="border p-2">{book.isbn}</td>
-                <td className="border p-2">{book.category || "—"}</td>
-                <td className="border p-2">{book.added_on || "—"}</td>
-                <td className="border p-2">{book.quantity}</td>
-                <td className="border p-2 text-center">
-                  <button
-                    onClick={() => handleDelete(book.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4 inline-block" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid gap-6">
+          {books.map((book, index) => (
+            <div
+              key={book.id}
+              className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex justify-between items-center hover:shadow-xl transition"
+            >
+              <div>
+                <h3 className="text-lg font-semibold text-blue-700">{book.title}</h3>
+                <p className="text-gray-600">
+                  Author: {book.author} | ISBN: {book.isbn}
+                </p>
+                <p className="text-gray-600">
+                  Category: {book.category || "—"} | Copies: {book.quantity}
+                </p>
+                <p className="text-gray-400 text-sm">Added: {book.added_on || "—"}</p>
+              </div>
+              <div>
+                <button
+                  onClick={() => handleDelete(book.id)}
+                  className="text-red-500 hover:text-red-700 p-2 rounded-full transition"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
 export default BookList;
+

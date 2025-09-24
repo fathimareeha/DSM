@@ -4,29 +4,22 @@ import axios from "axios";
 function BookManager() {
   const [activeTab, setActiveTab] = useState("single");
 
-  // -------------------
   // Single Book States
-  // -------------------
   const [formData, setFormData] = useState({
     title: "",
     author: "",
     isbn: "",
     category: "",
-    
     quantity: "",
   });
   const [singleMsg, setSingleMsg] = useState("");
 
-  // -------------------
   // Bulk Upload States
-  // -------------------
   const [file, setFile] = useState(null);
   const [bulkMsg, setBulkMsg] = useState("");
   const [bulkErrors, setBulkErrors] = useState([]);
 
-  // -------------------
   // Single Book Handlers
-  // -------------------
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -40,11 +33,7 @@ function BookManager() {
       await axios.post(
         "http://127.0.0.1:8000/collegeapp/books/",
         formData,
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
+        { headers: { Authorization: `Token ${token}` } }
       );
 
       setSingleMsg("✅ Book added successfully!");
@@ -53,7 +42,6 @@ function BookManager() {
         author: "",
         isbn: "",
         category: "",
-        
         quantity: "",
       });
     } catch (err) {
@@ -63,9 +51,7 @@ function BookManager() {
     }
   };
 
-  // -------------------
   // Bulk Upload Handlers
-  // -------------------
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setBulkMsg("");
@@ -106,154 +92,170 @@ function BookManager() {
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white shadow p-6 rounded-md">
-      {/* Tabs */}
-      <div className="flex mb-6 border-b">
-        <button
-          onClick={() => setActiveTab("single")}
-          className={`flex-1 py-2 ${
-            activeTab === "single"
-              ? "border-b-2 border-blue-600 font-bold text-blue-600"
-              : "text-gray-600"
-          }`}
-        >
-          ➕ Add Single Book
-        </button>
-        <button
-          onClick={() => setActiveTab("bulk")}
-          className={`flex-1 py-2 ${
-            activeTab === "bulk"
-              ? "border-b-2 border-blue-600 font-bold text-blue-600"
-              : "text-gray-600"
-          }`}
-        >
-          📂 Bulk Upload
-        </button>
+    <div className="p-6 max-w-2xl mx-auto">
+      {/* Card container */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-500 h-20 flex items-center justify-center">
+          <h2 className="text-white text-xl font-bold">
+            {activeTab === "single" ? "Add Single Book" : "Bulk Upload Books"}
+          </h2>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab("single")}
+            className={`flex-1 py-2 text-center ${
+              activeTab === "single"
+                ? "border-b-2 border-white font-bold text-white"
+                : "text-gray-600 hover:text-gray-800 transition"
+            }`}
+          >
+            ➕ Single
+          </button>
+          <button
+            onClick={() => setActiveTab("bulk")}
+            className={`flex-1 py-2 text-center ${
+              activeTab === "bulk"
+                ? "border-b-2 border-white font-bold text-white"
+                : "text-gray-600 hover:text-gray-800 transition"
+            }`}
+          >
+            📂 Bulk
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          {/* Single Book Form */}
+          {activeTab === "single" && (
+            <>
+              {singleMsg && (
+                <div
+                  className={`mb-4 p-3 rounded ${
+                    singleMsg.includes("✅")
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {singleMsg}
+                </div>
+              )}
+              <form
+                onSubmit={handleSingleSubmit}
+                className="grid grid-cols-1 gap-4"
+              >
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="Book Title"
+                  required
+                  className="w-full border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  name="author"
+                  value={formData.author}
+                  onChange={handleChange}
+                  placeholder="Author"
+                  required
+                  className="w-full border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  name="isbn"
+                  value={formData.isbn}
+                  onChange={handleChange}
+                  placeholder="ISBN (13 digits)"
+                  maxLength="13"
+                  required
+                  className="w-full border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  placeholder="Category"
+                  required
+                  className="w-full border p-2 rounded"
+                />
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  placeholder="Number of Copies"
+                  min="1"
+                  required
+                  className="w-full border p-2 rounded"
+                />
+
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                >
+                  ➕ Add Book
+                </button>
+              </form>
+            </>
+          )}
+
+          {/* Bulk Upload Form */}
+          {activeTab === "bulk" && (
+            <>
+              {bulkMsg && (
+                <div
+                  className={`mb-4 p-3 rounded ${
+                    bulkMsg.includes("✅")
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {bulkMsg}
+                </div>
+              )}
+              <form onSubmit={handleBulkSubmit} className="space-y-4">
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleFileChange}
+                  className="w-full border p-2 rounded"
+                />
+
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                >
+                  ⬆ Upload
+                </button>
+              </form>
+
+              {bulkErrors.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="font-semibold text-red-700 mb-2">Errors:</h3>
+                  <ul className="list-disc ml-5 text-sm text-red-600">
+                    {bulkErrors.map((err, i) => (
+                      <li key={i}>
+                        Row {err.row}: {JSON.stringify(err.error)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-
-      {/* Single Book Form */}
-      {activeTab === "single" && (
-        <>
-          {singleMsg && (
-            <div
-              className={`mb-4 p-3 rounded ${
-                singleMsg.includes("✅")
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {singleMsg}
-            </div>
-          )}
-          <form onSubmit={handleSingleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Book Title"
-              required
-              className="w-full border p-2 rounded"
-            />
-            <input
-              type="text"
-              name="author"
-              value={formData.author}
-              onChange={handleChange}
-              placeholder="Author"
-              required
-              className="w-full border p-2 rounded"
-            />
-            <input
-              type="text"
-              name="isbn"
-              value={formData.isbn}
-              onChange={handleChange}
-              placeholder="ISBN (13 digits)"
-              maxLength="13"
-              required
-              className="w-full border p-2 rounded"
-            />
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              placeholder="Category"
-              required
-              className="w-full border p-2 rounded"
-            />
-            
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              placeholder="Number of Copies"
-              min="1"
-              required
-              className="w-full border p-2 rounded"
-            />
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              ➕ Add Book
-            </button>
-          </form>
-        </>
-      )}
-
-      {/* Bulk Upload Form */}
-      {activeTab === "bulk" && (
-        <>
-          {bulkMsg && (
-            <div
-              className={`mb-4 p-3 rounded ${
-                bulkMsg.includes("✅")
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {bulkMsg}
-            </div>
-          )}
-          <form onSubmit={handleBulkSubmit} className="space-y-4">
-            <input
-              type="file"
-              accept=".xlsx, .xls"
-              onChange={handleFileChange}
-              className="w-full border p-2 rounded"
-            />
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              ⬆ Upload
-            </button>
-          </form>
-
-          {bulkErrors.length > 0 && (
-            <div className="mt-4">
-              <h3 className="font-semibold text-red-700 mb-2">Errors:</h3>
-              <ul className="list-disc ml-5 text-sm text-red-600">
-                {bulkErrors.map((err, i) => (
-                  <li key={i}>
-                    Row {err.row}: {JSON.stringify(err.error)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }
 
 export default BookManager;
+
 
 
 
