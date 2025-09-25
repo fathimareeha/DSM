@@ -67,15 +67,13 @@ class CollegeSerializer(serializers.ModelSerializer):
     university_name = serializers.CharField(source='university.name', read_only=True)
     landline_number = serializers.IntegerField(required=False, allow_null=True)
     university = serializers.PrimaryKeyRelatedField(queryset=University.objects.all())
+    
     class Meta:
         model=College
         fields='__all__'
         read_only_fields=['id','registration_id','created_date','instution_obj']
         
-       
 
-        
-        
 class InstitutionAdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -158,32 +156,87 @@ class CourseSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(
-        queryset=Course.objects.all(), source='course', write_only=True
+        queryset=Course.objects.none(),  # start empty
+        source='course', 
+        write_only=True
     )
 
     class Meta:
         model = Department
         fields = ['id', 'name', 'course', 'course_id']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        print("Allowed courses:", self.fields['course_id'].queryset.values_list("id", flat=True))
+
+        # if request and hasattr(request.user, "college"):
+        #     college = request.user.college
+        #     self.fields['course_id'].queryset = Course.objects.filter(university=college.university)
+        if request:
+            if hasattr(request.user, "college") and request.user.college:
+                college = request.user.college
+                self.fields['course_id'].queryset = Course.objects.filter(university=college.university)
+            else:
+                # superadmin fallback
+                self.fields['course_id'].queryset = Course.objects.all()
+
+
+
 class SemesterSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
     department_id = serializers.PrimaryKeyRelatedField(
-        queryset=Department.objects.all(), source='department', write_only=True
+        queryset=Department.objects.none(),
+        source='department', 
+        write_only=True
     )
 
     class Meta:
         model = Semester
         fields = ['id', 'number', 'department', 'department_id']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        print("Allowed departments:", self.fields['department_id'].queryset.values_list("id", flat=True))
+
+
+        if request and hasattr(request.user, "college"):
+            college = request.user.college
+            self.fields['department_id'].queryset = Department.objects.filter(course__university=college.university)
+        else:
+            self.fields['department_id'].queryset = Department.objects.all()
+        # if hasattr(request.user, "college"):
+        #     college = request.user.college
+        #     self.fields['department_id'].queryset = Department.objects.filter(course__university=college.university)
+        # else:
+        #     self.fields['department_id'].queryset = Department.objects.all()
+
+
+
 class SubjectSerializer(serializers.ModelSerializer):
     semester = SemesterSerializer(read_only=True)
     semester_id = serializers.PrimaryKeyRelatedField(
-        queryset=Semester.objects.all(), source='semester', write_only=True
+        queryset=Semester.objects.none(),
+        source='semester', 
+        write_only=True
     )
 
     class Meta:
         model = Subject
-        fields = ['id', 'name', 'semester','code', 'semester_id']       
+        fields = ['id', 'name', 'semester', 'code', 'semester_id']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and hasattr(request.user, "college"):
+            college = request.user.college
+            self.fields['semester_id'].queryset = Semester.objects.filter(department__course__university=college.university)
+        else:
+            self.fields['semester_id'].queryset = Semester.objects.all()
+
+
+    
 
 
 class SubjectNestedSerializer(serializers.ModelSerializer):
@@ -204,6 +257,8 @@ class DepartmentNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ['id', 'name', 'semesters']
+
+
 
 class CourseNestedSerializer(serializers.ModelSerializer):
     departments = DepartmentNestedSerializer(many=True, read_only=True)

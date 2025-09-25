@@ -1,22 +1,55 @@
 
 from superadmin_app.models import College, UserProfile
 from django.db import models
-from superadmin_app.models import Department,Course,Semester
+from superadmin_app.models import Department,Course,Semester,Subject
 
 
-class HOD(models.Model):
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    phone = models.IntegerField()
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='hods')
-    
+
+# models.py
+from django.db import models
+from superadmin_app.models import Course, Department, Semester, Subject, College
+
+class CollegeAcademicSelection(models.Model):
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="academic_selections")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="college_academic_selections")
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="college_academic_selections")
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name="college_academic_selections")
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="college_academic_selections")
+    created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
-        unique_together = ( 'department',)
+        unique_together = ("college", "course", "department", "semester", "subject")
 
     def __str__(self):
-        return f"HOD: {self.user.username} "
+        return f"{self.college.college_name} - {self.course.name} - {self.department.name} - Sem {self.semester.number} - {self.subject.name}"
+
+
+#HOD
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class HOD(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE,related_name='hod')
+    
+    phone = models.BigIntegerField(
+        validators=[
+            MinValueValidator(1000000000),  # smallest 10-digit number
+            MaxValueValidator(9999999999)   # largest 10-digit number
+        ],
+        help_text="Enter 10-digit phone number"
+    )
+
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='hods')
+    college = models.ForeignKey(College, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('college', 'department')  # ensures only one HOD per department per college
+
+    def __str__(self):
+        return f"HOD: {self.user.username} - {self.college.college_name}"
 
 
 
+#FACULTY
 class Faculty(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     phone = models.IntegerField()
@@ -25,6 +58,23 @@ class Faculty(models.Model):
     def __str__(self):
         return f"{self.user.username} "
     
+#HOD ASSIGN SUBJECT TO FACULTY
+
+class FacultySubjectAssignment(models.Model):
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name="subject_assignments")
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="faculty_assignments")
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name="faculty_assignments")
+    assigned_by = models.ForeignKey(HOD, on_delete=models.CASCADE, related_name="assigned_subjects")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("faculty", "subject", "semester")
+
+    def __str__(self):
+        return f"{self.faculty.user.username} -> {self.subject.name} ({self.semester.number})"
+
+
+#HOSTEL  
 class Hostel(models.Model):
     HOSTEL_TYPE_CHOICES = [
         ('Boys', 'Boys'),
@@ -40,7 +90,7 @@ class Hostel(models.Model):
     def __str__(self):
         return f"{self.name} ({self.hostel_type})"
 
-
+#STUDENT
 class Student(models.Model):
     GENDER_CHOICES = [
         ('M', 'Male'),
@@ -68,7 +118,7 @@ class Student(models.Model):
     class Meta:
         unique_together = ('roll_no', 'department')  # optional constraint
 
-
+#COORDINATOR
 class CoordinatorsRole(models.Model):
     ROLE_CHOICES = [
         ('librarian', 'librarian'),
@@ -98,7 +148,7 @@ class CoordinatorsRole(models.Model):
 
 
 
-
+#BOOK
 class Book(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
@@ -113,7 +163,7 @@ class Book(models.Model):
 
 
 
-from django.db import models
+#BUS
 
 class Bus(models.Model):
     bus_number = models.CharField(max_length=20, unique=True)
@@ -143,4 +193,38 @@ class StudentBusAllocation(models.Model):
     def __str__(self):
         return f"{self.student.user.get_full_name()} → {self.bus.bus_number} ({self.stop.stop_name})"
 
+
+# EVENTS
+
+class Event(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="events")
+    created_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="created_events")
+
+    faculties = models.ManyToManyField(Faculty, blank=True)
+    hods = models.ManyToManyField(HOD, blank=True)
+    students = models.ManyToManyField(Student, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+from django.db import models
+from django.conf import settings
+
+class HODAttendance(models.Model):
+    hod = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=[("present","Present"),("absent","Absent")])
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ("hod", "date")
+        ordering = ["-date"]
 

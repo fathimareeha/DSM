@@ -17,26 +17,20 @@ import Card from "../common/Card";
 
 function Statistics() {
   const [cards, setCards] = useState([
-    { icon: "/public/student.svg", label: "Total Students", total: 0, percentage: "0%" },
-    { icon: "/public/teacher.svg", label: "Total Teachers", total: 0, percentage: "0%" },
-    { icon: "/public/staff.svg", label: "Total Staffs", total: 0, percentage: "0%" },
-    { icon: "/public/subject.svg", label: "Total Subjects", total: 30, percentage: "0%" },
+    { icon: "/student.svg", label: "Total Students", total: 0 },
+    { icon: "/teacher.svg", label: "Total HODs", total: 0 },
+    { icon: "/teacher.svg", label: "Total Faculties", total: 0 },
+    { icon: "/staff.svg", label: "Total Staffs", total: 0 },
+    { icon: "/bus.svg", label: "Total Buses", total: 0 },
   ]);
 
   const [bookData, setBookData] = useState([]);
   const [lineData, setLineData] = useState([]);
+  const [username, setUsername] = useState("");
 
-  const updateCardData = (label, total, active) => {
+  const updateCardData = (label, total) => {
     setCards((prev) =>
-      prev.map((card) =>
-        card.label === label
-          ? {
-              ...card,
-              total,
-              percentage: total > 0 ? `${((active / total) * 100).toFixed(1)}%` : "0%",
-            }
-          : card
-      )
+      prev.map((card) => (card.label === label ? { ...card, total } : card))
     );
   };
 
@@ -48,24 +42,63 @@ function Statistics() {
       });
       const data = res.data;
       const total = data.length;
-      const active = data.filter((item) => item.is_active).length;
-      updateCardData(label, total, active);
-      return { label, total, active };
+      updateCardData(label, total);
+      return { label, total };
     } catch (error) {
       console.error(`Error fetching ${label}:`, error);
-      return { label, total: 0, active: 0 };
+      updateCardData(label, 0);
+      return { label, total: 0 };
+    }
+  };
+
+  // Fetch logged-in username
+  const fetchLoggedUser = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUsername(parsedUser.username);
+      }
+    } catch (error) {
+      console.error("Error fetching logged-in user:", error);
     }
   };
 
   useEffect(() => {
     async function loadData() {
-      const student = await fetchData("http://127.0.0.1:8000/collegeapp/students/", "Total Students");
-      const teacher = await fetchData("http://127.0.0.1:8000/collegeapp/faculties/", "Total Teachers");
-      const staff = await fetchData("http://127.0.0.1:8000/collegeapp/coordinators/", "Total Staffs");
+      fetchLoggedUser();
 
+      const student = await fetchData(
+        "http://127.0.0.1:8000/collegeapp/students/",
+        "Total Students"
+      );
+      const teacher = await fetchData(
+        "http://127.0.0.1:8000/collegeapp/faculties/",
+        "Total Faculties"
+      );
+      const hod = await fetchData(
+        "http://127.0.0.1:8000/collegeapp/hods/",
+        "Total HODs"
+      );
+      const staff = await fetchData(
+        "http://127.0.0.1:8000/collegeapp/coordinators/",
+        "Total Staffs"
+      );
+      const bus = await fetchData(
+        "http://127.0.0.1:8000/collegeapp/buses/",
+        "Total Buses"
+      );
+
+      // Only total values in line chart including HODs
       setLineData([
-        { name: "Active", Students: student.active, Teachers: teacher.active, Staffs: staff.active },
-        { name: "Total", Students: student.total, Teachers: teacher.total, Staffs: staff.total },
+        {
+          name: "Total",
+          Students: student.total,
+          HODs: hod.total,
+          Faculties: teacher.total,
+          Staffs: staff.total,
+          Buses: bus.total,
+        },
       ]);
     }
 
@@ -81,35 +114,43 @@ function Statistics() {
         const grouped = res.data.reduce((acc, book) => {
           const category = book.category || "Others";
           acc[category] = (acc[category] || 0) + (book.quantity || 0);
-
           return acc;
         }, {});
-
-        const chartData = Object.keys(grouped).map((key) => ({
-          category: key,
-          count: grouped[key],
-        }));
-
-        setBookData(chartData);
+        setBookData(
+          Object.keys(grouped).map((key) => ({ category: key, count: grouped[key] }))
+        );
       })
       .catch((err) => console.error("Error fetching books:", err));
   }, []);
 
   return (
-    <div className="p-6 bg-white min-h-screen text-gray-900">
-      <h1 className="text-3xl font-bold mb-6 text-center">📊 Dashboard Overview</h1>
+    <div className="p-6 text-gray-900">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-col xl:flex-row bg-gray-800 p-4 rounded-lg mb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-white text-xl font-bold">
+              Welcome Back, {username || "User"} 👋
+            </h1>
+            <a
+              href="profile.html"
+              className="p-2 bg-gray-700 rounded-full hover:bg-gray-600"
+            >
+              <i className="ti ti-edit text-white"></i>
+            </a>
+          </div>
+          <p className="text-white">Have a Good day at work</p>
+        </div>
+      </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {cards.map((card, idx) => (
-          <div key={idx} className="bg-white rounded-2xl shadow-md p-4 border border-gray-200">
-            <Card
-              icon={card.icon}
-              label={card.label}
-              total={card.total}
-              percentage={card.percentage}
-              textColor="text-gray-900"
-            />
+          <div
+            key={idx}
+            className="bg-white rounded-2xl shadow-md p-4 border border-gray-200"
+          >
+            <Card {...card} textColor="text-gray-900" />
           </div>
         ))}
       </div>
@@ -118,7 +159,9 @@ function Statistics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Line Chart */}
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-4">📈 Students / Teachers / Staff Trend</h2>
+          <h2 className="text-xl font-bold mb-4">
+            📈 Total Counts Trend
+          </h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
@@ -127,8 +170,10 @@ function Statistics() {
               <Tooltip contentStyle={{ backgroundColor: "#f9f9f9", border: "1px solid #ddd" }} />
               <Legend />
               <Line type="monotone" dataKey="Students" stroke="#2563eb" strokeWidth={2} />
-              <Line type="monotone" dataKey="Teachers" stroke="#d946ef" strokeWidth={2} />
+              <Line type="monotone" dataKey="HODs" stroke="#9333ea" strokeWidth={2} />
+              <Line type="monotone" dataKey="Faculties" stroke="#d946ef" strokeWidth={2} />
               <Line type="monotone" dataKey="Staffs" stroke="#059669" strokeWidth={2} />
+              <Line type="monotone" dataKey="Buses" stroke="#f59e0b" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -159,6 +204,9 @@ function Statistics() {
 }
 
 export default Statistics;
+
+
+
 
 
 

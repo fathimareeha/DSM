@@ -21,8 +21,14 @@ from django.contrib.auth import get_user_model, authenticate
 from .serializer import AdminLoginSerializer
 from django.db.models import Sum, F
 from rest_framework.decorators import api_view
+
+from rest_framework import authentication
+from rest_framework.permissions import IsAuthenticated
+
+
 from datetime import date
 from decimal import Decimal
+
 from django.contrib.auth.tokens import default_token_generator
 from superadmin_app.constants.pincodes import PINCODE_CHOICES
 User = get_user_model()
@@ -182,7 +188,21 @@ class GetSchoolByInstitution(APIView):
         
 class GetCollegeByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
+
     permission_classes = [IsSuperAdminOrInstitutionManager]
+
+    # permission_classes = [IsSuperAdminOrCollegeManager]
+    
+
+    
+    def get(self, request, institution_id):
+        # Use the correct field name
+        college = College.objects.filter(instution_obj__id=institution_id).first()
+        if college:
+            return Response({"college_name": college.college_name})
+        return Response({"college_name": "Unknown"})
+
+
 
     def get(self, request, institution_id):
         try:
@@ -228,6 +248,114 @@ class CreateCollegeView(generics.ListCreateAPIView):
             serializer.save(instution_obj=institution_obj)
         except Institution.DoesNotExist:
             raise serializers.ValidationError("Institution not found.")
+        
+# views.py collegeapp
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import authentication
+from .models import College
+from .serializer import CollegeSerializer
+from collegeapp.models import HOD
+
+# class UserCollegeView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         user = request.user
+#         try:
+#             # ✅ If user is HOD
+#             hod = HOD.objects.select_related("college", "department").filter(user=user).first()
+#             if hod:
+#                 return Response({
+#                     "college_name": hod.college.college_name,
+#                     "department_name": hod.department.name,  # <-- added this
+#                     "role": "HOD"
+#                 })
+
+#             # ✅ If admin
+#             if hasattr(user, "institution"):
+#                 college = College.objects.filter(institution_obj=user.institution).first()
+#                 if college:
+#                     return Response({
+#                         "college_name": college.college_name,
+#                         "department_name": None,
+#                         "role": "ADMIN"
+#                     })
+
+#             return Response({"college_name": "Unknown", "department_name": "Unknown"})
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=400)
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from collegeapp.models import HOD, College
+from superadmin_app.models import Institution
+
+class UserCollegeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            # HOD
+            hod = HOD.objects.select_related("college", "department").filter(user=user).first()
+            if hod:
+                return Response({
+                    "college_name": hod.college.college_name,
+                    "department_name": hod.department.name,
+                    "role": "HOD",
+                    "logo": request.build_absolute_uri(hod.college.logo.url) if hod.college.logo else None
+                })
+
+            # Institution Admin
+            if user.role == "institution_admin":
+                institution = getattr(user, "institution", None)
+                if institution:
+                    college = College.objects.filter(instution_obj=institution).first()
+                    if college:
+                        return Response({
+                            "college_name": college.college_name,
+                            "department_name": None,
+                            "role": "ADMIN",
+                            "logo": request.build_absolute_uri(college.logo.url) if college.logo else None
+                        })
+
+            # Default fallback
+            return Response({
+                "college_name": "Unknown",
+                "department_name": "Unknown",
+                "role": "Unknown",
+                "logo": None
+            })
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+# # views.py
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework.permissions import IsAuthenticated
+# from collegeapp.models import HOD
+
+# class UserCollegeView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         user = request.user
+#         hod = HOD.objects.select_related("college", "department").filter(user=user).first()
+#         if hod:
+#             return Response({
+#                 "college_name": hod.college.college_name,
+#                 "department_name": hod.department.name,  # ✅ exact key
+#                 "university_name": hod.college.university.name if hod.college.university else None,
+#                 "role": user.role  # optional if you want
+#             })
+#         return Response({"detail": "HOD not found"}, status=404)
+
+
 
 from superadmin_app.constants.std_codes import STD_CODE_CHOICES
 class STDCodeListView(APIView):
@@ -1662,17 +1790,21 @@ class UniversityDetailView(generics.RetrieveAPIView):
         
 
 
+
 class CourseView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[IsSuperAdminOrAcademicManager]
 
-    serializer_class = CourseSerializer
+# a small mixin/helper
+def get_user_university(user):
+    if hasattr(user, "institution"):
+        college = College.objects.filter(instution_obj=user.institution).first()
+        if college:
+            return college.university
+    return None
 
-    def get_queryset(self):
-            university_id = self.request.query_params.get('university_id')
-            if university_id:
-                return Course.objects.filter(university_id=university_id)
-            return Course.objects.all()
+
+
 
 
 import openpyxl
@@ -1733,47 +1865,162 @@ class BulkCourseUploadView(APIView):
 
 
 class DepartmentView(generics.ListCreateAPIView):
+
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[IsSuperAdminOrAcademicManager]
    
+
+
     serializer_class = DepartmentSerializer
-    
+
     def get_queryset(self):
-        course_id = self.request.query_params.get('course')
-        university_id = self.request.query_params.get('university')
+        user = self.request.user
 
+        # base queryset
+        qs = Department.objects.all()
+
+        # superusers/staff see everything
+        if not (user.is_superuser or user.is_staff):
+            university = get_user_university(user)
+            if university:
+                qs = qs.filter(course__university=university)
+            else:
+                return Department.objects.none()
+
+        # filter further by course_id if provided
+        course_id = self.request.query_params.get("course_id")
         if course_id:
-            return Department.objects.filter(course_id=course_id)
-        elif university_id:
-            return Department.objects.filter(course__university_id=university_id)
+            qs = qs.filter(course_id=course_id)
 
-        return Department.objects.all()
+        return qs
+    
+# # academics/utils.py
+
+# def get_user_university(user):
+#     """
+#     Returns the university object related to the given user
+#     depending on their role (superadmin, college admin, hod, faculty, student).
+#     """
+#     if user.is_superuser or user.is_staff:
+#         return None
+
+#     if hasattr(user, "institution"):
+#         return getattr(user.institution, "university", None)
+
+#     if hasattr(user, "hod"):
+#         return getattr(user.hod.department.course, "university", None)
+
+#     if hasattr(user, "faculty"):
+#         return getattr(user.faculty.department.course, "university", None)
+
+#     if hasattr(user, "student"):
+#         return getattr(user.student.department.course, "university", None)
+
+#     return None
+
+# academics/utils.py
+
+def get_user_university(user):
+    """
+    Returns the university object related to the given user
+    depending on their role (superadmin, college admin, hod, faculty, student).
+    """
+    # superusers/staff see all → return None
+    if user.is_superuser or user.is_staff:
+        return None
+
+    # College admin: check institution → college → university
+    if hasattr(user, "institution") and user.institution:
+        college = College.objects.filter(instution_obj=user.institution).first()
+        if college and college.university:
+            return college.university
+
+    # HOD
+    if hasattr(user, "hod") and user.hod:
+        dept = getattr(user.hod, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    # Faculty
+    if hasattr(user, "faculty") and user.faculty:
+        dept = getattr(user.faculty, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    # Student
+    if hasattr(user, "student") and user.student:
+        dept = getattr(user.student, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    return None
+
 
 class SemesterView(generics.ListCreateAPIView):
+
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[IsSuperAdminOrAcademicManager]
     queryset = Semester.objects.all()
-    serializer_class = SemesterSerializer
-    
-    def get_queryset(self):
-        university_id = self.request.query_params.get('university')
-        course_id = self.request.query_params.get('course')
-        dept_id = self.request.query_params.get('department')
 
-        if course_id and dept_id:
-            return Semester.objects.filter(course_id=course_id, department_id=dept_id)
-        elif course_id:
-            return Semester.objects.filter(course_id=course_id)
-        elif university_id:
-            return Department.objects.filter(course__university_id=university_id)
-        return Semester.objects.all()
+    serializer_class = SemesterSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # superusers & staff → all
+        if user.is_superuser or user.is_staff:
+            qs = Semester.objects.all()
+        else:
+            university = get_user_university(user)
+            if university:
+                qs = Semester.objects.filter(department__course__university=university)
+            else:
+                return Semester.objects.none()
+
+        # optional filter by department_id
+        dept_id = self.request.query_params.get("department_id")
+        if dept_id:
+            qs = qs.filter(department_id=dept_id)
+
+        return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
+
+
 
 class SubjectView(generics.ListCreateAPIView):
+
     authentication_classes=[authentication.TokenAuthentication]
     permission_classes=[IsSuperAdminOrAcademicManager]
     queryset = Subject.objects.all()
+
     serializer_class = SubjectSerializer
-    
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser or user.is_staff:
+            qs = Subject.objects.all()
+        else:
+            university = get_user_university(user)
+            if university:
+                qs = Subject.objects.filter(
+                    semester__department__course__university=university
+                )
+            else:
+                return Subject.objects.none()
+
+        # extra filter by semester_id
+        sem_id = self.request.query_params.get("semester_id")
+        if sem_id:
+            qs = qs.filter(semester_id=sem_id)
+
+        return qs
+
     
 class BulkSubjectUploadView(APIView):
     parser_classes = [MultiPartParser]

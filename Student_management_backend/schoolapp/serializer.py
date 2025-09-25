@@ -1,21 +1,52 @@
 
 from rest_framework import serializers
 from superadmin_app.models import UserProfile
-from .models import VicePrincipal,Subject,Standard,Section,SubjectAllocation,Teacher,Book,Student
+from .models import VicePrincipal,Subject,Standard,Section,SubjectAllocation,Teacher,Book,Student,Hostel
 from datetime import date
 
 
-# class UserSerializer(serializers.ModelSerializer):
-#     profile_pic = serializers.ImageField(required=False)
+# from rest_framework import serializers
+# from django.contrib.auth import authenticate
+# from .models import UserProfile
 
-#     class Meta:
-#         model = User
-#         fields = ['id', 'profile_pic']
-from rest_framework import serializers
-from .models import VicePrincipal
-from schoolapp.models import UserProfile  # Your custom user model
+# class LoginSerializer(serializers.Serializer):
+#     username = serializers.CharField()
+#     password = serializers.CharField(write_only=True)
+#     email = serializers.EmailField(required=False)
+#     role = serializers.CharField(read_only=True)
 
-# Serializer for creating a Vice Principal
+#     def validate(self, data):
+#         username = data.get('username')
+#         password = data.get('password')
+
+#         if username and password:
+#             user = authenticate(username=username, password=password)
+#             if not user:
+#                 raise serializers.ValidationError("Invalid username or password")
+            
+#             # Add role from UserProfile
+#             try:
+#                 profile = UserProfile.objects.get(user=user)
+#                 data['role'] = profile.role
+#             except UserProfile.DoesNotExist:
+#                 data['role'] = None
+
+#             data['user'] = user
+#             return data
+#         else:
+#             raise serializers.ValidationError("Must include username and password")
+
+
+
+class LoginSerializer(serializers.Serializer):
+    
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+
+
+
+# Serializer for creating VicePrincipal
 class VicePrincipalCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
@@ -31,14 +62,17 @@ class VicePrincipalCreateSerializer(serializers.ModelSerializer):
         email = validated_data.pop('email')
 
         # Create UserProfile first
-        user = UserProfile.objects.create_user(username=username, email=email, password=password)
+        user = UserProfile.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
 
-        # Create VicePrincipal linked to the user
+        # Create VicePrincipal linked to the userprofile
         return VicePrincipal.objects.create(userprofile=user, **validated_data)
-       
 
 
-# Serializer for retrieving Vice Principal details
+# Serializer for retrieving VicePrincipal details
 class VicePrincipalDetailSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='userprofile.username', read_only=True)
     email = serializers.EmailField(source='userprofile.email', read_only=True)
@@ -47,39 +81,37 @@ class VicePrincipalDetailSerializer(serializers.ModelSerializer):
         model = VicePrincipal
         fields = ['id', 'username', 'email', 'phone', 'profile_picture']
 
-from rest_framework import serializers
-from superadmin_app.models import UserProfile
-from .models import VicePrincipal
 
+# Serializer for updating VicePrincipal / UserProfile info
 class VicePrincipalUpdateSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username')
-    first_name = serializers.CharField(source='user.first_name', required=False)
-    last_name = serializers.CharField(source='user.last_name', required=False)
+    username = serializers.CharField(source='userprofile.username')
+    first_name = serializers.CharField(source='userprofile.first_name', required=False)
+    last_name = serializers.CharField(source='userprofile.last_name', required=False)
 
     class Meta:
         model = VicePrincipal
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['id', 'username', 'first_name', 'last_name', 'phone', 'profile_picture']
 
     def validate_username(self, value):
-        # Get the current VP's linked user
+        # Get the current VP's linked userprofile
         instance = getattr(self, 'instance', None)
         if instance:
-            current_user_id = instance.user.id
+            current_user_id = instance.userprofile.id
             if UserProfile.objects.exclude(id=current_user_id).filter(username=value).exists():
                 raise serializers.ValidationError("Username already exists.")
         return value
 
     def update(self, instance, validated_data):
-        # Extract nested user data
-        user_data = validated_data.pop('user', {})
-        user = instance.user
+        # Extract nested userprofile data
+        userprofile_data = validated_data.pop('userprofile', {})
+        userprofile = instance.userprofile
 
-        # Update user fields
-        for attr, value in user_data.items():
-            setattr(user, attr, value)
-        user.save()
+        # Update userprofile fields
+        for attr, value in userprofile_data.items():
+            setattr(userprofile, attr, value)
+        userprofile.save()
 
-        # Update VicePrincipal fields (if any)
+        # Update VicePrincipal fields
         return super().update(instance, validated_data)
 
     
@@ -210,7 +242,9 @@ class TeacherDetailSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-        
+    
+
+
 class SubjectAllocationDetailSerializer(serializers.ModelSerializer):
     subject = SubjectSerializer(read_only=True)
     teacher = TeacherSerializer(read_only=True)
@@ -222,40 +256,28 @@ class SubjectAllocationDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'subject', 'teacher', 'standard', 'section']
 
 
+##HOSTEL
 
-# from rest_framework import serializers
-# from .models import Student, Parent
+class HostelSerializer(serializers.ModelSerializer):
+    current_occupancy = serializers.SerializerMethodField()
 
-# from .models import Parent
+    class Meta:
+        model = Hostel
+        fields = ['id', 'name', 'hostel_type', 'intake', 'address', 'current_occupancy']
 
-# class ParentSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField(required=False)
-#     relationship = serializers.CharField(required=False)
-#     phone = serializers.CharField(required=False)
+    def get_current_occupancy(self, obj):
+        return Student.objects.filter(hostel=obj).count()
 
-#     class Meta:
-#         model = Parent
-#         fields = ['id', 'name', 'relationship', 'phone']
 
-# ---------------- Student Serializer ----------------
-from rest_framework import serializers
-from .models import Student
+class StudentHostelSerializer(serializers.ModelSerializer):
+    hostel_name = serializers.CharField(source='hostel.name', read_only=True)
 
-from rest_framework import serializers
-from .models import Student
+    class Meta:
+        model = Student
+        fields = ['id', 'user', 'roll_no', 'hostel', 'hostel_name', 'room_number']
 
-# =============================
-# STUDENT CREATE
-# =============================
-from rest_framework import serializers
-from .models import Student
-
-# =============================
-# STUDENT CREATE
-# =============================
-from rest_framework import serializers
-from .models import Student
-
+    
+        
 
 # =============================
 # CREATE STUDENT
@@ -314,6 +336,8 @@ class StudentListSerializer(serializers.ModelSerializer):
 # =============================
 # DETAIL + UPDATE STUDENT
 # =============================
+
+
 class StudentDetailSerializer(serializers.ModelSerializer):
     profilePic = serializers.ImageField(required=False, allow_null=True, use_url=True)
 
@@ -391,84 +415,64 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-from .models import CoordinatorsRole
+from .models import StaffRole
 
-class CoordinatorsRoleSerializer(serializers.ModelSerializer):
-    # Write-only for creation
-    username = serializers.CharField(write_only=True, required=True)
-    email = serializers.EmailField(write_only=True, required=True)
-    password = serializers.CharField(write_only=True, required=True)
+from superadmin_app.models import UserProfile  # adjust import if needed
 
-    # Read-only for listing
-    user_id = serializers.IntegerField(source="user.id", write_only=True)
-    user_username = serializers.CharField(source="user.username", write_only=True)
-    user_email = serializers.EmailField(source="user.email", write_only=True)
 
+
+##STAFF
+
+class StaffRoleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CoordinatorsRole
+        model = StaffRole
         fields = [
             "id",
-            "username", "email", "password",  # creation only
-            "user_id", "user_username", "user_email",  # read-only
-            "coordinators_role",
+            "user",            # 👈 include this
+            "phone",
+            "profile_picture",
+            "staff_role",
             "can_access_library",
             "can_access_exam",
             "can_access_finance",
-            "can_access_transport",
             "can_access_arts_sports",
             "can_access_lab",
             "can_access_hostel",
         ]
 
-    def validate_username(self, value):
-        if UserProfile.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Username already exists.")
-        return value
 
-    def create(self, validated_data):
-        username = validated_data.pop("username")
-        email = validated_data.pop("email")
-        password = validated_data.pop("password")
-        role = validated_data.get("coordinators_role")
 
-        # Map role to permission
-        role_permission_map = {
-            "librarian": "can_access_library",
-            "controller_of_exam": "can_access_exam",
-            "finance_officer": "can_access_finance",
-            "transport_officer": "can_access_transport",
-            "arts&sports_coordinator": "can_access_arts_sports",
-            "lab_coordinator": "can_access_lab",
-            "hostel_manager": "can_access_hostel",
-        }
+#BUS 
 
-        if role in role_permission_map:
-            validated_data[role_permission_map[role]] = True
 
-        # Create linked user account
-        user = UserProfile.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            role=role  # only if your UserProfile has a role field
-        )
+from rest_framework import serializers
+from .models import Bus, BusStop, StudentBusAllocation
+from .models import Student  # adjust path if needed
 
-        return CoordinatorsRole.objects.create(user=user, **validated_data)
+class BusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bus
+        fields = '__all__'
 
-    def update(self, instance, validated_data):
-        # Update linked user details if provided
-        username = validated_data.pop("username", None)
-        email = validated_data.pop("email", None)
-        password = validated_data.pop("password", None)
 
-        if username:
-            instance.user.username = username
-        if email:
-            instance.user.email = email
-        if password:
-            instance.user.set_password(password)
+class BusStopSerializer(serializers.ModelSerializer):
+    bus_number = serializers.CharField(source='bus.bus_number', read_only=True)
 
-        instance.user.save()
+    class Meta:
+        
+        model = BusStop
+        
+        fields = ['id', 'bus', 'bus_number', 'stop_name', 'arrival_time']
 
-        # Update coordinator role-specific data
-        return super().update(instance, validated_data)
+
+class StudentBusAllocationSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.user.username', read_only=True)
+    roll_no = serializers.CharField(source='student.roll_no', read_only=True)
+    bus_details = BusSerializer(source='bus', read_only=True)
+    stop_details = BusStopSerializer(source='stop', read_only=True)
+
+    class Meta:
+        
+        model = StudentBusAllocation
+        
+        fields = ['id', 'student', 'student_name', 'roll_no', 'bus', 'bus_details', 'stop', 'stop_details']

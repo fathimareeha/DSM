@@ -49,8 +49,11 @@ urlpatterns=[
     path('semester',views.SemesterView.as_view()),
     path('subject',views.SubjectView.as_view()),
     path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
+    path('user_college/', views.UserCollegeView.as_view(), name='user_college'),
+   
     path('toggle-activation/<str:institution_type>/<int:pk>/', views.ToggleInstitutionActivationView.as_view(), name='toggle-activation'),
     path("pincodes/",views. KeralaPincodeListView.as_view(), name="kerala-pincode-list"),
+
     path('landing-page-content/<int:pk>/', views.LandingPageContentView.as_view(), name='landing-page-content'),
     path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview"),
     path('create_coupon', views.CouponCreateListView.as_view(), name='coupon-create'),
@@ -58,5 +61,6 @@ urlpatterns=[
     path("delete_coupon/<int:pk>", views.CouponDeleteView.as_view(), name="delete-coupon"),
     path("profile",views.ProfileView.as_view())
     
+
 
 ]
