@@ -1,36 +1,40 @@
 import React from "react";
-import { Bell, LogOut, BarChart2 } from "lucide-react";
+import { Bell, LogOut, BarChart2, Menu } from "lucide-react";
 
-const Navbar = () => {
-
+const Navbar = ({ toggleSidebar }) => {
   return (
-    <nav className="bg-blue-50 text-blue-900 p-4 shadow ml-64">
+    <nav className="fixed top-0 left-0 w-full bg-blue-50 text-blue-900 p-4 shadow z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold">School Admin Panel</h1>
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          {/* Hamburger for Mobile */}
+          <button
+            className="md:hidden text-blue-900 hover:text-blue-600"
+            onClick={toggleSidebar}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <h1 className="text-lg md:text-xl font-bold">School Admin Panel</h1>
+        </div>
 
+        {/* Right */}
+        <div className="space-x-4 md:space-x-6 hidden md:flex items-center">
+          <a href="#">Manage Teachers</a>
+          <a href="#">Manage Students</a>
+          <a href="#">Class Timetable</a>
+          <a href="#">Announcements</a>
 
-        <div className="space-x-6 hidden md:flex items-center">
-          <a href="#" className="hover:text-gray-300">Manage Teachers</a>
-          <a href="#" className="hover:text-gray-300">Manage Students</a>
-          <a href="#" className="hover:text-gray-300">Class Timetable</a>
-          <a href="#" className="hover:text-gray-300">Announcements</a>
-
-          {/* Updated Reports with icon */}
-          <a href="#" className="flex items-center gap-1 hover:text-gray-300">
-            <BarChart2 className="w-4 h-4" />
-            Reports
+          <a href="#" className="flex items-center gap-1">
+            <BarChart2 className="w-4 h-4" /> Reports
           </a>
 
-          {/* Notification Icon */}
-          <button className="relative hover:text-gray-300">
+          <button className="relative">
             <Bell className="w-5 h-5" />
-            {/* Notification Dot */}
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
-          {/* Logout Button */}
-          <button className="flex items-center gap-1 text-red-300 hover:text-red-500 transition">
+          <button className="flex items-center gap-1 text-red-400 hover:text-red-600">
             <LogOut className="w-4 h-4" />
             Logout
           </button>

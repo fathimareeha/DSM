@@ -1,119 +1,135 @@
 import React, { useState } from "react";
+import axios from "axios";
 
-// 🚀 Role options (from your Django model)
-const ROLE_CHOICES = [
-  { value: "librarian", label: "Librarian" },
-  { value: "exam_controller", label: "Exam Controller" },
-  { value: "finance_officer", label: "Finance Officer" },
-  { value: "arts_sports_coordinator", label: "Arts&Sports Coordinator" },
-  { value: "lab_coordinator", label: "Lab Coordinator" },
-  { value: "hostel_manager", label: "Hostel Manager" },
-];
-
-export default function StaffCreateForm() {
+const StaffCreateForm = () => {
   const [formData, setFormData] = useState({
     username: "",
-    password: "",
     email: "",
-    phone: "",
-    profile_picture: null,
-    coordinators_role: "", // 🚀 Added role
+    password: "",
+    staffs_role: "",
   });
 
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [errors, setErrors] = useState(null);
+
+  // If you are using token auth, get it from localStorage
+  const token = localStorage.getItem("token"); // <-- define token
+
+  const roleOptions = [
+    { value: "librarian", label: "Librarian" },
+    { value: "exam_controller", label: "Exam Controller" },
+    { value: "finance_officer", label: "Finance Officer" },
+    { value: "arts_sports_coordinator", label: "Arts & Sports Coordinator" },
+    { value: "lab_coordinator", label: "Lab Coordinator" },
+    { value: "hostel_manager", label: "Hostel Manager" },
+  ];
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: files ? files[0] : value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const data = new FormData();
-    for (let key in formData) {
-      data.append(key, formData[key]);
-    }
+    setLoading(true);
+    setMessage(null);
+    setErrors(null);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/schoolapp/staffs/",
+      const response = await axios.post(
+        "http://localhost:8000/schoolapp/staffs/", // backend endpoint
+        formData,
         {
-          method: "POST",
-          body: data,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Token ${token}` : undefined,
+          },
         }
       );
 
-      if (response.ok) {
-        setMessage("✅ Staff created successfully!");
-        setFormData({
-          username: "",
-          password: "",
-          email: "",
-          phone: "",
-          profile_picture: null,
-          coordinators_role: "",
-        });
+      setMessage(response.data.message);
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        staffs_role: "",
+      });
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setErrors(err.response.data);
       } else {
-        setMessage("❌ Failed to create staff");
+        setErrors({ detail: "Something went wrong." });
       }
-    } catch (error) {
-      setMessage("⚠️ Error: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">
-          Create Staff
-        </h2>
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Create Staff Account</h2>
 
-        {["username", "email", "phone"].map((field) => (
-          <div key={field} className="mb-3">
-            <label className="block text-gray-700 capitalize">{field}</label>
-            <input
-              type={field === "email" ? "email" : "text"}
-              name={field}
-              value={formData[field]}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300"
-            />
-          </div>
+      {message && <p className="text-green-600 mb-4">{message}</p>}
+
+      {errors &&
+        Object.keys(errors).map((key) => (
+          <p key={key} className="text-red-600">
+            {key}: {errors[key]}
+          </p>
         ))}
 
-        {/* Password */}
-        <div className="mb-3">
-          <label className="block text-gray-700">Password</label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block font-medium">Username</label>
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+            className="w-full border px-2 py-1 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full border px-2 py-1 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Password</label>
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300"
+            className="w-full border px-2 py-1 rounded"
           />
         </div>
 
-        {/* Role Dropdown */}
-        <div className="mb-3">
-          <label className="block text-gray-700">Role</label>
+        <div>
+          <label className="block font-medium">Role</label>
           <select
-            name="coordinators_role"
-            value={formData.coordinators_role}
+            name="staffs_role"
+            value={formData.staffs_role}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300"
+            className="w-full border px-2 py-1 rounded"
           >
-            <option value="">-- Select Role --</option>
-            {ROLE_CHOICES.map((role) => (
+            <option value="">Select Role</option>
+            {roleOptions.map((role) => (
               <option key={role.value} value={role.value}>
                 {role.label}
               </option>
@@ -121,33 +137,16 @@ export default function StaffCreateForm() {
           </select>
         </div>
 
-        {/* Profile Picture */}
-        <div className="mb-3">
-          <label className="block text-gray-700">Profile Picture</label>
-          <input
-            type="file"
-            name="profile_picture"
-            accept="image/*"
-            onChange={handleChange}
-            className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300"
-          />
-        </div>
-
-        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Create Staff
+          {loading ? "Creating..." : "Create Staff"}
         </button>
-
-        {/* Message */}
-        {message && (
-          <p className="mt-3 text-center text-sm font-semibold text-gray-600">
-            {message}
-          </p>
-        )}
       </form>
     </div>
   );
-}
+};
+
+export default StaffCreateForm;

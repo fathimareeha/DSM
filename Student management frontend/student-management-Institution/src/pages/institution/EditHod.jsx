@@ -18,34 +18,34 @@ function EditHod() {
   const [deptid, setDeptid] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    axios
-      .get("http://127.0.0.1:8000/superadmin_app/department", {
-        headers: { Authorization: `Token ${token}` },
-      })
-      .then((res) => setDeptid(res.data))
-      .catch((err) => {
-        console.error("Error fetching departments:", err);
-        setDeptid([]);
-      });
+    const token = localStorage.getItem('token');
 
-    axios
-      .get(`http://127.0.0.1:8000/collegeapp/hods/${id}/`, {
-        headers: { Authorization: `Token ${token}` },
-      })
-      .then((res) => {
-        const data = res.data;
-        setUsername(data.username);
-        setEmail(data.email);
-        setPhone(data.phone);
-        setSelectedDepartment(data.department);
-      })
-      .catch((err) => {
-        console.error("Error fetching HOD:", err);
-        toast.error("Failed to fetch HOD data");
-      });
-  }, [id]);
+    axios.get('http://127.0.0.1:8000/superadmin_app/department', {
+      headers: { Authorization: `Token ${token}` },
+    })
+    .then((res) => setDeptid(res. data))
+    .catch((err) => {
+      console.error('Error fetching departments:', err);
+      setDeptid([]);
+    });
+
+    axios.get(`http://127.0.0.1:8000/collegeapp/hods/${id}/`, {
+      headers: { Authorization: `Token ${token}` },
+    })
+    .then((res) => {
+      const data = res.data;
+      setUsername(data.username);
+      setEmail(data.email); 
+      setPhone(data.phone);
+      setSelectedDepartment(data.department); // department is just ID
+    })
+    .catch((err) => {
+      console.error('Error fetching HOD:', err);
+      toast.error('Failed to fetch HOD data');
+    });
+
+
 
   const handleUpdate = async (e) => {
     e.preventDefault();
