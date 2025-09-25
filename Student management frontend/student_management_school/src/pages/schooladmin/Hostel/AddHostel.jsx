@@ -1,13 +1,15 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const AddHostel = () => {
   const [hostelData, setHostelData] = useState({
     name: "",
-    type: "",
-    totalRooms: "",
+    hostel_type: "",
+    rooms: "",
     warden: "",
     address: "",
-    contactNumber: "", // Added contact number field
+    contact: "",
   });
 
   const handleChange = (e) => {
@@ -15,19 +17,37 @@ const AddHostel = () => {
     setHostelData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Send hostelData to API or backend here
-    console.log("Hostel Data Submitted:", hostelData);
-    alert("Hostel Created Successfully!");
-    setHostelData({ name: "", type: "", totalRooms: "", warden: "", address: "", contactNumber: "" });
+    try {
+      const token = localStorage.getItem("token"); // if JWT auth
+      await axios.post("http://127.0.0.1:8000/schoolapp/hostels/", hostelData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // remove if not using auth
+        },
+      });
+
+      toast.success("🎉 Hostel Created Successfully!");
+
+      // Reset form
+      setHostelData({
+        name: "",
+        hostel_type: "",
+        rooms: "",
+        warden: "",
+        address: "",
+        contact: "",
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("❌ Failed to create hostel");
+    }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-md">
       <h2 className="text-2xl font-bold mb-6 text-center">Create Hostel</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        
         <div>
           <label className="block text-gray-700">Hostel Name</label>
           <input
@@ -44,8 +64,8 @@ const AddHostel = () => {
         <div>
           <label className="block text-gray-700">Hostel Type</label>
           <select
-            name="type"
-            value={hostelData.type}
+            name="hostel_type"
+            value={hostelData.hostel_type}
             onChange={handleChange}
             className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
@@ -61,8 +81,8 @@ const AddHostel = () => {
           <label className="block text-gray-700">Total Rooms</label>
           <input
             type="number"
-            name="totalRooms"
-            value={hostelData.totalRooms}
+            name="rooms"
+            value={hostelData.rooms}
             onChange={handleChange}
             className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter number of rooms"
@@ -101,13 +121,13 @@ const AddHostel = () => {
           <label className="block text-gray-700">Contact Number</label>
           <input
             type="tel"
-            name="contactNumber"
-            value={hostelData.contactNumber}
+            name="contact"
+            value={hostelData.contact}
             onChange={handleChange}
             className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter contact number"
             required
-            pattern="[0-9]{10}" // Only 10-digit numbers
+            pattern="[0-9]{10}"
           />
         </div>
 

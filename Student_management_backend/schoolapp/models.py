@@ -8,60 +8,47 @@ from django.contrib.auth import get_user_model
 
 
 
-class VicePrincipal(models.Model):
-    userprofile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20)
-    profile_picture = models.ImageField(upload_to='vp_profiles/', null=True, blank=True)
+# class VicePrincipal(models.Model):
+#     userprofile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+#     phone = models.CharField(max_length=20)
+#     profile_picture = models.ImageField(upload_to='vp_profiles/', null=True, blank=True)
 
-    def __str__(self):
-        return self.userprofile.username
+#     def __str__(self):
+#         return self.userprofile.username
 
-
-class Section(models.Model):
     
-    name = models.CharField(max_length=10, unique=True)  # e.g., A, B, C
-
-    def __str__(self):
-        
-        return self.name
 
 
 class Standard(models.Model):
-    
-    name = models.CharField(max_length=50)
-    
-    
-    sections = models.ManyToManyField(Section, blank=True)  # ✅ Dropdown/multiselect
-    
-    
+    name = models.CharField(max_length=50)  # e.g., "1", "2", "3"
+
     def __str__(self):
-        
-        return f"{self.name}"
-    
+        return f"Standard {self.name}"
 
-# class SectionAllocation(models.Model):
-#     standard = models.ForeignKey(Standard, on_delete=models.CASCADE)
-#     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-#     academic_year = models.CharField(max_length=9)  # e.g., "2025-2026"
-#     class_teacher = models.ForeignKey(
-#         UserProfile,
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         related_name="class_teacher_allocations"
-#     )
-#     capacity = models.PositiveIntegerField(default=0)  # Optional
 
-#     class Meta:
-#         unique_together = ('standard', 'section', 'academic_year')
-#         verbose_name = "Section Allocation"
-#         verbose_name_plural = "Section Allocations"
+# {SECTION}
 
-#     def __str__(self):
-#         return f"{self.standard} - {self.section} ({self.academic_year})"
-    
-    
-    ## TEACHERS ##
+class Section(models.Model):
+    name = models.CharField(max_length=1)  # e.g., "A", "B"
+    standard = models.ForeignKey(Standard, related_name='sections', on_delete=models.CASCADE,default=1)
+    is_active = models.BooleanField(default=True)  # ✅ Active/Inactive toggle
+
+    def __str__(self):
+        return f"{self.standard.name} - {self.name}"
+
+
+
+# ---------- Subject Model ----------
+class Subject(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=20, unique=True)
+    standard = models.ForeignKey(Standard, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+# ---------- Teacher Model ----------
 class Teacher(models.Model):
     GENDER_CHOICES = [
         ('Male', 'Male'),
@@ -71,65 +58,69 @@ class Teacher(models.Model):
 
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15)
-    gender = models.CharField(
-    
-    choices=GENDER_CHOICES,
-    default='Male'
-)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    profilePic = models.ImageField(upload_to='teachers/', null=True, blank=True)
+    standard = models.ManyToManyField(Standard, blank=True)
+    section = models.ManyToManyField(Section, blank=True)
+    subjects = models.ManyToManyField(Subject, blank=True)
+    is_class_teacher = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} "
+        return f"{self.user.username} ({'Class Teacher' if self.is_class_teacher else 'Subject Teacher'})"
 
 
-
-    ## SUBJECTS ##
-    
-class Subject(models.Model):
-    
-    name = models.CharField(max_length=100)
-    
-    code = models.CharField(max_length=20, unique=True)
-        
-
-    def __str__(self):
-        
-        return f"{self.name} ({self.code}) "
-
-
-class SubjectAllocation(models.Model):
-    
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    
-    standard = models.ForeignKey(Standard, on_delete=models.CASCADE)
-    
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
-
-    class Meta:
-        
-        unique_together = ('subject', 'teacher', 'standard', 'section')  # prevent duplicates
+# ---------- Bank Model ----------
+class BankAccount(models.Model):
+    teacher = models.OneToOneField(Teacher, on_delete=models.CASCADE, related_name='bank_account')
+    account_name = models.CharField(max_length=150)
+    account_number = models.CharField(max_length=50, unique=True)
+    bank_name = models.CharField(max_length=150)
+    ifsc_code = models.CharField(max_length=20)
+    branch_name = models.CharField(max_length=150)
 
     def __str__(self):
+        return f"{self.account_name} - {self.bank_name}"
+
+    
+# class SubjectAllocation(models.Model):
+    
+#     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    
+#     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    
+#     standard = models.ForeignKey(Standard, on_delete=models.CASCADE)
+    
+#     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+
+#     class Meta:
         
-        return f"{self.subject.name} - {self.teacher.user.get_full_name()} ({self.standard.name}-{self.section.name})"
+#         unique_together = ('subject', 'teacher', 'standard', 'section')  # prevent duplicates
+
+#     def __str__(self):
+        
+#         return f"{self.subject.name} - {self.teacher.user.get_full_name()} ({self.standard.name}-{self.section.name})"
  
+
 
 
 
 ##HOSTEL
 
 
+
 class Hostel(models.Model):
     HOSTEL_TYPE_CHOICES = [
         ('Boys', 'Boys'),
         ('Girls', 'Girls'),
-        ('mixed','Mixed')]
+        ('Mixed', 'Mixed'),
+    ]
 
-    name = models.CharField(max_length=100)  # Hostel Name
-    hostel_type = models.CharField(max_length=10, choices=HOSTEL_TYPE_CHOICES)  # Hostel Type
-    intake = models.IntegerField()  # Total capacity
-    address = models.TextField(null=True, blank=True)  # Address
+    name = models.CharField(max_length=100)
+    hostel_type = models.CharField(max_length=10, choices=HOSTEL_TYPE_CHOICES)
+    rooms = models.IntegerField()   # ✅ renamed from total_rooms
+    warden = models.CharField(max_length=100)
+    address = models.TextField(null=True, blank=True)
+    contact = models.IntegerField()
 
     def __str__(self):
         return f"{self.name} ({self.hostel_type})"
@@ -215,31 +206,6 @@ class Book(models.Model):
 
 ##STAFF
 
-# class StaffRole(models.Model):
-#     ROLE_CHOICES = [
-#         ('librarian', 'Librarian'),
-#         ('exam_controller', 'Exam Controller'),
-#         ('finance_officer', 'Finance Officer'),
-#         ('arts_sports_coordinator', 'Arts&Sports Coordinator'),
-#         ('lab_coordinator', 'Lab Coordinator'),
-#         ('hostel_manager', 'Hostel Manager'),
-#     ]
-#     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name="staff_profile")
-#     phone = models.CharField(max_length=15, blank=True, null=True)
-#     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
-#     user = models.OneToOneField(UserProfile,on_delete=models.CASCADE,related_name='staff_role_profile'  # ✅ Unique related_name
-#     )
-#     staffs_role = models.CharField(max_length=50, choices=ROLE_CHOICES)
-#     can_access_library = models.BooleanField(default=False)
-#     can_access_exam = models.BooleanField(default=False)
-#     can_access_finance = models.BooleanField(default=False)
-#     can_access_arts_sports = models.BooleanField(default=False)
-#     can_access_lab = models.BooleanField(default=False)
-#     can_access_hostel = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f"{self.user.username} - {self.coordinators_role}"
-
 class StaffRole(models.Model):
     ROLE_CHOICES = [
         ('librarian', 'Librarian'),
@@ -251,19 +217,11 @@ class StaffRole(models.Model):
     ]
 
     user = models.OneToOneField(
-        UserProfile,
-        on_delete=models.CASCADE,
-        related_name="schoolapp_staff_role"
+        UserProfile, 
+        on_delete=models.CASCADE, 
+        related_name='staff_role_profile'
     )
-    staff_role = models.CharField(
-        max_length=50,
-        choices=ROLE_CHOICES,
-        default="librarian"
-    )
-
-    phone = models.CharField(max_length=15, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
-
+    staffs_role = models.CharField(max_length=50, choices=ROLE_CHOICES)
     can_access_library = models.BooleanField(default=False)
     can_access_exam = models.BooleanField(default=False)
     can_access_finance = models.BooleanField(default=False)
@@ -271,34 +229,10 @@ class StaffRole(models.Model):
     can_access_lab = models.BooleanField(default=False)
     can_access_hostel = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        # Reset all permissions first
-        self.can_access_library = False
-        self.can_access_exam = False
-        self.can_access_finance = False
-        self.can_access_arts_sports = False
-        self.can_access_lab = False
-        self.can_access_hostel = False
-
-        # Enable permission based on staff_role
-        if self.staff_role == "librarian":
-            self.can_access_library = True
-        elif self.staff_role == "exam_controller":
-            self.can_access_exam = True
-        elif self.staff_role == "finance_officer":
-            self.can_access_finance = True
-        elif self.staff_role == "arts_sports_coordinator":
-            self.can_access_arts_sports = True
-        elif self.staff_role == "lab_coordinator":
-            self.can_access_lab = True
-        elif self.staff_role == "hostel_manager":
-            self.can_access_hostel = True
-
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        return f"{self.user.username} - {self.staff_role}"
+        return f"{self.user.username} - {self.staffs_role}"
 
+    
 ##BUS
 
 class Bus(models.Model):

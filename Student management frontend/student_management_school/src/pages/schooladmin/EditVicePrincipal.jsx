@@ -1,68 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import Inputfield from "../../components/common/Inputfield.jsx";
-import Button from '../../components/common/Button';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import Button from "../../components/common/Button";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
 function EditVicePrincipal() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null); // File state
-  const [previewPic, setPreviewPic] = useState(null); // Preview state
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const vpcreate = async (e) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState(""); // optional
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewPic, setPreviewPic] = useState(null);
+
+  // ✅ Handle file upload
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePicture(file);
+      setPreviewPic(URL.createObjectURL(file)); // preview before upload
+    }
+  };
+
+  // ✅ Fetch VP details
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    axios
+      .get(`http://127.0.0.1:8000/schoolapp/vpdetails/${id}/`, {
+        headers: { Authorization: `Token ${token}` },
+      })
+      .then((res) => {
+        setUsername(res.data.username);
+        setEmail(res.data.email);
+        setPhone(res.data.phone);
+        if (res.data.profile_picture) {
+          setPreviewPic(res.data.profile_picture);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to fetch Vice Principal details");
+      });
+  }, [id]);
+
+  // ✅ Update VP
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     try {
       const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
-      formData.append('email', email);
-      formData.append('phone', phone);
-      if (profilePicture) {
-        formData.append('profile_picture', profilePicture);
-      }
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      if (password) formData.append("password", password);
+      if (profilePicture) formData.append("profile_picture", profilePicture);
 
-      const response = await axios.get(
-        'http://127.0.0.1:8000/schoolapp/vpdetail/${id}/',
+      const response = await axios.put(
+        `http://127.0.0.1:8000/schoolapp/vpdetails/${id}/`,
         formData,
         {
           headers: {
             Authorization: `Token ${token}`,
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      console.log(response);
-      toast.success('VP Created');
+      toast.success("Vice Principal updated successfully!");
+      console.log(response.data);
 
-      // Clear form
-      setUsername('');
-      setPassword('');
-      setEmail('');
-      setPhone('');
-      setProfilePicture(null);
-      setPreviewPic(null);
+      // 🔹 adjust this path to your list route
+      navigate("/admin/list/viceprincipal");
     } catch (error) {
-      console.log(error);
-      toast.error('Failed to create VP');
+      console.error(error);
+      toast.error("Failed to update Vice Principal");
     }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setProfilePicture(file);
-    setPreviewPic(file ? URL.createObjectURL(file) : null);
   };
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Edit Vice Principal</h2>
-      <form onSubmit={vpcreate}>
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Edit Vice Principal
+      </h2>
+
+      <form onSubmit={handleUpdate}>
         <Inputfield
           label="Username"
           type="text"
@@ -71,7 +97,7 @@ function EditVicePrincipal() {
         />
 
         <Inputfield
-          label="Password"
+          label="Password (leave blank if unchanged)"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -91,7 +117,7 @@ function EditVicePrincipal() {
           onChange={(e) => setPhone(e.target.value)}
         />
 
-        {/* Profile Picture Field */}
+        {/* Profile Picture */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Profile Picture

@@ -62,50 +62,51 @@ function BookList() {
               <th className="px-6 py-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {books.length > 0 ? (
-              books.map((book, index) => (
-                <tr
-                  key={book.id}
-                  className={`${
-                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  } hover:bg-indigo-50 transition`}
-                >
-                  <td className="px-6 py-4">{book.id}</td>
-                  <td className="px-6 py-4">{book.title}</td>
-                  <td className="px-6 py-4">{book.author}</td>
-                  <td className="px-6 py-4">{book.isbn}</td>
-                  <td className="px-6 py-4">{book.category}</td>
-                  <td className="px-6 py-4">{book.quantity}</td>
-                  <td className="px-6 py-4 flex justify-center gap-3">
-                    <Link
-                      to={`/admin/edit/book/${book.id}`}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-base font-medium"
-                    >
-                      <Pencil className="w-5 h-5" />
-                      EDIT
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(book.id)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-base font-medium"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                      DELETE
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-6 text-gray-400 italic"
-                >
-                  No books found
-                </td>
-              </tr>
-            )}
-          </tbody>
+<tbody>
+  {books.length > 0 ? (
+    books.map((book, index) => (
+      <tr
+        key={book.id}
+        className={`${
+          index % 2 === 0 ? "bg-gray-50" : "bg-white"
+        } hover:bg-indigo-50 transition`}
+      >
+        {/* ✅ Serial Number */}
+        <td className="px-6 py-4">{index + 1}</td>  
+
+        <td className="px-6 py-4">{book.title}</td>
+        <td className="px-6 py-4">{book.author}</td>
+        <td className="px-6 py-4">{book.isbn}</td>
+        <td className="px-6 py-4">{book.category}</td>
+        <td className="px-6 py-4">{book.quantity}</td>
+        <td className="px-6 py-4 flex justify-center gap-3">
+          <Link
+          
+            to={`/admin/edit/book/${book.id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-base font-medium"
+          >
+            <Pencil className="w-5 h-5" />
+            EDIT
+          </Link>
+          <button
+            onClick={() => handleDelete(book.id)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-base font-medium"
+          >
+            <Trash2 className="w-5 h-5" />
+            DELETE
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="7" className="text-center py-6 text-gray-400 italic">
+        No books found
+      </td>
+    </tr>
+  )}
+</tbody>
+
         </table>
       </div>
     </div>

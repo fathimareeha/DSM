@@ -7,29 +7,59 @@ import Layout from './layout/schooladmin/Layout'
 import Dashboard from './pages/schooladmin/Dashboard'
 import Login from './pages/schooladmin/Login'
 import { ToastContainer } from "react-toastify";
-import VicePrincipalList from './pages/schooladmin/Viceprincipallist'
-import AddTeachers from './pages/schooladmin/Addteachers'
-import EditTeachers from './pages/schooladmin/EditTeachers'
-import CreateClass from './pages/schooladmin/Createclasses'
-import EditVicePrincipal from './pages/schooladmin/EditVicePrincipal'
-// import { AuthProvider, Authprovider } from './context/institution/Authcontext'
-import TeachersList from './pages/schooladmin/Teacherslist'
-import StudentList from './pages/schooladmin/StudentsList'
-import AddVicePrincipal from './pages/schooladmin/Addviceprincipal'
-import StandardsList from './pages/schooladmin/StandardsList'
 import { AuthProvider } from './context/institution/Authcontext'
-import SubjectList from './pages/schooladmin/Subjectslist'
-import CreateSubject from './pages/schooladmin/SubjectCreate'
+
+
+// {VP}
+
+import AddVicePrincipal from './pages/schooladmin/Addviceprincipal'
+import VicePrincipalList from './pages/schooladmin/Viceprincipallist'
+import EditVicePrincipal from './pages/schooladmin/EditVicePrincipal'
+
+// {TEACHERS}
+
+import AddTeachers from './pages/schooladmin/Teachers/AddTeachers'
+import TeachersList from './pages/schooladmin/Teachers/Teacherslist'
+import EditTeacher from './pages/schooladmin/Teachers/EditTeachers'
+
+
+// {STD&SECTIONS}
+
+import StandardSectionCreateForm from './pages/schooladmin/Standard&Section/StandardSectionCreateForm'
+import StandardSectionList from './pages/schooladmin/Standard&Section/Standard&SectionList'
+
+
+// {LIBRARY}
+
 import BookCreateForm from './pages/schooladmin/Library/BookCreate'
 import BookList from './pages/schooladmin/Library/ListBook'
-import StudentCreate from './pages/schooladmin/Addstudents'
-import StudentEdit from './pages/schooladmin/EditStudents'
+
+// {SUBJECTS}
+
+import CreateSubject from './pages/schooladmin/Subject/SubjectCreate'
+import SubjectList from './pages/schooladmin/Subject/Subjectslist'
+import SubjectAssign from './pages/schooladmin/Subject/SubjectAssign'
+
+
+
+
 import StaffCreateForm from './pages/schooladmin/Staffs/AddStaffs'
 import StaffList from './pages/schooladmin/Staffs/StaffsList'
 import AddBusForm from './pages/schooladmin/Transport/AddBus'
 import BusList from './pages/schooladmin/Transport/BusList'
 import AddHostel from './pages/schooladmin/Hostel/AddHostel'
 import HostelList from './pages/schooladmin/Hostel/HostelList'
+import ExamTable from './pages/schooladmin/Exam/Exams'
+// import EditStandardSection from './pages/schooladmin/Standard&Section/EditSection'
+import BookEdit from './pages/schooladmin/Library/EditBook'
+
+// {STUDENTS}
+import StudentCreate from './pages/schooladmin/Students/Addstudents'
+import StudentList from './pages/schooladmin/Students/StudentsList'
+import StudentEdit from './pages/schooladmin/Students/EditStudents'
+import EditStaff from './pages/schooladmin/Staffs/EditStaffs'
+import StaffView from './pages/schooladmin/Staffs/StaffView'
+
 
 
 
@@ -58,36 +88,50 @@ function App() {
 
       <Route path='add/teachers' element={<AddTeachers/>}/>
       <Route path='list/teachers' element={<TeachersList/>}/>
-      <Route path='edit/teacher/:id' element={<EditTeachers/>} />
+      <Route path='edit/teacher/:id' element={<EditTeacher/>}/>
+      {/* <Route path='list/teachers' element={<TeachersList/>}/>
+      <Route path='edit/teacher/:id' element={<EditTeachers/>} /> */}
 
 
     {/* {STUDENTS} */}
+
       <Route path='add/students' element={<StudentCreate/>}/>
       <Route path='list/students' element={<StudentList/>}/>
       <Route path='edit/students/:id' element={<StudentEdit/>}/>
+      {/* <Route path='list/students' element={<StudentList/>}/>
+      <Route path='edit/students/:id' element={<StudentEdit/>}/> */}
 
 
-    {/* {STANDARD} */}
+    {/* {STANDARD & SECTIONS} */}
 
-      <Route path='createclass' element={<CreateClass/>}/>
-      <Route path='standardlist' element={<StandardsList/>} />
+      <Route path='create/std&sec' element={<StandardSectionCreateForm/>}/>
+      <Route path='list/standard&section' element={<StandardSectionList/>} />
+      {/* <Route path='edit/standard&section/:id' element={<EditStandardSection/>}/> */}
 
+
+    {/* {SECTION} */}
+{/* 
+      <Route path='create/section' element={<SectionCreate/>}/>
+      <Route path='list/sections' element={<SectionList/>}/> */}
 
     {/* {SUBJECTS} */}
 
-      <Route path='create/subject' element={<CreateSubject/>} />
-      <Route path='list/subjects' element={<SubjectList/>} />
+      <Route path='create/subject' element={<CreateSubject/>}/>
+      <Route path='list/subjects' element={<SubjectList/>}/>
+      <Route path='assign/subject/:teacherId' element={<SubjectAssign/>}/>
 
 
     {/* LIBRARY */}
       <Route path='add/book' element={<BookCreateForm/>} />
       <Route path='list/books' element={<BookList/>} />
-
+      <Route path='edit/book/:id' element={<BookEdit/>}/>
 
     {/* STAFFS */}
 
       <Route path='add/staff' element={<StaffCreateForm/>}/>
       <Route path='list/staffs' element={<StaffList/>}/>
+      <Route path='edit/staffs/:id' element={<EditStaff/>}/>
+      <Route path='view/staffs/:id' element={<StaffView/>}/>
 
 
     {/* TRANSPORT */}
@@ -103,6 +147,9 @@ function App() {
       <Route path='list/hostel' element={<HostelList/>}/>
 
 
+    {/* {EXAMS} */}
+
+    <Route path='list/exam' element={<ExamTable/>}/>
       </Route>
 
     <Route>

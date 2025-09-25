@@ -6,6 +6,15 @@ function SubjectList() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Convert number → Roman numeral
+  const toRoman = (num) => {
+    const romans = [
+      "I","II","III","IV","V","VI","VII","VIII","IX","X",
+      "XI","XII","XIII","XIV","XV"
+    ];
+    return romans[num - 1] || num;
+  };
+
   const fetchSubjects = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -20,7 +29,7 @@ function SubjectList() {
       setSubjects(response.data);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load subjects");
+      toast.error("❌ Failed to load subjects");
     } finally {
       setLoading(false);
     }
@@ -40,7 +49,7 @@ function SubjectList() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+    <div className="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
       <h2 className="text-3xl font-extrabold text-center bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent mb-6">
         📚 Subjects List
       </h2>
@@ -55,6 +64,7 @@ function SubjectList() {
                 <th className="px-6 py-3 border border-gray-300">ID</th>
                 <th className="px-6 py-3 border border-gray-300">Name</th>
                 <th className="px-6 py-3 border border-gray-300">Code</th>
+                <th className="px-6 py-3 border border-gray-300">Standard</th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +84,18 @@ function SubjectList() {
                   <td className="px-6 py-3 border border-gray-300 text-gray-700">
                     {subject.code}
                   </td>
+                  <td className="px-6 py-3 border border-gray-300 text-gray-700 text-center">
+                    {/* Handle standard as object or id */}
+                    {subject.standard
+                      ? toRoman(
+                          parseInt(
+                            typeof subject.standard === "object"
+                              ? subject.standard.name
+                              : subject.standard
+                          )
+                        )
+                      : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -85,6 +107,3 @@ function SubjectList() {
 }
 
 export default SubjectList;
-
-
-
