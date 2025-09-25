@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import { Routes,Route} from 'react-router-dom'
+import { Routes,Route, Navigate} from 'react-router-dom'
 import './App.css'
 import Navbar from './layout/super_admin/Navbar'
 import Dashboard from './pages/super_admin/Dashboard'
@@ -110,7 +110,8 @@ function App() {
       <Route path='checkout' element={<RazorpayPayment/>}/>
       <Route path='institution_homepage' element={<Institution_adminHomepage/>}/>
       <Route path='school_homepage' element={<SchoolHomepage/>}/>
-      <Route path='college_homepage' element={<CollegeHomepage/>}/>
+      {/* <Route path='/admin/college_homepage' element={<College_Dashboard/>}/> */}
+      {/* <Route path="college_homepage" element={<Navigate to="/admin/dash" replace />} /> */}
       <Route path='dashboard_loader' element={<DashboardLoader/>}/>
     </Routes>
     </Search_provider>
