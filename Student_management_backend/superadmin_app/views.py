@@ -1672,7 +1672,8 @@ class CourseView(generics.ListCreateAPIView):
             university_id = self.request.query_params.get('university_id')
             if university_id:
                 return Course.objects.filter(university_id=university_id)
-            return Course.objects.none() 
+            return Course.objects.all()
+
 
 import openpyxl
 from rest_framework.parsers import MultiPartParser    # handle file uploads

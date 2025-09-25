@@ -23,7 +23,8 @@ class UserProfile(AbstractUser):
 
                 ('hod','hod'),
                 ('faculty','faculty'),
-                ('students','students'))
+                ('students','students'),
+                ('coordinators','coordinators'))
 
     
     
@@ -178,11 +179,13 @@ class Department(models.Model):  # Ex: CSE, ECE under B.Tech
         return f"{self.name} ({self.course.name})"
         
 class Semester(models.Model):  # Ex: Sem 1 to 8
+
     number = models.IntegerField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE,related_name='semesters')
     
     class Meta:
         unique_together = ('number','department')  
+
     
     def __str__(self):
         return f"Semester {self.number} - {self.department.name}"

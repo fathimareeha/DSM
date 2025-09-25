@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
  
     'schoolapp',
-
     'collegeapp',
     'ckeditor',
+
 
     
 ]
@@ -154,3 +154,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
+
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
