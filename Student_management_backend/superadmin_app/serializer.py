@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole,Subject,Semester,Department,Course,University,LandingPageContent
+from superadmin_app.models import UserProfile,School,College,SubscriptionPackage,Payment,Notification,StaffRole,Subject,Semester,Department,Course,University,LandingPageContent,Coupon
 from django.contrib.auth import authenticate
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -53,7 +53,7 @@ class UserSerializer(serializers.ModelSerializer):
 class StaffRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaffRole
-        fields = ['staff_role', 'can_access_school', 'can_access_college', 'can_access_package']
+        fields = ['staff_role', 'can_access_school_college', 'can_access_academics', 'can_access_package']
       
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -278,3 +278,19 @@ class LandingPageContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LandingPageContent
         fields = '__all__'
+        
+
+class CouponSerializer(serializers.ModelSerializer):
+    from_package_name = serializers.CharField(source="from_package.package", read_only=True)
+    from_package_type = serializers.CharField(source="from_package.institution_type", read_only=True)
+    to_package_name = serializers.CharField(source="to_package.package", read_only=True)
+    to_package_type = serializers.CharField(source="to_package.institution_type", read_only=True)
+
+    class Meta:
+        model = Coupon
+        fields = [
+            "id", "code", "discount_type", "discount_value",
+            "from_package", "to_package",  # keep IDs
+            "from_package_name", "from_package_type",
+            "to_package_name", "to_package_type",
+        ]

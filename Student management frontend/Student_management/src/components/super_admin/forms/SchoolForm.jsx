@@ -51,7 +51,7 @@ useEffect(() => {
 
   const handle_submit = (e) => {
     e.preventDefault();
-    school_create(institution_id, school_name, address1, address2, district, state, pin_code, udise_code, location, phone_number, landline_number, school_type, board);
+    school_create(institution_id, school_name, address1, address2, district, state, pin_code, udise_code, location, phone_number,std_code, landline_number, school_type, board);
 
   };
   const options = stdcode.map(item => ({
