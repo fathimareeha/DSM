@@ -1,10 +1,10 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-function StudentCreate() {
+function StudentEdit() {
   const navigate = useNavigate();
+  const { id } = useParams(); // student ID from route
 
   const [formData, setFormData] = useState({
     admissionNumber: "",
@@ -25,6 +25,27 @@ function StudentCreate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Fetch existing data
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`http://127.0.0.1:8000/schoolapp/studentdetail/${id}/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setFormData({
+          ...res.data,
+          dob: res.data.dob ? res.data.dob.split("T")[0] : "", // format date for input
+          profilePic: null, // reset file input
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch student data.");
+      }
+    };
+    fetchStudent();
+  }, [id]);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
@@ -43,11 +64,11 @@ function StudentCreate() {
       const token = localStorage.getItem("token");
       const submitData = new FormData();
       Object.keys(formData).forEach((key) => {
-        submitData.append(key, formData[key]);
+        if (formData[key] !== null) submitData.append(key, formData[key]);
       });
 
-      await axios.post(
-        "http://127.0.0.1:8000/schoolapp/studentcreate/",
+      await axios.put(
+        `http://127.0.0.1:8000/schoolapp/studentdetail/${id}/`,
         submitData,
         {
           headers: {
@@ -57,10 +78,10 @@ function StudentCreate() {
         }
       );
 
-      navigate("/admin/students");
+      navigate("/admin/list/students");
     } catch (err) {
-      setError("Failed to create student. Please try again.");
       console.error(err);
+      setError("Failed to update student.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +90,7 @@ function StudentCreate() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-3xl font-bold text-indigo-800 mb-6 border-b pb-2">
-        Create Student
+        Edit Student
       </h2>
 
       {error && (
@@ -79,6 +100,7 @@ function StudentCreate() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Same fields as in create form */}
         {/* Admission Number */}
         <label className="block">
           Admission No:
@@ -118,27 +140,23 @@ function StudentCreate() {
           />
         </label>
 
-       {/* Standard Dropdown */}
-<label className="block">
-  Standard:
-  <select
-    name="standard"
-    value={formData.standard}
-    onChange={handleChange}
-    className="w-full border p-2 rounded mt-1"
-  >
-    <option value="">Select Standard</option>
-    {[
-      "I", "II", "III", "IV", "V", "VI",
-      "VII", "VIII", "IX", "X", "XI", "XII"
-    ].map((roman, idx) => (
-      <option key={roman} value={roman}>
-        {roman}
-      </option>
-    ))}
-  </select>
-</label>
-        {/* Section Dropdown */}
+        {/* Standard Dropdown */}
+        <label className="block">
+          Standard:
+          <select
+            name="standard"
+            value={formData.standard}
+            onChange={handleChange}
+            className="w-full border p-2 rounded mt-1"
+          >
+            <option value="">Select Standard</option>
+            {["I", "II", "III", "IV", "V", "VI","VII", "VIII", "IX", "X"].map((std) => (
+              <option key={std} value={std}>{std}</option>
+            ))}
+          </select>
+        </label>
+
+        {/* Section */}
         <label className="block">
           Section:
           <select
@@ -149,14 +167,12 @@ function StudentCreate() {
           >
             <option value="">Select Section</option>
             {["A", "B", "C", "D"].map((sec) => (
-              <option key={sec} value={sec}>
-                {sec}
-              </option>
+              <option key={sec} value={sec}>{sec}</option>
             ))}
           </select>
         </label>
 
-        {/* Gender Dropdown */}
+        {/* Gender */}
         <label className="block">
           Gender:
           <select
@@ -171,7 +187,7 @@ function StudentCreate() {
           </select>
         </label>
 
-        {/* Date of Birth */}
+        {/* DOB */}
         <label className="block">
           Date of Birth:
           <input
@@ -203,7 +219,7 @@ function StudentCreate() {
             value={formData.studentAddress}
             onChange={handleChange}
             className="w-full border p-2 rounded mt-1"
-          ></textarea>
+          />
         </label>
 
         {/* Parent Name */}
@@ -259,13 +275,11 @@ function StudentCreate() {
           disabled={loading}
           className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
         >
-          {loading ? "Saving..." : "Create Student"}
+          {loading ? "Saving..." : "Update Student"}
         </button>
       </form>
     </div>
   );
 }
 
-export default StudentCreate;
-
-
+export default StudentEdit;

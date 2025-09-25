@@ -6,12 +6,12 @@ import { Link } from "react-router-dom";
 function StudentList() {
   const [students, setStudents] = useState([]);
 
+  // ✅ Fetch Students
   const fetchStudents = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
         "http://127.0.0.1:8000/schoolapp/studentcreate/",
-        
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -28,33 +28,38 @@ function StudentList() {
     fetchStudents();
   }, []);
 
+  // ✅ Delete Student
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this student?")) {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `http://127.0.0.1:8000/schoolapp/studentdetail/${id}/`,
-          {
-            headers: {
-              Authorization: `Token ${token}`,
-            },
-          }
-        );
-        setStudents(students.filter((student) => student.id !== id));
-      } catch (error) {
-        console.error("Error deleting student:", error);
-      }
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://127.0.0.1:8000/schoolapp/studentdetail/${id}/`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      setStudents((prev) => prev.filter((student) => student.id !== id));
+    } catch (error) {
+      console.error("Error deleting student:", error);
     }
   };
 
   return (
     <div className="p-6">
+      {/* ✅ Page Title */}
       <h2 className="text-3xl font-bold text-indigo-800 mb-6 border-b pb-2">
         Manage Students
       </h2>
 
+      {/* ✅ Table Wrapper */}
       <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
         <table className="w-full text-base text-left border-collapse">
+          {/* ✅ Table Head */}
           <thead className="bg-indigo-600 text-white text-lg">
             <tr>
               <th className="px-6 py-4">ID</th>
@@ -74,6 +79,8 @@ function StudentList() {
               <th className="px-6 py-4 text-center">Actions</th>
             </tr>
           </thead>
+
+          {/* ✅ Table Body */}
           <tbody>
             {students.length > 0 ? (
               students.map((student, index) => (
@@ -84,8 +91,8 @@ function StudentList() {
                   } hover:bg-indigo-50 transition`}
                 >
                   <td className="px-6 py-4">{student.id}</td>
-          
 
+                  {/* Profile Picture */}
                   <td className="px-4 py-3">
                     {student.profilePic ? (
                       <img
@@ -97,6 +104,8 @@ function StudentList() {
                       <span className="text-gray-400">No Photo</span>
                     )}
                   </td>
+
+                  {/* Student Details */}
                   <td className="px-6 py-4">{student.admissionNumber}</td>
                   <td className="px-6 py-4">{student.rollNo}</td>
                   <td className="px-6 py-4">{student.studentName}</td>
@@ -109,7 +118,18 @@ function StudentList() {
                   <td className="px-6 py-4">{student.parentname}</td>
                   <td className="px-6 py-4">{student.relationship}</td>
                   <td className="px-6 py-4">{student.parentPhone}</td>
+
+                  {/* ✅ Actions */}
                   <td className="px-6 py-4 flex justify-center gap-3">
+                    {/* View */}
+                    <Link
+                      to={`/admin/view/students/${student.id}`}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-base font-medium"
+                    >
+                      VIEW
+                    </Link>
+
+                    {/* Edit */}
                     <Link
                       to={`/admin/edit/students/${student.id}`}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-base font-medium"
@@ -117,6 +137,8 @@ function StudentList() {
                       <Pencil className="w-5 h-5" />
                       EDIT
                     </Link>
+
+                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(student.id)}
                       className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-base font-medium"
@@ -129,7 +151,10 @@ function StudentList() {
               ))
             ) : (
               <tr>
-                <td colSpan="15" className="text-center py-6 text-gray-400 italic">
+                <td
+                  colSpan="15"
+                  className="text-center py-6 text-gray-400 italic"
+                >
                   No students found
                 </td>
               </tr>

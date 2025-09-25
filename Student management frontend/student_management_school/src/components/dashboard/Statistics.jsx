@@ -4,6 +4,7 @@ import CalendarCard from "../common/Calender";
 import AttendanceChart from "../common/Chart";
 import UpcomingEvents from "../common/Upcomingevents";
 import { AuthContext } from "../../context/institution/Authcontext"; // ✅ import context
+import FeesCollectionChart from "../common/FeeChart";
 
 function Statistics() {
   const { user } = useContext(AuthContext); // ✅ get logged-in user
@@ -75,6 +76,9 @@ function Statistics() {
         <CalendarCard onDateChange={handleDateChange} />
         <AttendanceChart />
         <UpcomingEvents />
+        </div>
+        <div>
+        <FeesCollectionChart/>
       </div>
     </div>
   );

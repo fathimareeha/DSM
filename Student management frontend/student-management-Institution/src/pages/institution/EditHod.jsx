@@ -22,7 +22,7 @@ function EditHod() {
     axios.get('http://127.0.0.1:8000/superadmin_app/department', {
       headers: { Authorization: `Token ${token}` },
     })
-    .then((res) => setDeptid(res.data))
+    .then((res) => setDeptid(res. data))
     .catch((err) => {
       console.error('Error fetching departments:', err);
       setDeptid([]);
@@ -34,7 +34,7 @@ function EditHod() {
     .then((res) => {
       const data = res.data;
       setUsername(data.username);
-      setEmail(data.email);
+      setEmail(data.email); 
       setPhone(data.phone);
       setSelectedDepartment(data.department); // department is just ID
     })
