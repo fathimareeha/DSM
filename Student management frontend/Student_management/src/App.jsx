@@ -50,7 +50,9 @@ import LandingPageEditor from './components/super_admin/forms/LandingPageEditor'
 import Courses_list from './components/super_admin/list/UniversityList'
 import UniversityList from './components/super_admin/list/UniversityList'
 import UniversityDetailPage from './components/super_admin/list/UniversityDetailPage'
-
+import CouponForm from './components/super_admin/forms/Coupon_create'
+import CouponList from './components/super_admin/table/CouponTable'
+import CollegeDashboard from '../../student-management-Institution/src/pages/institution/Dashboard'
 
 
 
@@ -98,6 +100,9 @@ function App() {
       <Route path='university_list' element={<UniversityList/>}/>
       <Route path='universities/:id' element={<UniversityDetailPage/>} />
       <Route path='content_editor' element={<LandingPageEditor/>}/>
+      <Route path='coupon_create' element={<CouponForm/>}/>
+      <Route path='coupon_list' element={<CouponList/>}/>
+
 
 
 
@@ -109,9 +114,10 @@ function App() {
       <Route path='new_page' element={<New_page/>}/>
       <Route path='checkout' element={<RazorpayPayment/>}/>
       <Route path='institution_homepage' element={<Institution_adminHomepage/>}/>
-      <Route path='school_homepage' element={<SchoolHomepage/>}/>
-      {/* <Route path='/admin/college_homepage' element={<College_Dashboard/>}/> */}
-      {/* <Route path="college_homepage" element={<Navigate to="/admin/dash" replace />} /> */}
+
+      <Route path='college_dashboard' element={<CollegeDashboard/>}/>
+      <Route path='college_homepage' element={<CollegeHomepage/>}/>
+
       <Route path='dashboard_loader' element={<DashboardLoader/>}/>
     </Routes>
     </Search_provider>

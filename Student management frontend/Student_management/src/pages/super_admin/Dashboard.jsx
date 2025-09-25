@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { SuperadminContext } from '../../context/super_admin/Superadmin_Context';
 import ActiveTable from '../../components/super_admin/table/ActiveTable';
 import InstitutionStatusBarChart from '../../components/super_admin/charts/active_inactive_chart';
+import Payment_chart from '../../components/super_admin/charts/Payment_chart';
 
 function Dashboard() {
   console.log();
@@ -47,6 +48,10 @@ function Dashboard() {
   <div className="col-span-1 lg:col-span-2 p-6 rounded-xl bg-white shadow-md w-full sm:h-[250px] lg:h-[400px]">
     <InstitutionStatusBarChart />
   </div>
+</div>
+<div className='mt-6'>
+<Payment_chart/>
+
 </div>
 
         <div className='mt-6'><ActiveTable/></div>

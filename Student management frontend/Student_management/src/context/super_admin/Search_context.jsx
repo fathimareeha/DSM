@@ -203,49 +203,51 @@ const filteredAdminInstitutionList =
 
 
 
-    return(
-    <Search_context.Provider value={{
-    // School
-    school_list,
-    setSearchQuery,
-    filteredSchoolList,
+    return (
+  <Search_context.Provider
+    value={{
+      // School
+      school_list,
+      setSearchQuery,
+      filteredSchoolList,
 
-    // College
-    college_list,
-    searchBar,
-    setSearchBar,
-    selectedUniversity,
-    setSelectedUniversity,
-    districtFilter,
-    setDistrictFilter,
-    filteredCollegeList,
+      // College
+      college_list,
+      filteredCollegeList,
 
-    // Institution
-    institutions_list,
-    setSearchInstitution,
-    filteredInstitutionList,
-    InstitutionsList,
+      // Institution
+      institutions_list,
+      setSearchInstitution,
+      filteredInstitutionList,
+      InstitutionsList,
 
-    // Admin Institution
-    institution_adminList,
-    setInstitution_adminList,
-    searchAdminInstitution,
-    setSearchAdminInstitution,
-    dstrctFilter,
-    setDstrctFilter,
-    universityFilter,
-    setUniversityFilter,
-    filteredAdminInstitutionList,
-    InstitutionAdminList,
+      // Admin Institution
+      institution_adminList,
+      setInstitution_adminList,
+      searchAdminInstitution,
+      setSearchAdminInstitution,
+      dstrctFilter,
+      setDstrctFilter,
+      universityFilter,
+      setUniversityFilter,
+      filteredAdminInstitutionList,
+      InstitutionAdminList,
 
-    // Universities
-    universities,
-}}>
-  {children}
-</Search_context.Provider>
+      // Universities
+      universities,
 
-  )
+      // Search bar
+      searchBar,
+      setSearchBar,
+      selectedUniversity,
+      setSelectedUniversity,
+      districtFilter,
+      setDistrictFilter,
+    }}
+  >
+    {children}
+  </Search_context.Provider>
+);
 }
-
 
 
