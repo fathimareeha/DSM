@@ -32,6 +32,9 @@ urlpatterns=[
     path('institution_count',views.TotalInstitutionCountView.as_view()),
     path('institution_detail/<int:institution_id>/',views.InstitutionDetailView.as_view()),
     path('institution_payment/<int:institution_id>/',views.LatestPaymentReportView.as_view()),
+    path("total_payment_institution/<int:institution_id>", views.InstitutionTotalPaymentView.as_view(), name="delete-coupon"),
+
+    path('payment_history/',views.PaymentHistoryView.as_view()),
     path('notification',views.NotificationListView.as_view()),
     path('mark_all_read/',views.mark_all_notifications_read),
     path('institution_delete/<int:pk>',views.DeleteInstitutionAndAdmin.as_view()),
@@ -48,7 +51,12 @@ urlpatterns=[
     path('subject/upload/',views.BulkSubjectUploadView.as_view(), name='course-upload'),
     path('toggle-activation/<str:institution_type>/<int:pk>/', views.ToggleInstitutionActivationView.as_view(), name='toggle-activation'),
     path("pincodes/",views. KeralaPincodeListView.as_view(), name="kerala-pincode-list"),
-     path('landing-page-content/<int:pk>/', views.LandingPageContentView.as_view(), name='landing-page-content'),
-     path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview"),
+    path('landing-page-content/<int:pk>/', views.LandingPageContentView.as_view(), name='landing-page-content'),
+    path("subscription/upgrade-preview/<int:package_id>/", views.UpgradePreviewView.as_view(), name="upgrade-preview"),
+    path('create_coupon', views.CouponCreateListView.as_view(), name='coupon-create'),
+    path("apply_coupon/", views.ApplyCouponView.as_view(), name="apply-coupon"),
+    path("delete_coupon/<int:pk>", views.CouponDeleteView.as_view(), name="delete-coupon"),
+    path("profile",views.ProfileView.as_view())
+    
 
 ]

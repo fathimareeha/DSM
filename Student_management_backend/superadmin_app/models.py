@@ -28,6 +28,7 @@ class UserProfile(AbstractUser):
     
     
     role=models.CharField(max_length=50,choices=role_options)
+    image=models.ImageField(upload_to="profile_pic", default='profile.png')
     
 
 class Institution(models.Model):
@@ -37,15 +38,15 @@ class Institution(models.Model):
     
 class StaffRole(models.Model):
     ROLE_CHOICES = [
-        ('school_manager', 'School Manager'),
-        ('college_manager', 'College Manager'),
-        ('package_manager', 'Package Manager'),
+        ('institution_manager', 'Institution Manager'),
+        ('academic_manager','Academic Manager'),
+        ('subscription_manager', 'Subscription Manager'),
     ]
 
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE , related_name='staff_role')
     staff_role = models.CharField(max_length=50, choices=ROLE_CHOICES)
-    can_access_school = models.BooleanField(default=False)
-    can_access_college = models.BooleanField(default=False)
+    can_access_school_college = models.BooleanField(default=False)
+    can_access_academics = models.BooleanField(default=False)
     can_access_package = models.BooleanField(default=False)
 
     def __str__(self):
@@ -260,7 +261,22 @@ class Payment(models.Model):
     
     is_paid = models.BooleanField(default=False)
     upgrade_history = models.JSONField(default=list, blank=True)
+    coupon_code = models.CharField(max_length=20, null=True, blank=True)
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    
+class PaymentHistory(models.Model):
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name="payment_history")
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name="history")
+    
+    original_price = models.DecimalField(max_digits=10, decimal_places=2)
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    coupon_code = models.CharField(max_length=50, null=True, blank=True)
+    package = models.CharField(max_length=50)
+    paid_at = models.DateTimeField(auto_now_add=True)  # when this payment was made
 
+    def __str__(self):
+        return f"{self.institution.name} - {self.package} - {self.final_amount}"
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
@@ -301,3 +317,40 @@ class LandingPageContent(models.Model):
     def __str__(self):
         return self.title
 
+
+from django.db import models
+
+class Coupon(models.Model):
+    DISCOUNT_TYPE = (
+        ("fixed", "Fixed Amount"),
+        ("percentage", "Percentage"),
+    )
+
+    code = models.CharField(max_length=20, unique=True)
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE)
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+
+    from_package = models.ForeignKey(
+        'SubscriptionPackage', on_delete=models.CASCADE, related_name='coupons_from'
+    )
+    to_package = models.ForeignKey(
+        'SubscriptionPackage', on_delete=models.CASCADE, related_name='coupons_to'
+    )
+
+    def is_valid_for_upgrade(self, old_package, new_package):
+        return self.is_active and self.from_package == old_package and self.to_package == new_package
+
+    def __str__(self):
+        return self.code
+
+
+class PendingPayment(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    package_obj = models.ForeignKey(SubscriptionPackage, on_delete=models.CASCADE)
+    coupon = models.ForeignKey(Coupon, null=True, blank=True, on_delete=models.SET_NULL)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # final amount after discount
+    razorpay_order_id = models.CharField(max_length=100, unique=True)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    discount_applied = models.DecimalField(max_digits=10, decimal_places=2, default=0) 
