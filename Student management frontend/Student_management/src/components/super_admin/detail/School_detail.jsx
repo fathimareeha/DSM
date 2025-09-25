@@ -93,7 +93,7 @@ function School_detail() {
             <div className="divide-y divide-gray-200 border rounded-md">
               <InfoRow label="Package" value={paymentDetails.package}/>
          
-              <InfoRow label="Amount" value={paymentDetails.amount}/>
+              <InfoRow label="Amount" value={paymentDetails.original_price}/>
               {paymentDetails && (
   <InfoRow
     label="Payment Status"
@@ -114,11 +114,30 @@ function School_detail() {
 
               {paymentDetails.is_paid && (
                   <InfoRow label="End Date" value={paymentDetails.end_date} />)}
-            </div>
+            
+          
+        
+          {/* ✅ Show Upgrade History (loop through all upgrades) */}
+  {paymentDetails.upgrade_history &&
+    paymentDetails.upgrade_history.length > 0 && (
+      <div className="p-2">
+        <h4 className="font-semibold text-gray-700 mb-2">Upgrade History</h4>
+        {paymentDetails.upgrade_history.map((upgrade, index) => (
+          <div key={index} className="mb-2  pb-2">
+            <InfoRow label="Upgraded From" value={upgrade.old_package} />
+            <InfoRow label="Upgraded To" value={upgrade.new_package} />
+            <InfoRow label="Upgrade Amount" value={upgrade.paid_amount} />
+            <InfoRow label="Upgrade Date" value={upgrade.date} />
           </div>
-        </div>
+        ))}
       </div>
-    </div>
+    )}
+</div>
+</div>
+</div>
+</div>
+      </div>
+    
   );
 }
 export default School_detail;

@@ -93,7 +93,7 @@ function Details() {
   <h2 className="text-lg font-semibold text-gray-800 mb-4">Payment Details</h2>
 <div className="divide-y divide-gray-200 border rounded-md">
   <InfoRow label="Package" value={paymentDetails.package} />
-  <InfoRow label="Amount" value={paymentDetails.amount} />
+  <InfoRow label="Amount" value={paymentDetails.original_price} />
 
   {paymentDetails && (
     <InfoRow
@@ -125,8 +125,8 @@ function Details() {
           <div key={index} className="mb-2  pb-2">
             <InfoRow label="Upgraded From" value={upgrade.old_package} />
             <InfoRow label="Upgraded To" value={upgrade.new_package} />
-            <InfoRow label="Upgrade Amount" value={upgrade.upgrade_amount} />
-            <InfoRow label="Upgrade Date" value={upgrade.upgrade_date} />
+            <InfoRow label="Upgrade Amount" value={upgrade.paid_amount} />
+            <InfoRow label="Upgrade Date" value={upgrade.date} />
           </div>
         ))}
       </div>

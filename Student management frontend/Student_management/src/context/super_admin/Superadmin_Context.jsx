@@ -35,9 +35,9 @@ export const SuperadminProvider = ({ children }) => {
   }
   //Staff create
 
-  const staff_create = async (username, email, password1, password2,staff_role) => {
+  const staff_create = async (username, email, password1, password2,staff_role,image) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 ,staff_role}, {
+      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 ,staff_role,image}, {
         headers: {
           Authorization: `Token ${token}`
         }
@@ -229,20 +229,33 @@ const handle_institution_login = async (username, password) => {
 };
 
 
- //Checkout
-  const [order_details, setOrder_details] = useState('');
+// Checkout
+const [order_details, setOrder_details] = useState('');
 
-const handle_package = async (packageId, amountToPay) => {
-  const response = await axios.post(
-    `http://127.0.0.1:8000/superadmin_app/checkout/${packageId}/`,
-    
-    { amount: amountToPay },
-    { headers: { Authorization: `Token ${token}` } }
-  );
+const handle_package = async (packageId, amountToPay, couponCode) => {
+  try {
+    const response = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/checkout/${packageId}/`,
+      {
+        amount: amountToPay,
+        coupon_code: couponCode || null,   // ✅ include coupon code
+      },
+      { headers: { Authorization: `Token ${token}` } }
+    );
 
-  setOrder_details({ ...response.data, package_id: packageId, amount_to_pay: amountToPay });
-  navigate('/Checkout');
+    setOrder_details({
+      ...response.data,
+      package_id: packageId,
+      amount_to_pay: amountToPay,
+      coupon_code: couponCode || null,    // ✅ keep coupon in state too
+    });
+
+    navigate('/Checkout');
+  } catch (error) {
+    console.error("Checkout failed:", error);
+  }
 };
+
   //all institution list
 
   const [institutions_list, setInstitutions_list] = useState([]);

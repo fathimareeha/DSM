@@ -55,6 +55,18 @@ function Sidebar() {
       to: '/admin/content_editor',
       icon: <FaHome />,
     },
+   
+    {
+      label: 'Coupon',
+      icon: <FaHome />,
+      dropdown: true,
+      children: [
+        { label:'Create', to:'/admin/coupon_create'},
+        
+        { label: 'List', to: '/admin/coupon_list'}
+       
+      ],
+    },
     
   ];
 
@@ -63,7 +75,7 @@ function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-[#052659] text-white h-full p-4 md:relative md:translate-x-0">
+    <div className="w-64 bg-[#052659] text-white h-full p-4 md:relative md:translate-x-0 overflow-auto">
       <div className="text-3xl font-bold text-center mb-6">Dhanwis</div>
       <nav className="flex flex-col gap-3">
         {SidebarItems.map((item, index) => (

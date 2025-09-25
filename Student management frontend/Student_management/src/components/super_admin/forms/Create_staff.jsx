@@ -11,13 +11,14 @@ function Create_staff() {
   const [email, setEmail] = useState('');
   const [staffRole,setStaffRole]=useState('')
  
+  const [image, setImage] = useState(null);
   
   
 
   const {staff_create,loading}=useContext(SuperadminContext)
 
   const handle_submit=(e)=>{
-  staff_create(username,email,password1,password2,staffRole)
+  staff_create(username,email,password1,password2,staffRole,image)
     e.preventDefault()
   }
  
@@ -25,7 +26,7 @@ function Create_staff() {
     <div className="mt-7 flex items-center justify-center px-4">
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-lg">
         <h1 className="text-2xl font-bold text-center mb-6">Staff Registration</h1>
-        <form onSubmit={handle_submit} className="space-y-4">
+        <form onSubmit={handle_submit} className="space-y-4" encType="multipart/form-data">
 
           <Input label="Username" type="text" placeholder='Username' onChange={(e) => setUsername(e.target.value)} required={true} />
           <Input label="Email" type="email" placeholder='Email' onChange={(e) => setEmail(e.target.value)} required={true}/>
@@ -38,10 +39,18 @@ function Create_staff() {
               className="w-full border border-gray-300 rounded-md p-2"
             >
               <option value="">-- Select Staff Role --</option>
-              <option value="school_manager">School Manager</option>
-              <option value="college_manager">College Manager</option>
-              <option value="package_manager">Package Manager</option>
+              <option value="institution_manager">Institution Manager</option>
+              <option value="academic_manager">Academic Manager</option>
+              <option value="subscription_manager">Subscription Manager</option>
             </select>
+            <Input
+  label="Profile Image"
+  type="file"
+  onChange={(e) => setImage(e.target.files[0])}
+  required={true}
+/>
+
+
                         <div className='flex justify-center'>
           <button
             type="submit"
