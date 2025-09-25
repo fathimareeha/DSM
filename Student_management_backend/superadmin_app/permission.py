@@ -44,12 +44,15 @@ class IsSuperadminOrReadOnlyForStaff(permissions.BasePermission):
         return False
     
     
-class IsSuperAdminOrSchoolManager(permissions.BasePermission):
+class IsSuperAdminOrInstitutionManager(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
 
         if not user.is_authenticated:
             return False
+        
+        if request.method in permissions.SAFE_METHODS:
+            return True
 
         # If the user is a superadmin
         if user.is_superuser:
@@ -62,30 +65,9 @@ class IsSuperAdminOrSchoolManager(permissions.BasePermission):
             return False
 
         # Either match role or use boolean flag
-        return staff_role.staff_role == 'school_manager' or staff_role.can_access_school
+        return staff_role.staff_role == 'institution_manager' or staff_role.can_access_school_college
     
     
-class IsSuperAdminOrCollegeManager(permissions.BasePermission):
-        def has_permission(self, request, view):
-            user = request.user
-
-            if not user.is_authenticated:
-                return False
-
-            # If the user is a superadmin
-            if user.is_superuser:
-                return True
-
-            # Try to access the user's StaffRole
-            try:
-                staff_role = user.staff_role  # from related_name='staff_role'
-            except StaffRole.DoesNotExist:
-                return False
-
-            # Either match role or use boolean flag
-            return staff_role.staff_role == 'college_manager' or staff_role.can_access_college
-        
-        
         
 class IsSuperAdminOrPackageManager(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -108,4 +90,29 @@ class IsSuperAdminOrPackageManager(permissions.BasePermission):
             return False
 
         # Either match role or use boolean flag
-        return staff_role.staff_role == 'package_manager' or staff_role.can_access_package
+        return staff_role.staff_role == 'subscription_manager' or staff_role.can_access_package
+    
+    
+    
+class IsSuperAdminOrAcademicManager(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user.is_authenticated:
+            return False
+        
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # If the user is a superadmin
+        if user.is_superuser:
+            return True
+
+        # Try to access the user's StaffRole
+        try:
+            staff_role = user.staff_role  # from related_name='staff_role'
+        except StaffRole.DoesNotExist:
+            return False
+
+        # Either match role or use boolean flag
+        return staff_role.staff_role == 'academic_manager' or staff_role.can_access_academics

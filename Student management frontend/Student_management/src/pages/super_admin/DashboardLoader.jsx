@@ -25,9 +25,9 @@ function DashboardLoader() {
           const institutionType = localStorage.getItem("institution_type");
 
           if (institutionType === "school") {
-            navigate("/school_homepage");
+            window.location.href = "http://localhost:5174/admin/dashboard";
           } else if (institutionType === "college") {
-            navigate("/college_homepage");
+            window.location.href = "http://localhost:5173/admin/dash";
           } 
           else {
           console.warn("No valid institution type. Redirecting to login.");

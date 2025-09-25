@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from rest_framework import generics
-from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer,CourseSerializer,DepartmentSerializer,SemesterSerializer,SubjectSerializer,UniversitySerializer,LandingPageContentSerializer,UniversityNestedSerializer
-from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification,StaffRole,Course,Department,Semester,Subject,University,LandingPageContent
+from .serializer import UserSerializer,SchoolSerializer,CollegeSerializer,InstitutionAdminLoginSerializer,Subscription_packageSerializer,PaymentSerializer,AllInstitutionSerializer,NotificationSerializer,CourseSerializer,DepartmentSerializer,SemesterSerializer,SubjectSerializer,UniversitySerializer,LandingPageContentSerializer,UniversityNestedSerializer,CouponSerializer
+from .models import UserProfile,School,College,Institution,SubscriptionPackage,Payment,Notification,StaffRole,Course,Department,Semester,Subject,University,LandingPageContent,Coupon,PendingPayment,PaymentHistory
 from rest_framework import authentication,permissions,serializers
 from rest_framework.views import APIView 
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from .permission import IsInstitutionAdmin,IsSuperadminOrStaff,IsSuperadminOrReadOnlyForStaff,IsSuperAdminOrSchoolManager,IsSuperAdminOrCollegeManager,IsSuperAdminOrPackageManager
+from .permission import IsInstitutionAdmin,IsSuperadminOrStaff,IsSuperadminOrReadOnlyForStaff,IsSuperAdminOrInstitutionManager,IsSuperAdminOrPackageManager,IsSuperAdminOrAcademicManager
 import razorpay
 from datetime import timedelta
 from django.utils import timezone
@@ -43,7 +43,7 @@ KEY_ID='rzp_test_1GToET5GDSxcq2'
 class CreateUserView(generics.ListCreateAPIView):
     
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrInstitutionManager]
     serializer_class=UserSerializer
     queryset=UserProfile.objects.all()
     
@@ -56,7 +56,7 @@ class CreateUserView(generics.ListCreateAPIView):
 
 class DeleteInstitutionAndAdmin(generics.DestroyAPIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperAdminOrInstitutionManager]
 
     def delete(self, request, pk):
         try:
@@ -91,23 +91,23 @@ class CreateListStaffView(generics.ListCreateAPIView):
         user=serializer.save(role='staff')
         
         staff_role = self.request.data.get('staff_role', 'general_staff')  # default if not provided
-        can_access_school = False
-        can_access_college = False
+        can_access_school_college = False
+        can_access_academics = False
         can_access_package = False
 
-        if staff_role == 'school_manager':
-            can_access_school = True
-        elif staff_role == 'college_manager':
-            can_access_college = True
-        elif staff_role == 'package_manager':
+        if staff_role == 'institution_manager':
+            can_access_school_college = True
+        elif staff_role == 'academic_manager':
+            can_access_academics = True
+        elif staff_role == 'subscription_manager':
             can_access_package = True
 
         # Create StaffRole object
         StaffRole.objects.create(
             user=user,
             staff_role=staff_role,
-            can_access_school=can_access_school,
-            can_access_college=can_access_college,
+            can_access_school_college=can_access_school_college,
+            can_access_academics=can_access_academics,
             can_access_package=can_access_package
         )
 
@@ -130,7 +130,7 @@ class KeralaPincodeListView(APIView):
 
 class CreateSchoolView(generics.ListCreateAPIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [IsSuperadminOrReadOnlyForStaff]  # Only superadmin
+    permission_classes = [IsSuperAdminOrInstitutionManager]  # Only superadmin
     serializer_class = SchoolSerializer
     queryset = School.objects.all()
     
@@ -156,14 +156,14 @@ class CreateSchoolView(generics.ListCreateAPIView):
 
 class UpdateRetireveDeleteSchoolView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[IsSuperAdminOrSchoolManager]
+    permission_classes=[IsSuperAdminOrInstitutionManager]
     serializer_class = SchoolSerializer
     queryset = School.objects.all()
     
     
 class GetSchoolByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes = [IsSuperAdminOrSchoolManager]
+    permission_classes = [IsSuperAdminOrInstitutionManager]
 
     def get(self, request, institution_id):
         try:
@@ -188,8 +188,11 @@ class GetSchoolByInstitution(APIView):
         
 class GetCollegeByInstitution(APIView):
     authentication_classes=[authentication.TokenAuthentication]
+
+    permission_classes = [IsSuperAdminOrInstitutionManager]
+
     # permission_classes = [IsSuperAdminOrCollegeManager]
-    permission_classes = [IsAuthenticated]
+    
 
     
     def get(self, request, institution_id):
@@ -198,6 +201,7 @@ class GetCollegeByInstitution(APIView):
         if college:
             return Response({"college_name": college.college_name})
         return Response({"college_name": "Unknown"})
+
 
 
     def get(self, request, institution_id):
@@ -223,7 +227,7 @@ class GetCollegeByInstitution(APIView):
             
 class CreateCollegeView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[IsSuperadminOrReadOnlyForStaff]
+    permission_classes=[IsSuperAdminOrInstitutionManager]
     serializer_class=CollegeSerializer
     queryset=College.objects.all()
     
@@ -255,32 +259,101 @@ from .models import College
 from .serializer import CollegeSerializer
 from collegeapp.models import HOD
 
+# class UserCollegeView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         user = request.user
+#         try:
+#             # ✅ If user is HOD
+#             hod = HOD.objects.select_related("college", "department").filter(user=user).first()
+#             if hod:
+#                 return Response({
+#                     "college_name": hod.college.college_name,
+#                     "department_name": hod.department.name,  # <-- added this
+#                     "role": "HOD"
+#                 })
+
+#             # ✅ If admin
+#             if hasattr(user, "institution"):
+#                 college = College.objects.filter(institution_obj=user.institution).first()
+#                 if college:
+#                     return Response({
+#                         "college_name": college.college_name,
+#                         "department_name": None,
+#                         "role": "ADMIN"
+#                     })
+
+#             return Response({"college_name": "Unknown", "department_name": "Unknown"})
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=400)
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from collegeapp.models import HOD, College
+from superadmin_app.models import Institution
+
 class UserCollegeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         try:
-            # ✅ If user is HOD
-            # hod = HOD.objects.filter(user=user).first()
-            # if hod:
-            #     # adjust this based on your actual model
-            #     college = hod.department.course.college  
-            #     return Response({"college_name": college.college_name})
-            hod = HOD.objects.filter(user=user).first()
+            # HOD
+            hod = HOD.objects.select_related("college", "department").filter(user=user).first()
             if hod:
-                return Response({"college_name": hod.college.college_name})
+                return Response({
+                    "college_name": hod.college.college_name,
+                    "department_name": hod.department.name,
+                    "role": "HOD",
+                    "logo": request.build_absolute_uri(hod.college.logo.url) if hod.college.logo else None
+                })
 
+            # Institution Admin
+            if user.role == "institution_admin":
+                institution = getattr(user, "institution", None)
+                if institution:
+                    college = College.objects.filter(instution_obj=institution).first()
+                    if college:
+                        return Response({
+                            "college_name": college.college_name,
+                            "department_name": None,
+                            "role": "ADMIN",
+                            "logo": request.build_absolute_uri(college.logo.url) if college.logo else None
+                        })
 
-            # ✅ If admin
-            if hasattr(user, "institution"):
-                college = College.objects.filter(instution_obj=user.institution).first()
-                if college:
-                    return Response({"college_name": college.college_name})
+            # Default fallback
+            return Response({
+                "college_name": "Unknown",
+                "department_name": "Unknown",
+                "role": "Unknown",
+                "logo": None
+            })
 
-            return Response({"college_name": "Unknown"})
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+# # views.py
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework.permissions import IsAuthenticated
+# from collegeapp.models import HOD
+
+# class UserCollegeView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         user = request.user
+#         hod = HOD.objects.select_related("college", "department").filter(user=user).first()
+#         if hod:
+#             return Response({
+#                 "college_name": hod.college.college_name,
+#                 "department_name": hod.department.name,  # ✅ exact key
+#                 "university_name": hod.college.university.name if hod.college.university else None,
+#                 "role": user.role  # optional if you want
+#             })
+#         return Response({"detail": "HOD not found"}, status=404)
 
 
 
@@ -295,7 +368,7 @@ class STDCodeListView(APIView):
     
 class UpdateRetireveDeleteCollegeView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[IsSuperAdminOrCollegeManager]
+    permission_classes=[IsSuperAdminOrInstitutionManager]
     serializer_class = CollegeSerializer
     queryset = College.objects.all()
 
@@ -620,158 +693,206 @@ class CheckoutView(APIView):
 
     def post(self, request, *args, **kwargs):
         package_id = kwargs.get("pk")
+        coupon_code = request.data.get("coupon_code")
+
         if not package_id:
             return Response({"error": "Package ID is required"}, status=400)
 
-        package_obj = SubscriptionPackage.objects.get(id=package_id)
-        price = int(float(package_obj.price) * 100)  # Razorpay expects amount in paise
+        # Fetch package
+        try:
+            package_obj = SubscriptionPackage.objects.get(id=package_id)
+        except SubscriptionPackage.DoesNotExist:
+            return Response({"error": "Package not found"}, status=404)
 
-        # Check if user has an existing payment
-        old_payment = Payment.objects.filter(user_obj=request.user, is_paid=True).order_by('-end_date').first()
+        # -------------------------------
+        # Calculate upgrade or full price
+        # -------------------------------
+        old_payment = Payment.objects.filter(
+            user_obj=request.user, is_paid=True
+        ).order_by('-end_date').first()
+
         if old_payment and old_payment.end_date > timezone.now().date():
-            # Calculate upgrade amount
+            # Upgrade calculation
             total_days = (old_payment.end_date - old_payment.start_date).days
             days_used = (timezone.now().date() - old_payment.start_date).days
             days_remaining = total_days - days_used
             old_price_per_day = old_payment.package_obj.price / total_days
             remaining_value = old_price_per_day * days_remaining
             price_to_pay = package_obj.price - remaining_value
-            price_to_pay = round(max(price_to_pay, 0), 2)
         else:
+            # Normal full price
             price_to_pay = package_obj.price
 
-        # Razorpay payment
-        client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
-        data = {"amount": int(price_to_pay * 100), "currency": "INR", "receipt": ""}
-        payment = client.order.create(data=data)
-        payment['package_id'] = package_id
-        payment['amount_to_pay'] = price_to_pay  # send pro-rated amount to frontend
+        price_to_pay = round(max(price_to_pay, 0), 2)
 
-        return Response(data=payment)
+        # -------------------------------
+        # Apply coupon (if provided)
+        # -------------------------------
+        coupon = None
+        discount_applied = 0
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, is_active=True)
+                old_pkg = old_payment.package_obj if old_payment else None
+                print("Coupon code received:", coupon_code)
+                if coupon.is_valid_for_upgrade(old_package=old_pkg, new_package=package_obj):
+                    print("Coupon is valid, applying discount")
+                    if coupon.discount_type == "fixed":
+                        discount_applied = Decimal(coupon.discount_value)
+                    elif coupon.discount_type == "percentage":
+                        discount_applied = (price_to_pay * Decimal(coupon.discount_value)) / Decimal(100)
+
+                    # Apply discount
+                    price_to_pay = (price_to_pay - discount_applied).quantize(Decimal("0.01"))
+                else:
+                    return Response({"error": "Coupon is not valid for this upgrade"}, status=400)
+            except Coupon.DoesNotExist:
+                return Response({"error": "Invalid coupon code"}, status=400)
+            
+        print("Final price_to_pay (after coupon):", price_to_pay)
+
+        # -------------------------------
+        # Create Razorpay Order
+        # -------------------------------
+        client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
+        data = {
+            "amount": int(price_to_pay * 100),  # Razorpay expects amount in paise
+            "currency": "INR",
+            "receipt": f"order_rcptid_{request.user.id}_{package_id}"
+        }
+        payment = client.order.create(data=data)
+        
+        print("Razorpay order created:", payment)
+
+        # -------------------------------
+        # Save Pending Payment
+        # -------------------------------
+        PendingPayment.objects.create(
+            user=request.user,
+            package_obj=package_obj,
+            coupon=coupon,            # store Coupon object
+            amount=price_to_pay,      # final amount after discount
+            discount_applied=discount_applied,  # store applied discount
+            razorpay_order_id=payment["id"],
+            is_paid=False
+        )
+
+        # -------------------------------
+        # Return response to frontend
+        # -------------------------------
+        payment['package_id'] = package_id
+        payment['amount_to_pay'] = price_to_pay
+        payment['discount_applied'] = discount_applied
+        payment['coupon_code'] = coupon_code
+
+        return Response(data=payment, status=200)
+
+
+
+    # def post(self, request, *args, **kwargs):
+    #     package_id = kwargs.get("pk")
+    #     if not package_id:
+    #         return Response({"error": "Package ID is required"}, status=400)
+
+    #     package_obj = SubscriptionPackage.objects.get(id=package_id)
+    #     price = int(float(package_obj.price) * 100)  # Razorpay expects amount in paise
+
+    #     # Check if user has an existing payment
+    #     old_payment = Payment.objects.filter(user_obj=request.user, is_paid=True).order_by('-end_date').first()
+    #     if old_payment and old_payment.end_date > timezone.now().date():
+    #         # Calculate upgrade amount
+    #         total_days = (old_payment.end_date - old_payment.start_date).days
+    #         days_used = (timezone.now().date() - old_payment.start_date).days
+    #         days_remaining = total_days - days_used
+    #         old_price_per_day = old_payment.package_obj.price / total_days
+    #         remaining_value = old_price_per_day * days_remaining
+    #         price_to_pay = package_obj.price - remaining_value
+    #         price_to_pay = round(max(price_to_pay, 0), 2)
+    #     else:
+    #         price_to_pay = package_obj.price
+
+    #     # Razorpay payment
+    #     client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
+    #     data = {"amount": int(price_to_pay * 100), "currency": "INR", "receipt": ""}
+    #     payment = client.order.create(data=data)
+    #     payment['package_id'] = package_id
+    #     payment['amount_to_pay'] = price_to_pay  # send pro-rated amount to frontend
+
+    #     return Response(data=payment)
         
        
-    
-    # def post(self, request, pk):
-    #     user = request.user
-    #     package_id = pk
-    #     new_package = get_object_or_404(SubscriptionPackage, id=package_id)
-
-    #     # Get latest paid package for this user
-    #     latest_payment = Payment.objects.filter(user_obj=user, is_paid=True).order_by('-start_date').first()
-    #     old_amount = latest_payment.package_obj.price if latest_payment else 0
-
-    #     # Calculate upgrade amount
-    #     upgrade_amount = new_package.price - old_amount
-    #     if upgrade_amount <= 0:
-    #         return Response({"error": "Invalid upgrade amount"}, status=400)
-
-    #     # Amount sent from frontend (optional, fallback to calculated upgrade)
-    #     amount_to_pay = request.data.get("amount", upgrade_amount)
-
-    #     # Create Razorpay order (convert to paise)
-    #     client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
-    #     order_data = {
-    #         "amount": int(float(amount_to_pay) * 100),  # amount in paise
-    #         "currency": "INR",
-    #         "receipt": f"order_rcpt_{user.id}_{package_id}"
-    #     }
-    #     payment_order = client.order.create(data=order_data)
-
-    #     # Save a Payment object for this upgrade
-    #     Payment.objects.create(
-    #         user_obj=user,
-    #         package_obj=new_package,
-    #         start_date=timezone.now(),
-    #         end_date=timezone.now() + timedelta(days=365),
-    #         is_paid=False,
-    #     )
-
-    #     # Return Razorpay order details to frontend
-    #     payment_order['package_id'] = package_id
-    #     payment_order['upgrade_amount'] = upgrade_amount  # optional, for frontend display
-    #     return Response(payment_order)
 
 
-    
-
+from django.utils import timezone
 
 # class PaymentVerifyView(APIView):
 #     authentication_classes = [authentication.TokenAuthentication]
 #     permission_classes = [permissions.IsAuthenticated]
 
 #     def post(self, request, *args, **kwargs):
-#         client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
+#         razorpay_payment_id = request.data.get("razorpay_payment_id")
+#         razorpay_order_id = request.data.get("razorpay_order_id")
+#         razorpay_signature = request.data.get("razorpay_signature")
+#         package_id = request.data.get("package_id")
+#         coupon_code = request.data.get("coupon_code")  # optional
+#         amount_to_pay = request.data.get("amount_to_pay")  # 👈 carry this from checkout
 
-#         # Get package ID from URL kwargs or request data
-#         package_id = kwargs.get('pk') or request.data.get('package_id')
-#         if not package_id:
-#             return Response({"error": "Package ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+#         if not (razorpay_payment_id and razorpay_order_id and razorpay_signature):
+#             return Response({"error": "Missing payment details"}, status=400)
 
-#         # Get the subscription package
 #         try:
 #             package_obj = SubscriptionPackage.objects.get(id=package_id)
 #         except SubscriptionPackage.DoesNotExist:
-#             return Response({"error": "Subscription package not found"}, status=status.HTTP_404_NOT_FOUND)
+#             return Response({"error": "Package not found"}, status=404)
 
-#         # Verify Razorpay payment signature
+#         # ---------- STEP 1: Verify signature with Razorpay ----------
+#         client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
+#         params_dict = {
+#             "razorpay_order_id": razorpay_order_id,
+#             "razorpay_payment_id": razorpay_payment_id,
+#             "razorpay_signature": razorpay_signature,
+#         }
+
 #         try:
-#             client.utility.verify_payment_signature(request.data)
+#             client.utility.verify_payment_signature(params_dict)
 #         except razorpay.errors.SignatureVerificationError:
-#             return Response({"error": "Payment verification failed"}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response({"error": "Payment verification failed"}, status=400)
 
-#         # Create Payment record for 1-year subscription
-#         activation_date = timezone.now()
-#         end_date = activation_date + timedelta(days=365)
+#         # ---------- STEP 2: Final amount (handle coupon again for safety) ----------
+#         final_amount = float(amount_to_pay) if amount_to_pay else float(package_obj.price)
 
-#         Payment.objects.create(
+#         if coupon_code:
+#             try:
+#                 coupon = Coupon.objects.get(code=coupon_code, is_active=True)
+#                 discount = (final_amount * coupon.discount_percent) / 100
+#                 final_amount -= discount
+#                 coupon.is_active = False
+#                 coupon.save()
+#             except Coupon.DoesNotExist:
+#                 pass
+
+#         # ---------- STEP 3: Mark payment as success ----------
+#         payment = Payment.objects.create(
 #             user_obj=request.user,
 #             package_obj=package_obj,
+#             razorpay_payment_id=razorpay_payment_id,
+#             razorpay_order_id=razorpay_order_id,
+#             razorpay_signature=razorpay_signature,
+#             amount=round(final_amount, 2),   # 👈 save the actual paid amount
 #             is_paid=True,
-#             start_date=activation_date,
-#             end_date=end_date
+#             coupon_code=coupon_code if coupon_code else None,
 #         )
 
-#         # Activate institution
-#         try:
-#             institution = Institution.objects.get(user_object=request.user)
-#         except Institution.DoesNotExist:
-#             return Response({"error": "Institution not found"}, status=status.HTTP_404_NOT_FOUND)
+#         # ---------- STEP 4: Send notification ----------
+#         Notification.objects.create(
+#             user=request.user,
+#             title="Payment Successful",
+#             message=f"Your payment of ₹{final_amount} for {package_obj.name} has been verified successfully.",
+#             type="payment"
+#         )
 
-#         # Activate school or college
-#         school = School.objects.filter(instution_obj=institution).first()
-#         college = College.objects.filter(instution_obj=institution).first()
-#         if school:
-#             school.is_active = True
-#             school.activation_date = activation_date
-#             school.save()
-#             institution_name = school.school_name
-#         elif college:
-#             college.is_active = True
-#             college.activation_date = activation_date
-#             college.save()
-#             institution_name = college.college_name
-#         else:
-#             institution_name = f"Institution {institution.id}"
+#         return Response({"success": True, "message": "Payment verified successfully"})
 
-#         # Create notification
-#         try:
-#             Notification.objects.create(
-#                 institution=institution,
-#                 notification_type='payment_done',
-#                 title="Payment Received",
-#                 message=f"A payment has been received for '{institution_name}'."
-#             )
-#         except Exception as e:
-#             print("Notification creation failed:", e)
-
-#         # Return token and success response
-#         token, _ = Token.objects.get_or_create(user=request.user)
-#         return Response({
-#             "message": "Payment verified successfully",
-#             "token": token.key
-#         }, status=status.HTTP_200_OK)
-
-from django.utils import timezone
 
 class PaymentVerifyView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -779,97 +900,182 @@ class PaymentVerifyView(APIView):
 
     def post(self, request, *args, **kwargs):
         client = razorpay.Client(auth=(KEY_ID, SECRET_KEY))
-        package_id = kwargs.get('pk') or request.data.get('package_id')
+        razorpay_order_id = request.data.get("razorpay_order_id")
+        package_id = request.data.get("package_id")
+
         if not package_id:
             return Response({"error": "Package ID is required"}, status=400)
 
-        package_obj = SubscriptionPackage.objects.get(id=package_id)
+        try:
+            package_obj = SubscriptionPackage.objects.get(id=package_id)
+        except SubscriptionPackage.DoesNotExist:
+            return Response({"error": "Package not found"}, status=404)
 
         # Verify Razorpay signature
+        params_dict = {
+            "razorpay_order_id": request.data.get("razorpay_order_id"),
+            "razorpay_payment_id": request.data.get("razorpay_payment_id"),
+            "razorpay_signature": request.data.get("razorpay_signature"),
+        }
+
         try:
-            client.utility.verify_payment_signature(request.data)
+            client.utility.verify_payment_signature(params_dict)
         except razorpay.errors.SignatureVerificationError:
             return Response({"error": "Payment verification failed"}, status=400)
 
-        # Check for existing payment
-        latest_payment = Payment.objects.filter(user_obj=request.user, is_paid=True).order_by('-end_date').first()
+        # Get PendingPayment
+        pending_payment = PendingPayment.objects.filter(
+            razorpay_order_id=razorpay_order_id,
+            user=request.user,
+            package_obj=package_obj,
+            is_paid=False
+        ).first()
+
+        if not pending_payment:
+            return Response({"error": "No pending payment found"}, status=400)
+
         now_date = timezone.now().date()
+        coupon = pending_payment.coupon
+
+        # Apply discount
+        if coupon:
+            if coupon.discount_type == "percentage":
+                discount_amount = (package_obj.price * coupon.discount_value) / 100
+            else:
+                discount_amount = coupon.discount_value
+            price_to_pay = package_obj.price - discount_amount
+        else:
+            price_to_pay = package_obj.price
+
+        institution = Institution.objects.get(user_object=request.user)
+        # Determine actual institution name
+        school = School.objects.filter(instution_obj=institution).first()
+        college = College.objects.filter(instution_obj=institution).first()
+
+        if school:
+            inst_name = school.school_name  # or school.school_name depending on your model
+        elif college:
+            inst_name = college.college_name  # or college.college_name
+        else:
+            inst_name = "Institution"
+        
+        # -------------------------------
+        # Handle upgrade or normal
+        # -------------------------------
+        latest_payment = Payment.objects.filter(
+            user_obj=request.user, is_paid=True
+        ).order_by('-end_date').first()
+
+        institution = Institution.objects.get(user_object=request.user)
 
         if latest_payment and latest_payment.end_date > now_date:
-            # Upgrade scenario
+            # Upgrade logic ...
             total_days = (latest_payment.end_date - latest_payment.start_date).days
             days_used = (now_date - latest_payment.start_date).days
             days_remaining = total_days - days_used
             old_price_per_day = latest_payment.package_obj.price / total_days
             remaining_value = old_price_per_day * days_remaining
-            upgrade_amount = package_obj.price - remaining_value
+            upgrade_amount = price_to_pay - remaining_value
             upgrade_amount = round(max(upgrade_amount, 0), 2)
 
-            # Save upgrade history
-            history_entry = {
-                "old_package": latest_payment.package_obj.package,
-                "new_package": package_obj.package,
-                "upgrade_date": str(now_date),
-                "remaining_value": float(remaining_value),
-                "upgrade_amount": float(upgrade_amount),
-            }
-            upgrade_history = latest_payment.upgrade_history or []
-            upgrade_history.append(history_entry)
-            latest_payment.upgrade_history = upgrade_history
+            final_amount = upgrade_amount
+            # ✅ Convert Decimal → float
+            if isinstance(upgrade_amount, Decimal):
+                upgrade_amount = float(upgrade_amount)
 
-            # Update existing payment
+            # ✅ Save upgrade history safely
+            upgrade_entry = {
+                "old_package": str(latest_payment.package_obj.package),
+                "new_package": str(package_obj.package),
+                "paid_amount": float(upgrade_amount),     # ensure float
+                "date": str(now_date),                    # ensure string
+                "coupon_code": coupon.code if coupon else None
+            }
+
+            history = latest_payment.upgrade_history or []
+            history.append(upgrade_entry)
+            latest_payment.upgrade_history = history
+
+            # Update payment record
             latest_payment.package_obj = package_obj
             latest_payment.end_date = latest_payment.start_date + timedelta(days=365)
+            latest_payment.final_amount = float(upgrade_amount)  # also cast here
+            latest_payment.coupon_code = coupon.code if coupon else None
+            latest_payment.is_paid = True
             latest_payment.save()
+
+            # History
+            PaymentHistory.objects.create(
+                institution=institution,
+                payment=latest_payment,
+                original_price=package_obj.price,
+                final_amount=upgrade_amount,  # ✅ amount actually paid for upgrade
+                coupon_code=coupon.code if coupon else None,
+                package=package_obj.package
+            )
+
             payment_type = "upgrade"
 
         else:
-            # Normal 1-year payment
+            
+            final_amount = price_to_pay  
+            # Normal new payment
             activation_date = timezone.now()
             latest_payment = Payment.objects.create(
                 user_obj=request.user,
                 package_obj=package_obj,
-                is_paid=True,
                 start_date=activation_date,
                 end_date=activation_date + timedelta(days=365),
-                upgrade_history=[],
+                is_paid=True,
+                final_amount=price_to_pay,
+                coupon_code=coupon.code if coupon else None
             )
+
+            PaymentHistory.objects.create(
+                institution=institution,
+                payment=latest_payment,
+                original_price=package_obj.price,
+                final_amount=price_to_pay,
+                coupon_code=coupon.code if coupon else None,
+                package=package_obj.package
+            )
+
             payment_type = "normal"
 
-        # ---- institution activation & notifications remain same ----
-        institution = Institution.objects.get(user_object=request.user)
-        school = School.objects.filter(instution_obj=institution).first()
-        college = College.objects.filter(instution_obj=institution).first()
-        if school:
-            school.is_active = True
-            school.activation_date = latest_payment.start_date
-            school.save()
-            institution_name = school.school_name
-        elif college:
-            college.is_active = True
-            college.activation_date = latest_payment.start_date
-            college.save()
-            institution_name = college.college_name
-        else:
-            institution_name = f"Institution {institution.id}"
+        # ✅ Mark PendingPayment as paid
+        pending_payment.is_paid = True
+        pending_payment.save()
 
+        #STEP 4: Send notification ----------
+       # after payment is verified & saved
         Notification.objects.create(
             institution=institution,
-            notification_type='payment_done' if payment_type=="normal" else 'upgrade_done',
-            title="Payment Received" if payment_type=="normal" else "Subscription Upgraded",
-            message=f"{'Payment received' if payment_type=='normal' else 'Subscription upgraded'} for '{institution_name}'."
+            notification_type="payment_done",
+            title="Payment Successful",
+            message=f"Payment of ₹{latest_payment.final_amount} for {inst_name} was completed successfully.",
+            is_read=False
         )
 
-        token, _ = Token.objects.get_or_create(user=request.user)
+        # clean up old "payment_due" or "trial_expired" since they are no longer relevant
+        Notification.objects.filter(
+            institution=institution,
+            notification_type__in=["trial_expired", "payment_due"]
+        ).delete()
+
+        # ✅ Final Response
         return Response({
-            "message": f"Payment verified successfully ({payment_type})",
-            "token": token.key
+            "message": "Payment verified successfully",
+            "payment_id": latest_payment.id,
+            "amount_paid": float(latest_payment.final_amount),
+            "type": payment_type
         }, status=200)
 
-        
+
+
+
 class LatestPaymentReportView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperadminOrReadOnlyForStaff]
 
     def get(self, request, institution_id):
         try:
@@ -897,12 +1103,9 @@ class LatestPaymentReportView(APIView):
             school = School.objects.filter(instution_obj=institution).first()
             college = College.objects.filter(instution_obj=institution).first()
 
+            # If no paid payment exists → handle trial
             if not latest_payment:
-                # Default fallback values
-                institution_type = None
-                institution_name = None
-                registration_id = None
-                created_date = None
+                institution_type, institution_name, registration_id, created_date = None, None, None, None
 
                 if school:
                     institution_type = "school"
@@ -917,9 +1120,8 @@ class LatestPaymentReportView(APIView):
                 else:
                     return Response({"detail": "Institution not found."}, status=404)
 
-                # Trial logic
-                trial_expiry = created_date + timedelta(days=7)  # your trial duration
-                if timezone.now() <= trial_expiry:
+                trial_expiry = created_date + timedelta(days=7)
+                if timezone.now().date() <= trial_expiry:
                     return Response(
                         {
                             "institution_id": institution.id,
@@ -932,7 +1134,8 @@ class LatestPaymentReportView(APIView):
                             "start_date": created_date,
                             "end_date": trial_expiry,
                             "is_paid": False,
-                            "upgrade_history": [],  # No upgrade history in trial
+                            "upgrade_history": [],
+                            "total_amount_paid": 0.0,
                         },
                         status=200,
                     )
@@ -941,39 +1144,41 @@ class LatestPaymentReportView(APIView):
                     {"detail": "No paid payment found and trial expired."}, status=404
                 )
 
-            # Paid user details
+            # ✅ Calculate total paid using aggregation
+            total_paid = (
+                Payment.objects.filter(user_obj=user, is_paid=True)
+                .aggregate(total=Sum("final_amount"))
+                .get("total") or 0
+            )
+
+            # ----- Prepare Response Data -----
             data = {
                 "institution_id": institution.id,
-                "institution_type": "school"
-                if school
-                else "college"
-                if college
-                else "unknown",
-                "institution_name": school.school_name
-                if school
-                else college.college_name
-                if college
-                else "N/A",
-                "registration_id": school.registration_id
-                if school
-                else college.registration_id
-                if college
-                else "N/A",
+                "institution_type": "school" if school else "college" if college else "unknown",
+                "institution_name": (
+                    school.school_name if school else college.college_name if college else "N/A"
+                ),
+                "registration_id": (
+                    school.registration_id if school else college.registration_id if college else "N/A"
+                ),
                 "username": user.username,
                 "email": user.email,
                 "package": latest_payment.package_obj.package,
-                "amount": latest_payment.package_obj.price,
-                
+                "coupon_code": latest_payment.coupon_code if latest_payment.coupon_code else None,
+                "final_amount": latest_payment.final_amount,
+                "original_price": latest_payment.package_obj.price,
                 "start_date": latest_payment.start_date,
                 "end_date": latest_payment.end_date,
                 "is_paid": latest_payment.is_paid,
-                "upgrade_history": latest_payment.upgrade_history,  # 👈 Added here
+                "upgrade_history": latest_payment.upgrade_history,
+                "total_amount_paid": float(total_paid),  # ✅ Now shows ALL paid total
             }
 
             return Response(data, status=200)
 
         except Exception as e:
             return Response({"detail": "Error occurred", "error": str(e)}, status=400)
+
 # class LatestPaymentReportView(APIView):
 #     authentication_classes = [authentication.TokenAuthentication]
 #     permission_classes = [permissions.IsAdminUser]
@@ -983,95 +1188,168 @@ class LatestPaymentReportView(APIView):
 #             # Get institution object
 #             institution = get_object_or_404(Institution, id=institution_id)
 
-#             # Get institution admin user
-#             user = UserProfile.objects.filter(institution=institution, role="institution_admin").first()
+#             # Get the admin user associated with the institution
+#             user = UserProfile.objects.filter(
+#                 institution=institution, role="institution_admin"
+#             ).first()
 #             if not user:
-#                 return Response({"detail": "Institution admin user not found."}, status=404)
+#                 return Response(
+#                     {"detail": "Institution admin user not found."}, status=404
+#                 )
 
-#             # Get all payments for user, including upgrades
-#             payments = (
-#                 Payment.objects
-#                 .filter(user_obj=user)
-#                 .select_related('user_obj', 'package_obj')
-#                 .order_by('-start_date')
+#             # Get the latest paid payment
+#             latest_payment = (
+#                 Payment.objects.filter(user_obj=user, is_paid=True)
+#                 .select_related("user_obj", "package_obj")
+#                 .order_by("-start_date")
+#                 .first()
 #             )
-
+#             total_amount_paid = latest_payment.final_amount or 0
 #             # Get school/college info
 #             school = School.objects.filter(instution_obj=institution).first()
 #             college = College.objects.filter(instution_obj=institution).first()
-#             institution_type = "school" if school else "college" if college else "unknown"
-#             institution_name = school.school_name if school else college.college_name if college else "N/A"
-#             registration_id = school.registration_id if school else college.registration_id if college else "N/A"
 
-#             # Handle trial if no payments exist
-#             if not payments.exists():
-#                 created_date = school.created_date if school else college.created_date
-#                 trial_expiry = created_date + timedelta(days=7)  # 7-day trial
-#                 if timezone.now() <= trial_expiry:
-#                     return Response({
-#                         "institution_id": institution.id,
-#                         "institution_type": institution_type,
-#                         "institution_name": institution_name,
-#                         "registration_id": registration_id,
-#                         "username": user.username,
-#                         "email": user.email,
-#                         "package": "Trial",
-#                         "amount": 0,
-#                         "start_date": created_date,
-#                         "end_date": trial_expiry,
-#                         "is_paid": False,
-#                         "payment_status": "trial"
-#                     }, status=200)
+#             if not latest_payment:
+#                 # Default fallback values
+#                 institution_type = None
+#                 institution_name = None
+#                 registration_id = None
+#                 created_date = None
 
-#                 return Response({"detail": "No payment found and trial expired."}, status=404)
-
-#             # Take latest payment (could be upgrade or initial)
-#             latest_payment = payments.first()
-
-#             # Get target package for upgrade from query params (optional)
-#             upgrade_package_id = request.query_params.get("upgrade_package_id")
-#             upgrade_package = None
-#             if upgrade_package_id:
-#                 upgrade_package = get_object_or_404(SubscriptionPackage, id=upgrade_package_id)
-
-#             # Determine amount to display
-#             if latest_payment.is_paid and upgrade_package and latest_payment.package_obj != upgrade_package:
-#                 # Calculate upgrade amount
-#                 calc = SubscriptionUpgradeCalculator(latest_payment, Decimal(upgrade_package.price))
-#                 amount_to_display = calc.calculate()
-#             else:
-#                 amount_to_display = latest_payment.package_obj.price
-
-#             # Determine payment status
-#             if latest_payment.is_paid:
-#                 if upgrade_package and latest_payment.package_obj != upgrade_package:
-#                     payment_status = "pending_upgrade"
+#                 if school:
+#                     institution_type = "school"
+#                     institution_name = school.school_name
+#                     registration_id = school.registration_id
+#                     created_date = school.created_date
+#                 elif college:
+#                     institution_type = "college"
+#                     institution_name = college.college_name
+#                     registration_id = college.registration_id
+#                     created_date = college.created_date
 #                 else:
-#                     payment_status = "paid"
-#             else:
-#                 payment_status = "pending"
+#                     return Response({"detail": "Institution not found."}, status=404)
 
+#                 # Add all upgrade amounts from upgrade_history
+#                 for upgrade in latest_payment.upgrade_history:
+#                     total_amount_paid += upgrade.get("upgrade_amount", 0)
+                
+#                 # Trial logic
+#                 trial_expiry = created_date + timedelta(days=7)  # your trial duration
+#                 if timezone.now() <= trial_expiry:
+#                     return Response(
+#                         {
+#                             "institution_id": institution.id,
+#                             "institution_type": institution_type,
+#                             "institution_name": institution_name,
+#                             "registration_id": registration_id,
+#                             "username": user.username,
+#                             "email": user.email,
+#                             "payment_status": "trial",
+#                             "start_date": created_date,
+#                             "end_date": trial_expiry,
+#                             "is_paid": False,
+#                             "upgrade_history": [],  # No upgrade history in trial
+#                         },
+#                         status=200,
+#                     )
+
+#                 return Response(
+#                     {"detail": "No paid payment found and trial expired."}, status=404
+#                 )
+
+#                 # Paid user details
 #             data = {
 #                 "institution_id": institution.id,
-#                 "institution_type": institution_type,
-#                 "institution_name": institution_name,
-#                 "registration_id": registration_id,
+#                 "institution_type": "school" if school else "college" if college else "unknown",
+#                 "institution_name": school.school_name if school else college.college_name if college else "N/A",
+#                 "registration_id": school.registration_id if school else college.registration_id if college else "N/A",
 #                 "username": user.username,
 #                 "email": user.email,
 #                 "package": latest_payment.package_obj.package,
-#                 "amount": amount_to_display,
+
+#                 # ✅ Show coupon info & pricing details
+#                 "coupon_code": latest_payment.coupon_code if latest_payment.coupon_code else None,
+#                 "final_amount": (
+#                     latest_payment.final_amount 
+#                     if latest_payment.final_amount is not None 
+#                     else latest_payment.package_obj.price
+#                 ),
+#                 "original_price": latest_payment.package_obj.price,
+
 #                 "start_date": latest_payment.start_date,
 #                 "end_date": latest_payment.end_date,
 #                 "is_paid": latest_payment.is_paid,
-#                 "payment_status": payment_status
+#                 "upgrade_history": latest_payment.upgrade_history,
+#                 "total_amount_paid" : total_amount_paid
 #             }
+
+
+
 
 #             return Response(data, status=200)
 
 #         except Exception as e:
 #             return Response({"detail": "Error occurred", "error": str(e)}, status=400)
 
-    
+
+from django.db.models import Sum
+
+class InstitutionTotalPaymentView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, institution_id):
+        institution = get_object_or_404(Institution, id=institution_id)
+
+        total_paid = PaymentHistory.objects.filter(institution=institution).aggregate(
+            total=Sum("final_amount")
+        )["total"] or 0
+
+        return Response({
+            "institution_id": institution.id,
+            "institution_name": getattr(institution, "name", f"Institution {institution.id}"),
+            "total_paid": float(total_paid)
+        })
+
+
+from django.db.models.functions import TruncMonth,TruncDay   #It truncates a datetime/date field to just the day (removes hours, minutes, seconds).
+
+class PaymentHistoryView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [IsSuperadminOrStaff]
+
+    def get(self, request):
+        type = request.GET.get("type", "daily")
+
+        # use paid_at as the transaction date
+        date_field = "paid_at"
+
+        if type == "monthly":
+            payments = (
+                PaymentHistory.objects.annotate(month=TruncMonth(date_field))
+                .values("month")
+                .annotate(total=Sum("final_amount"))  # use actual paid amount
+                .order_by("month")
+            )
+            data = [
+                {"date": p["month"].strftime("%Y-%m"), "total": float(p["total"])}
+                for p in payments
+            ]
+
+        else:  # daily
+            payments = (
+                PaymentHistory.objects.annotate(day=TruncDay(date_field))
+                .values("day")
+                .annotate(total=Sum("final_amount"))
+                .order_by("day")
+            )
+            data = [
+                {"date": p["day"].strftime("%Y-%m-%d"), "total": float(p["total"])}
+                for p in payments
+            ]
+
+        return Response(data, status=200)
+
     
 from datetime import date
 
@@ -1100,7 +1378,6 @@ class SubscriptionUpgradeCalculator:
         upgrade_amount = self.new_package_price - remaining_old_value
         return round(max(upgrade_amount, 0), 2)  # Round to 2 decimals
 
-
 class UpgradePreviewView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -1116,20 +1393,14 @@ class UpgradePreviewView(APIView):
                 is_paid=True
             ).order_by('-end_date').first()
 
-            if not latest_payment:
-                # No active subscription → full payment
+            if not latest_payment or latest_payment.end_date <= timezone.now().date():
+                # No active subscription or expired → full payment
                 return Response({
                     "is_upgrade": False,
                     "amount_to_pay": float(new_package.price),
-                    "message": "No active subscription found, full package price applies."
-                })
-
-            if latest_payment.end_date <= timezone.now().date():
-                # Subscription expired → full payment
-                return Response({
-                    "is_upgrade": False,
-                    "amount_to_pay": float(new_package.price),
-                    "message": "Current subscription expired, full package price applies."
+                    "discount_amount": 0,
+                    "final_amount_to_pay": float(new_package.price),
+                    "message": "No active subscription found or subscription expired. Full price applies."
                 })
 
             # Check if it's actually an upgrade
@@ -1137,18 +1408,41 @@ class UpgradePreviewView(APIView):
                 return Response({
                     "is_upgrade": False,
                     "amount_to_pay": 0,
+                    "discount_amount": 0,
+                    "final_amount_to_pay": 0,
                     "message": "Selected package is not higher than the current one."
                 })
 
-            # Calculate pro-rated cost
+            # Calculate pro-rated upgrade cost
             calc = SubscriptionUpgradeCalculator(latest_payment, Decimal(new_package.price))
             upgrade_amount = calc.calculate()
 
+            # Check coupon (from query params)
+            coupon_code = request.query_params.get("coupon_code")
+            discount_amount = 0
+            if coupon_code:
+                try:
+                    coupon = Coupon.objects.get(code=coupon_code, is_active=True)
+                    # Validate coupon matches upgrade path
+                    if (coupon.from_package == latest_payment.package_obj and
+                        coupon.to_package.id == new_package.id):
+                        if coupon.discount_type == "fixed":
+                            discount_amount = coupon.discount_value
+                        elif coupon.discount_type == "percentage":
+                            discount_amount = (upgrade_amount * coupon.discount_value) / 100
+                except Coupon.DoesNotExist:
+                    discount_amount = 0  # Invalid coupon ignored
+
+            final_amount_to_pay = max(upgrade_amount - discount_amount, 0)
+
             return Response({
                 "is_upgrade": True,
-                "amount_to_pay": float(upgrade_amount),
                 "old_package": latest_payment.package_obj.package,
                 "new_package": new_package.package,
+                "amount_to_pay": float(upgrade_amount),
+                "discount_amount": float(discount_amount),
+                "final_amount_to_pay": float(final_amount_to_pay),
+                "coupon_code": coupon_code if coupon_code else None,
                 "message": f"Upgrade from {latest_payment.package_obj.package} to {new_package.package}"
             })
 
@@ -1399,9 +1693,10 @@ class TotalInstitutionCountView(APIView):
         total_inactive_institution_count=inactive_school_count+inactive_college_count
         total_active_institution_count = active_school_count + active_college_count
         
-        total_amount_paid = Payment.objects.filter(is_paid=True).aggregate(
-            total_amount=Sum(F('package_obj__price'))
+        total_amount_paid = PaymentHistory.objects.aggregate(
+            total_amount=Sum('final_amount')
         )['total_amount'] or 0
+
         
         staff_count=User.objects.filter(role='staff').count()
 
@@ -1477,35 +1772,39 @@ class DeactivateInstitutionView(APIView):
 
 class UniversityView(generics.ListCreateAPIView)  :
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrAcademicManager]
     queryset = University.objects.all()
     serializer_class = UniversitySerializer
     
 class ListUniversityView(generics.ListAPIView)  :
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrAcademicManager]
     queryset = University.objects.all()
     serializer_class = UniversityNestedSerializer
     
 class UniversityDetailView(generics.RetrieveAPIView):
     authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperAdminOrAcademicManager]
     queryset = University.objects.all()
     serializer_class = UniversityNestedSerializer
         
 
 
+
 class CourseView(generics.ListCreateAPIView):
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes=[IsSuperAdminOrAcademicManager]
 
-    serializer_class = CourseSerializer
+# a small mixin/helper
+def get_user_university(user):
+    if hasattr(user, "institution"):
+        college = College.objects.filter(instution_obj=user.institution).first()
+        if college:
+            return college.university
+    return None
 
-    def get_queryset(self):
-            university_id = self.request.query_params.get('university_id')
-            if university_id:
-                return Course.objects.filter(university_id=university_id)
-            return Course.objects.all()
+
+
 
 
 import openpyxl
@@ -1538,7 +1837,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 class BulkCourseUploadView(APIView):
     parser_classes = [MultiPartParser]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdminOrAcademicManager]
 
     def post(self, request):
         file = request.FILES.get('file')
@@ -1566,51 +1865,166 @@ class BulkCourseUploadView(APIView):
 
 
 class DepartmentView(generics.ListCreateAPIView):
+
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes=[IsSuperAdminOrAcademicManager]
    
+
+
     serializer_class = DepartmentSerializer
-    
+
     def get_queryset(self):
-        course_id = self.request.query_params.get('course')
-        university_id = self.request.query_params.get('university')
+        user = self.request.user
 
+        # base queryset
+        qs = Department.objects.all()
+
+        # superusers/staff see everything
+        if not (user.is_superuser or user.is_staff):
+            university = get_user_university(user)
+            if university:
+                qs = qs.filter(course__university=university)
+            else:
+                return Department.objects.none()
+
+        # filter further by course_id if provided
+        course_id = self.request.query_params.get("course_id")
         if course_id:
-            return Department.objects.filter(course_id=course_id)
-        elif university_id:
-            return Department.objects.filter(course__university_id=university_id)
+            qs = qs.filter(course_id=course_id)
 
-        return Department.objects.all()
+        return qs
+    
+# # academics/utils.py
+
+# def get_user_university(user):
+#     """
+#     Returns the university object related to the given user
+#     depending on their role (superadmin, college admin, hod, faculty, student).
+#     """
+#     if user.is_superuser or user.is_staff:
+#         return None
+
+#     if hasattr(user, "institution"):
+#         return getattr(user.institution, "university", None)
+
+#     if hasattr(user, "hod"):
+#         return getattr(user.hod.department.course, "university", None)
+
+#     if hasattr(user, "faculty"):
+#         return getattr(user.faculty.department.course, "university", None)
+
+#     if hasattr(user, "student"):
+#         return getattr(user.student.department.course, "university", None)
+
+#     return None
+
+# academics/utils.py
+
+def get_user_university(user):
+    """
+    Returns the university object related to the given user
+    depending on their role (superadmin, college admin, hod, faculty, student).
+    """
+    # superusers/staff see all → return None
+    if user.is_superuser or user.is_staff:
+        return None
+
+    # College admin: check institution → college → university
+    if hasattr(user, "institution") and user.institution:
+        college = College.objects.filter(instution_obj=user.institution).first()
+        if college and college.university:
+            return college.university
+
+    # HOD
+    if hasattr(user, "hod") and user.hod:
+        dept = getattr(user.hod, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    # Faculty
+    if hasattr(user, "faculty") and user.faculty:
+        dept = getattr(user.faculty, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    # Student
+    if hasattr(user, "student") and user.student:
+        dept = getattr(user.student, "department", None)
+        if dept and getattr(dept, "course", None):
+            return dept.course.university
+
+    return None
+
 
 class SemesterView(generics.ListCreateAPIView):
-    authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAuthenticated]
-    queryset = Semester.objects.all()
-    serializer_class = SemesterSerializer
-    
-    def get_queryset(self):
-        university_id = self.request.query_params.get('university')
-        course_id = self.request.query_params.get('course')
-        dept_id = self.request.query_params.get('department')
 
-        if course_id and dept_id:
-            return Semester.objects.filter(course_id=course_id, department_id=dept_id)
-        elif course_id:
-            return Semester.objects.filter(course_id=course_id)
-        elif university_id:
-            return Department.objects.filter(course__university_id=university_id)
-        return Semester.objects.all()
+    authentication_classes=[authentication.TokenAuthentication]
+    permission_classes=[IsSuperAdminOrAcademicManager]
+    queryset = Semester.objects.all()
+
+    serializer_class = SemesterSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # superusers & staff → all
+        if user.is_superuser or user.is_staff:
+            qs = Semester.objects.all()
+        else:
+            university = get_user_university(user)
+            if university:
+                qs = Semester.objects.filter(department__course__university=university)
+            else:
+                return Semester.objects.none()
+
+        # optional filter by department_id
+        dept_id = self.request.query_params.get("department_id")
+        if dept_id:
+            qs = qs.filter(department_id=dept_id)
+
+        return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
+
+
 
 class SubjectView(generics.ListCreateAPIView):
+
     authentication_classes=[authentication.TokenAuthentication]
-    permission_classes=[permissions.IsAdminUser]
+    permission_classes=[IsSuperAdminOrAcademicManager]
     queryset = Subject.objects.all()
+
     serializer_class = SubjectSerializer
-    
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser or user.is_staff:
+            qs = Subject.objects.all()
+        else:
+            university = get_user_university(user)
+            if university:
+                qs = Subject.objects.filter(
+                    semester__department__course__university=university
+                )
+            else:
+                return Subject.objects.none()
+
+        # extra filter by semester_id
+        sem_id = self.request.query_params.get("semester_id")
+        if sem_id:
+            qs = qs.filter(semester_id=sem_id)
+
+        return qs
+
     
 class BulkSubjectUploadView(APIView):
     parser_classes = [MultiPartParser]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdminOrAcademicManager]
 
     def post(self, request):
         file = request.FILES.get('file')
@@ -1701,3 +2115,99 @@ class LandingPageContentView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return LandingPageContent.objects.first()
+    
+    
+class CouponCreateListView(generics.ListCreateAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [IsSuperadminOrReadOnlyForStaff]
+    authentication_classes=[authentication.TokenAuthentication]
+    
+    
+class CouponDeleteView(generics.DestroyAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [permissions.IsAdminUser]
+    authentication_classes=[authentication.TokenAuthentication]
+    
+    
+class ApplyCouponView(APIView):
+    def post(self, request):
+        code = request.data.get("coupon_code")
+        old_package_id = request.data.get("old_package_id")
+        new_package_id = request.data.get("new_package_id")
+        original_amount = request.data.get("amount")
+
+        if not code or not old_package_id or not new_package_id or not original_amount:
+            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parse amount safely
+        try:
+            amount = float(original_amount)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get coupon
+        try:
+            coupon = Coupon.objects.get(code=code, is_active=True)
+        except Coupon.DoesNotExist:
+            return Response({"error": "Invalid or inactive coupon"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get packages
+        try:
+            old_package = SubscriptionPackage.objects.get(id=old_package_id)
+            new_package = SubscriptionPackage.objects.get(id=new_package_id)
+        except SubscriptionPackage.DoesNotExist:
+            return Response({"error": "Invalid package"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate coupon
+        if not coupon.is_valid_for_upgrade(old_package, new_package):
+            return Response({"error": "Coupon not valid for this upgrade"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Apply discount (reuse model logic if added)
+        if coupon.discount_type == "fixed":
+            final_amount = max(amount - float(coupon.discount_value), 0)
+        elif coupon.discount_type == "percentage":
+            final_amount = amount - (amount * float(coupon.discount_value) / 100)
+        else:
+            final_amount = amount
+
+        final_amount = round(final_amount, 2)
+
+        return Response({
+            "success": True,
+            "coupon": coupon.code,
+            "original_amount": amount,
+            "discount_value": str(coupon.discount_value),
+            "discount_type": coupon.discount_type,
+            "discount_applied": round(amount - final_amount, 2),
+            "final_amount": final_amount,
+        }, status=status.HTTP_200_OK)
+
+
+
+
+class ProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Case 1: Django createsuperuser
+        if user.is_superuser:
+            role = "superadmin"
+        # Case 2: Normal users with role field
+        elif hasattr(user, "role") and user.role:
+            role = user.role
+        else:
+            role = "unknown"
+
+        profile_data = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": role,
+        }
+        return Response(profile_data)

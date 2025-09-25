@@ -25,6 +25,8 @@ function CollegeForm() {
   const [activated_date, setActivated_date] = useState('');
   const [universities, setUniversities] = useState([]);
   const [selectedUniversity, setSelectedUniversity] = useState('');
+  const [logo, setLogo] = useState(null);
+
 
   const token = localStorage.getItem("token");
 
@@ -72,7 +74,7 @@ useEffect(() => {
   const {college_create,institution_id,loading}=useContext(SuperadminContext)
     const handle_submit =  (e) => {
       e.preventDefault();
-      college_create(institution_id,college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number,college_type, selectedUniversity);
+      college_create(institution_id,college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number,college_type, selectedUniversity,logo);
       
     };
     const options = stdcode.map(item => ({
@@ -207,6 +209,16 @@ useEffect(() => {
         ))}
       </select>
     </div>
+    <div className="flex flex-col">
+  <label className="font-semibold">College Logo</label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setLogo(e.target.files[0])}
+    className="w-full py-2 rounded bg-gray-200 px-3 shadow border-b border-b-gray-400 focus:border-blue-900 focus:border-b-2 outline-none"
+  />
+</div>
+
           </div>
 
           <div className="flex justify-center pt-4">

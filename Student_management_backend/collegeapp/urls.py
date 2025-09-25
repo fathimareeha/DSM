@@ -1,11 +1,26 @@
 from django.urls import path
-from .views import HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView,EventListCreateView,login_view
+from .views import  HODListCreateAPIView,HODDetailAPIView,FacultyListCreateAPIView,FacultyDetailAPIView,StudentListCreateAPIView,StudentDetailAPIView,StudentBulkUploadAPIView,CoordinatorsRoleListCreateView,BookListCreateView,BookDetailView,BulkBookUploadView,HostelListCreateView,HostelDetailView,AssignHostelView,BusListCreateAPIView,BusDetailAPIView,BusStopListCreateAPIView,BusStopDetailAPIView,StudentBusAllocationListCreateAPIView,StudentBusAllocationDetailAPIView,MyBusAPIView,EventListCreateView,login_view,FacultySubjectAssignmentView,CourseDetailView,CollegeAcademicSelectionListCreateView,CourseListView,CoordinatorsRoleDetailView,HODAttendanceListCreateView,SelectedCourseCountView
 from superadmin_app.views import GetCollegeByInstitution
 from django.conf import settings
 from django.conf.urls.static import static
 
 
 urlpatterns = [
+
+    # path("college-courses/", CollegeCourseListCreateView.as_view(), name="college-courses"),
+    # path("college-departments/", CollegeDepartmentListCreateView.as_view(), name="college-departments"),
+
+    #  path("available-courses/", AvailableCourseListView.as_view(), name="available-courses"),
+    # path("available-departments/<int:course_id>/", AvailableDepartmentListView.as_view(), name="available-departments"),
+
+    # urls.py
+    path("college/academic-selections/", CollegeAcademicSelectionListCreateView.as_view(), name="college-academic-selections"),
+
+    path("courses/", CourseListView.as_view(), name="course-list"),
+
+
+    path("courses/<int:pk>/", CourseDetailView.as_view(), name="course-detail"),
+    path('courses/count/', SelectedCourseCountView.as_view(), name='course-count'),
     
     path('hods/', HODListCreateAPIView.as_view(), name='list-create-hod'),
     path('hods/<int:id>/', HODDetailAPIView.as_view(), name='hod-detail'),
@@ -28,6 +43,8 @@ urlpatterns = [
 
 
     path("coordinators/", CoordinatorsRoleListCreateView.as_view(), name="coordinators-list-create"),
+    path("coordinators/<int:pk>/", CoordinatorsRoleDetailView.as_view(), name="coordinator-detail"),
+
 
 
     path('books/', BookListCreateView.as_view(), name='book-list-create'),
@@ -56,6 +73,9 @@ urlpatterns = [
 
 
     path('loginmembers/', login_view, name='login'),
+    path("assign-subjects/", FacultySubjectAssignmentView.as_view(), name="assign-subjects"),
+    path('hod-attendance/', HODAttendanceListCreateView.as_view(), name='hod-attendance-list-create'),
+    
    
 
     

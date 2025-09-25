@@ -35,9 +35,9 @@ export const SuperadminProvider = ({ children }) => {
   }
   //Staff create
 
-  const staff_create = async (username, email, password1, password2,staff_role) => {
+  const staff_create = async (username, email, password1, password2,staff_role,image) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 ,staff_role}, {
+      const response = await axios.post("http://127.0.0.1:8000/superadmin_app/create_staff", { username, email, password1, password2 ,staff_role,image}, {
         headers: {
           Authorization: `Token ${token}`
         }
@@ -179,28 +179,69 @@ export const SuperadminProvider = ({ children }) => {
       setloading(false)
     }
   };
-  //College create
-  const college_create = async (institutionId, college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type, selectedUniversity) => {
+  // College create
+const college_create = async (
+  institutionId,
+  college_name,
+  address1,
+  address2,
+  district,
+  state,
+  pin_code,
+  aishe_code,
+  location,
+  phone_number,
+  std_code,
+  landline_number,
+  college_type,
+  selectedUniversity,
+  logo
+) => {
+  setloading(true);
+  try {
+    const formData = new FormData();
+    formData.append("college_name", college_name);
+    formData.append("address1", address1);
+    formData.append("address2", address2);
+    formData.append("district", district);
+    formData.append("state", state);
+    formData.append("pin_code", pin_code);
+    formData.append("aishe_code", aishe_code);
+    formData.append("location", location);
+    formData.append("phone_number", phone_number);
+    formData.append("std_code", std_code);
+    formData.append("landline_number", landline_number);
+    formData.append("college_type", college_type);
+    formData.append("university", selectedUniversity);
 
-    try {
-      const response = await axios.post(`http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`, { college_name, address1, address2, district, state, pin_code, aishe_code, location, phone_number,std_code, landline_number, college_type,university:selectedUniversity },
-        {
-          headers: {
-            Authorization: `Token ${token}`
-          }
-        }
-      )
-
-      console.log(response.data);
-      toast.success('College Registered Successfully')
-    } catch (error) {
-      console.error("Error creating school:", error.response?.data || error.message);
+    if (logo) {
+      formData.append("logo", logo); // ✅ file upload
     }
-    finally {
-      setloading(false)
-    }
 
+    const response = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/create_college/${institutionId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "multipart/form-data", // ✅ important
+        },
+      }
+    );
+
+    console.log(response.data);
+    toast.success("College Registered Successfully");
+  } catch (error) {
+    console.error(
+      "Error creating college:",
+      error.response?.data || error.message
+    );
+    toast.error("Failed to register college");
+  } finally {
+    setloading(false);
   }
+};
+
   //institution_admin login
 const handle_institution_login = async (username, password) => {
   setloading(true);
@@ -229,20 +270,33 @@ const handle_institution_login = async (username, password) => {
 };
 
 
- //Checkout
-  const [order_details, setOrder_details] = useState('');
+// Checkout
+const [order_details, setOrder_details] = useState('');
 
-const handle_package = async (packageId, amountToPay) => {
-  const response = await axios.post(
-    `http://127.0.0.1:8000/superadmin_app/checkout/${packageId}/`,
-    
-    { amount: amountToPay },
-    { headers: { Authorization: `Token ${token}` } }
-  );
+const handle_package = async (packageId, amountToPay, couponCode) => {
+  try {
+    const response = await axios.post(
+      `http://127.0.0.1:8000/superadmin_app/checkout/${packageId}/`,
+      {
+        amount: amountToPay,
+        coupon_code: couponCode || null,   // ✅ include coupon code
+      },
+      { headers: { Authorization: `Token ${token}` } }
+    );
 
-  setOrder_details({ ...response.data, package_id: packageId, amount_to_pay: amountToPay });
-  navigate('/Checkout');
+    setOrder_details({
+      ...response.data,
+      package_id: packageId,
+      amount_to_pay: amountToPay,
+      coupon_code: couponCode || null,    // ✅ keep coupon in state too
+    });
+
+    navigate('/Checkout');
+  } catch (error) {
+    console.error("Checkout failed:", error);
+  }
 };
+
   //all institution list
 
   const [institutions_list, setInstitutions_list] = useState([]);
